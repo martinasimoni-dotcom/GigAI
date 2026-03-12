@@ -7,7 +7,7 @@ name = "gigai"
 version = "1.0.0"
 description = "Intelligent event-driven workflow automation for construction material change coordination"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [
     {name = "Your Company", email = "engineering@yourcompany.com"}
@@ -39,34 +39,24 @@ classifiers = [
 ]
 
 dependencies = [
-    "fastapi>=0.109.0",
-    "uvicorn[standard]>=0.27.0",
-    "python-multipart>=0.0.6",
-    "websockets>=12.0",
-    "psycopg2-binary>=2.9.9",
-    "asyncpg>=0.29.0",
-    "sqlalchemy>=2.0.25",
+    "anthropic>=0.40.0",
+    "voyageai>=0.2.3",
+    "psycopg2-binary>=2.9",
     "pgvector>=0.2.4",
-    "anthropic>=0.18.1",
-    "voyageai>=0.2.1",
-    "pydantic>=2.6.0",
+    "pydantic>=2.0",
     "pydantic-settings>=2.1.0",
-    "python-dotenv>=1.0.0",
-    "httpx>=0.26.0",
-    "requests>=2.31.0",
-    "google-auth>=2.27.0",
-    "google-auth-oauthlib>=1.2.0",
-    "google-api-python-client>=2.116.0",
-    "pyyaml>=6.0.1",
-    "python-json-logger>=2.0.7",
-    "python-jose[cryptography]>=3.3.0",
-    "passlib[bcrypt]>=1.7.4",
-    "cryptography>=42.0.2",
-    "structlog>=24.1.0",
-    "python-dateutil>=2.8.2",
-    "pytz>=2024.1",
+    "fastapi>=0.109",
+    "uvicorn>=0.27",
+    "python-dotenv>=1.0",
+    "PyYAML>=6.0",
+    "python-dateutil>=2.9",
+    "langchain>=0.1",
+    "langchain-anthropic>=0.1",
+    "google-cloud-pubsub>=2.18",
+    "google-auth>=2.27",
     "tenacity>=8.2.3",
-    "markdown>=3.5.2"
+    "numpy>=1.26.3",
+    "httpx>=0.26",
 ]
 
 [project.optional-dependencies]
@@ -160,7 +150,7 @@ filterwarnings = [
 ]
 
 [tool.coverage.run]
-source = ["src"]
+source = ["src", "config"]
 omit = [
     "*/tests/*",
     "*/test_*.py",
