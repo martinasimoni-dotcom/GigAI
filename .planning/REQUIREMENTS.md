@@ -139,10 +139,10 @@ All requirements below are in scope for the current build (10-phase implementati
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | FOUND-01 | Phase 0 | Complete |
-| FOUND-02 | Phase 0 | Pending |
-| FOUND-03 | Phase 0 | Pending |
-| FOUND-04 | Phase 0 | Pending |
-| FOUND-05 | Phase 0 | Pending |
+| FOUND-02 | Phase 0 | Complete |
+| FOUND-03 | Phase 0 | Complete |
+| FOUND-04 | Phase 0 | Complete |
+| FOUND-05 | Phase 0 | Complete |
 | FOUND-06 | Phase 0 | Complete |
 | FOUND-07 | Phase 0 | Complete |
 | FOUND-08 | Phase 0 | Complete |

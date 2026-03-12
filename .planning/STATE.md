@@ -15,15 +15,15 @@
 
 | Field | Value |
 |-------|-------|
-| Current Phase | Phase 0: Foundation |
-| Current Plan | 00-02 (Plan 01 complete) |
+| Current Phase | Phase 1: Input Layer |
+| Current Plan | 01-01 (Phase 0 complete) |
 | Status | In progress |
 | Last Updated | 2026-03-12 |
 
 ### Progress Bar
 
 ```
-Phase 0  [#####     ] 50% (1/2 plans complete)
+Phase 0  [##########] 100% (2/2 plans complete)
 Phase 1  [          ] 0%
 Phase 2  [          ] 0%
 Phase 3  [          ] 0%
@@ -34,7 +34,7 @@ Phase 7  [          ] 0%
 Phase 8  [          ] 0%
 Phase 9  [          ] 0%
 
-Overall: 0/10 phases complete
+Overall: 1/10 phases complete
 ```
 
 ---
@@ -67,6 +67,11 @@ Overall: 0/10 phases complete
 - **Settings fail-fast**: module-level `settings = Settings()` singleton raises ValidationError at import if required env vars missing.
 - **SQL vector indexes**: HNSW syntax is `USING hnsw (embedding vector_cosine_ops)` — operator class required for cosine similarity (pgvector >= 0.5.0).
 - **No openai package**: requirements.txt uses anthropic>=0.40.0 exclusively. openai is banned from the project.
+- **register_vector per-connection**: pgvector register_vector(conn) must be called on each individual connection from the pool, not once globally — prevents psycopg2.ProgrammingError on vector type adaptation.
+- **Voyage lazy client**: voyageai.Client() raises AuthenticationError at construction (unlike anthropic which defers). Using _get_client() lazy accessor to prevent import-time failure.
+- **result.embeddings[0] pattern**: voyageai embed() returns EmbeddingsObject. Access result.embeddings[0] (single) or result.embeddings (batch) — never result[0].
+- **Asymmetric embeddings**: input_type="document" for storage, input_type="query" for retrieval — improves cosine similarity recall quality.
+- **patch.object for test isolation**: When sys.modules is popped between tests, use patch.object(module, 'attr') not string-based patch("module.path.attr") to avoid module identity issues.
 
 ### Architecture Principles
 
@@ -112,7 +117,7 @@ Overall: 0/10 phases complete
 
 | Phase | Completed | Notes |
 |-------|-----------|-------|
-| Phase 0 | 2026-03-12 (Plan 01 of 2) | In progress — Plan 01 complete |
+| Phase 0 | 2026-03-12 | Complete — 2 plans (scaffold + DB/LLM layer) |
 | Phase 1 | - | Not started |
 | Phase 2 | - | Not started |
 | Phase 3 | - | Not started |

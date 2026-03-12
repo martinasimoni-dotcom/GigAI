@@ -10,7 +10,7 @@
 
 ## Phases
 
-- [ ] **Phase 0: Foundation** — Project scaffold, shared infrastructure, database schema, LLM/embedding clients, Pydantic models
+- [x] **Phase 0: Foundation** — Project scaffold, shared infrastructure, database schema, LLM/embedding clients, Pydantic models
 - [ ] **Phase 1: Input Layer** — All event ingestion endpoints: Fireflies webhook, ACC webhook, Gmail polling, Calendar polling
 - [ ] **Phase 2: Knowledge Folder** — Domain context files (glossary, team, rules, historical patterns) embedded into pgvector
 - [ ] **Phase 3: Data Processing** — Haiku-powered normalization, scope filtering, and event routing pipeline
@@ -27,7 +27,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 0. Foundation | 1/2 | In progress | 2026-03-12 |
+| 0. Foundation | 2/2 | Complete | 2026-03-12 |
 | 1. Input Layer | 0/1 | Not started | - |
 | 2. Knowledge Folder | 0/1 | Not started | - |
 | 3. Data Processing | 0/1 | Not started | - |
@@ -55,7 +55,7 @@
 **Plans**: 2 plans
 Plans:
 - [x] 00-01-PLAN.md — Scaffold, settings, Pydantic models, SQL migrations, Wave 0 test stubs (FOUND-01, FOUND-06, FOUND-07, FOUND-08, FOUND-09, FOUND-10)
-- [ ] 00-02-PLAN.md — DB layer (postgres.py, vector_store.py) and LLM clients (claude.py, voyage.py) (FOUND-02, FOUND-03, FOUND-04, FOUND-05)
+- [x] 00-02-PLAN.md — DB layer (postgres.py, vector_store.py) and LLM clients (claude.py, voyage.py) (FOUND-02, FOUND-03, FOUND-04, FOUND-05)
 
 ### Phase 1: Input Layer
 **Goal**: External event sources can deliver material change signals to the system and those signals are published to Pub/Sub for downstream processing.
