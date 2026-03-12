@@ -27,7 +27,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 0. Foundation | 0/1 | Not started | - |
+| 0. Foundation | 0/2 | Not started | - |
 | 1. Input Layer | 0/1 | Not started | - |
 | 2. Knowledge Folder | 0/1 | Not started | - |
 | 3. Data Processing | 0/1 | Not started | - |
@@ -52,7 +52,10 @@
   3. A Python script can call Claude Haiku 4.5 and Claude Sonnet 4 via claude.py wrappers and receive valid responses.
   4. A RawEvent, NormalizedEvent, Proposal, Action, Signal, and EventTypeConfig object can be instantiated and validated using the Pydantic models without errors.
   5. The SQL migrations run cleanly and all tables (events, proposals, actions, feedback, past_changes) plus HNSW vector indexes exist in the database.
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 00-01-PLAN.md — Scaffold, settings, Pydantic models, SQL migrations, Wave 0 test stubs (FOUND-01, FOUND-06, FOUND-07, FOUND-08, FOUND-09, FOUND-10)
+- [ ] 00-02-PLAN.md — DB layer (postgres.py, vector_store.py) and LLM clients (claude.py, voyage.py) (FOUND-02, FOUND-03, FOUND-04, FOUND-05)
 
 ### Phase 1: Input Layer
 **Goal**: External event sources can deliver material change signals to the system and those signals are published to Pub/Sub for downstream processing.
