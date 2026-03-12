@@ -1,0 +1,419 @@
+# Material Change Coordinator (GIGAI) - Git Ignore
+
+# ============================================
+# PYTHON
+# ============================================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# pdm
+.pdm.toml
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# ============================================
+# ENVIRONMENT & SECRETS
+# ============================================
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+*.env
+
+# Secret files
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+
+# Credential files
+config/gcp-service-account.json
+config/google_credentials.json
+config/google_token.json
+config/acc_token.json
+config/*.key
+config/*.pem
+
+# ============================================
+# IDE & EDITOR FILES
+# ============================================
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# PyCharm / JetBrains
+.idea/
+*.iml
+*.iws
+*.ipr
+.idea_modules/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+.vim/
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ============================================
+# OPERATING SYSTEM FILES
+# ============================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+.directory
+.Trash-*
+.nfs*
+
+# ============================================
+# LOGS & TEMPORARY FILES
+# ============================================
+# Application logs
+logs/
+*.log
+*.log.*
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+
+# ============================================
+# DATABASE
+# ============================================
+# SQLite databases
+*.sqlite
+*.sqlite3
+*.db
+
+# Database backups
+backups/
+*.sql
+*.dump
+*.sql.gz
+
+# PostgreSQL dumps
+*.dump
+
+# ============================================
+# VECTOR STORE & ML
+# ============================================
+# Embedding caches
+embeddings_cache/
+*.embeddings
+
+# ML model files (if storing locally)
+ml_models/*.pkl
+ml_models/*.joblib
+ml_models/*.pt
+ml_models/*.pth
+ml_models/*.h5
+
+# Training artifacts
+training_logs/
+checkpoints/
+
+# ============================================
+# CLOUD & DEPLOYMENT
+# ============================================
+# Google Cloud
+.gcloud/
+gcloud-config/
+
+# AWS
+.aws/
+.elasticbeanstalk/
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+.docker/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Kubernetes
+*.kubeconfig
+
+# ============================================
+# PROJECT-SPECIFIC
+# ============================================
+# Uploaded files (if stored locally)
+uploads/
+
+# Generated reports
+reports/
+
+# Performance benchmarks
+benchmarks/
+
+# Test output files
+test_output/
+
+# Demo data (if contains sensitive info)
+demo_data/sensitive/
+
+# Knowledge folder with sensitive data
+knowledge_folder/**/sensitive/
+knowledge_folder/**/*.local.md
+knowledge_folder/**/*.local.json
+knowledge_folder/**/*.local.yaml
+
+# ============================================
+# FRONTEND (DASHBOARD)
+# ============================================
+# Node modules
+dashboard/node_modules/
+dashboard/dist/
+dashboard/build/
+dashboard/.next/
+
+# Package manager lock files
+dashboard/package-lock.json
+dashboard/yarn.lock
+dashboard/pnpm-lock.yaml
+
+# ============================================
+# MONITORING & METRICS
+# ============================================
+# Prometheus data
+prometheus_data/
+
+# Grafana data
+grafana_data/
+
+# ============================================
+# DOCUMENTATION
+# ============================================
+# Built documentation
+docs/_build/
+docs/.vuepress/dist/
+site/
+
+# ============================================
+# MISC
+# ============================================
+# macOS
+.DS_Store
+
+# Backup files
+*~
+*.orig
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+
+# ============================================
+# SECURITY
+# ============================================
+# Security scan results
+.snyk
+snyk-report.html
+security-report.json
+
+# Audit reports
+audit-report.json
+
+# ============================================
+# CI/CD
+# ============================================
+.gitlab-ci-local/
+.github/workflows/*.local.yml
+
+# ============================================
+# NOTES & SCRATCH
+# ============================================
+# Scratch files
+scratch/
+notes/
+TODO.md.local
+NOTES.md.local
+
+# ============================================
+# KEEP CERTAIN FILES
+# ============================================
+# Keep example/template files
+!.env.example
+!config/*.example.json
+!config/*.example.yaml
+
+# Keep empty directories with .gitkeep
+!.gitkeep
+
+# ============================================
+# CUSTOM RULES
+# ============================================
+# Add project-specific ignore rules below this line
