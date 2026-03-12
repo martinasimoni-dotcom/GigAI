@@ -16,14 +16,14 @@
 | Field | Value |
 |-------|-------|
 | Current Phase | Phase 0: Foundation |
-| Current Plan | Not started |
-| Status | Ready to begin |
+| Current Plan | 00-02 (Plan 01 complete) |
+| Status | In progress |
 | Last Updated | 2026-03-12 |
 
 ### Progress Bar
 
 ```
-Phase 0  [          ] 0%
+Phase 0  [#####     ] 50% (1/2 plans complete)
 Phase 1  [          ] 0%
 Phase 2  [          ] 0%
 Phase 3  [          ] 0%
@@ -63,6 +63,10 @@ Overall: 0/10 phases complete
 - **Demo scenario**: Window material substitution — Aluminum to Wood, 3rd Floor, 12 Units (W-301 to W-312). All demo data must support this exact scenario end-to-end.
 - **Confidence weights**: Data clarity 30%, historical match 25%, cost acceptable 25%, no red flags 20%.
 - **Config-driven pipeline**: Domain processing code is identical across event types; behavior is driven by YAML configs loaded per event_type.
+- **Pydantic v2 API only**: Use field_validator + @classmethod and ConfigDict. No v1 @validator decorators (raises PydanticUserError).
+- **Settings fail-fast**: module-level `settings = Settings()` singleton raises ValidationError at import if required env vars missing.
+- **SQL vector indexes**: HNSW syntax is `USING hnsw (embedding vector_cosine_ops)` — operator class required for cosine similarity (pgvector >= 0.5.0).
+- **No openai package**: requirements.txt uses anthropic>=0.40.0 exclusively. openai is banned from the project.
 
 ### Architecture Principles
 
@@ -108,7 +112,7 @@ Overall: 0/10 phases complete
 
 | Phase | Completed | Notes |
 |-------|-----------|-------|
-| Phase 0 | - | Not started |
+| Phase 0 | 2026-03-12 (Plan 01 of 2) | In progress — Plan 01 complete |
 | Phase 1 | - | Not started |
 | Phase 2 | - | Not started |
 | Phase 3 | - | Not started |

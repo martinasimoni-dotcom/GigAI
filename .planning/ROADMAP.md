@@ -27,7 +27,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 0. Foundation | 0/2 | Not started | - |
+| 0. Foundation | 1/2 | In progress | 2026-03-12 |
 | 1. Input Layer | 0/1 | Not started | - |
 | 2. Knowledge Folder | 0/1 | Not started | - |
 | 3. Data Processing | 0/1 | Not started | - |
@@ -54,7 +54,7 @@
   5. The SQL migrations run cleanly and all tables (events, proposals, actions, feedback, past_changes) plus HNSW vector indexes exist in the database.
 **Plans**: 2 plans
 Plans:
-- [ ] 00-01-PLAN.md — Scaffold, settings, Pydantic models, SQL migrations, Wave 0 test stubs (FOUND-01, FOUND-06, FOUND-07, FOUND-08, FOUND-09, FOUND-10)
+- [x] 00-01-PLAN.md — Scaffold, settings, Pydantic models, SQL migrations, Wave 0 test stubs (FOUND-01, FOUND-06, FOUND-07, FOUND-08, FOUND-09, FOUND-10)
 - [ ] 00-02-PLAN.md — DB layer (postgres.py, vector_store.py) and LLM clients (claude.py, voyage.py) (FOUND-02, FOUND-03, FOUND-04, FOUND-05)
 
 ### Phase 1: Input Layer
