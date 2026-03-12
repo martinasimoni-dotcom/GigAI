@@ -1,30 +1,39 @@
 """
 Unit tests for src/shared/db/postgres.py
 FOUND-02: PostgreSQL connection pool with query helpers.
+
+Note: postgres.py imports config.settings at module level (fail-fast pattern).
+All tests use the test_env fixture to ensure env vars are set before import.
 """
+import os
+import sys
 from unittest.mock import MagicMock, patch
+
+import pytest
+
+
+@pytest.fixture(autouse=True)
+def set_env_vars(monkeypatch):
+    """Ensure required env vars are set for all tests in this module."""
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+    monkeypatch.setenv("VOYAGE_API_KEY", "test-key")
+    monkeypatch.setenv("DATABASE_URL", "postgresql://test:test@localhost/test")
+    # Remove cached settings module so it reimports with the new env
+    sys.modules.pop("config.settings", None)
+    sys.modules.pop("src.shared.db.postgres", None)
 
 
 def test_get_connection_calls_register_vector(mock_db_conn):
     """get_connection() must call register_vector with the returned connection."""
-    with patch("psycopg2.pool.ThreadedConnectionPool") as mock_pool_cls, \
-         patch("pgvector.psycopg2.register_vector") as mock_reg:
-        mock_pool = MagicMock()
-        mock_pool.getconn.return_value = mock_db_conn
-        mock_pool_cls.return_value = mock_pool
+    from src.shared.db import postgres
 
-        # Force module reimport so pool is reset
-        import importlib
-        import sys
-        sys.modules.pop("src.shared.db.postgres", None)
+    mock_pool = MagicMock()
+    mock_pool.getconn.return_value = mock_db_conn
 
-        from src.shared.db import postgres
-        postgres._pool = None  # reset the module-level pool
-
-        with patch.object(postgres, "get_pool", return_value=mock_pool), \
-             patch("src.shared.db.postgres.register_vector", mock_reg):
-            conn = postgres.get_connection()
-            mock_reg.assert_called_once_with(conn)
+    with patch.object(postgres, "get_pool", return_value=mock_pool), \
+         patch("src.shared.db.postgres.register_vector") as mock_reg:
+        conn = postgres.get_connection()
+        mock_reg.assert_called_once_with(conn)
 
 
 def test_execute_runs_query(mock_db_conn):
