@@ -27,7 +27,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 0. Foundation | 2/2 | Complete | 2026-03-12 |
+| 0. Foundation | 2/2 | Complete    | 2026-03-12 |
 | 1. Input Layer | 0/1 | Not started | - |
 | 2. Knowledge Folder | 0/1 | Not started | - |
 | 3. Data Processing | 0/1 | Not started | - |
