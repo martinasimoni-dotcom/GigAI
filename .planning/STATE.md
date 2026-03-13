@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-13T10:29:30Z"
+last_updated: "2026-03-13T10:38:44.022Z"
 progress:
   total_phases: 10
   completed_phases: 1
   total_plans: 7
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # STATE.md — GigAI
@@ -29,7 +29,7 @@ progress:
 | Field | Value |
 |-------|-------|
 | Current Phase | Phase 1: Input Layer |
-| Current Plan | 01-02 |
+| Current Plan | 01-03 |
 | Status | In progress |
 | Last Updated | 2026-03-13 |
 
@@ -37,7 +37,7 @@ progress:
 
 ```
 Phase 0  [##########] 100% (2/2 plans complete)
-Phase 1  [          ] 0%
+Phase 1  [##        ] 40% (2/5 plans complete)
 Phase 2  [          ] 0%
 Phase 3  [          ] 0%
 Phase 4  [          ] 0%
@@ -47,7 +47,7 @@ Phase 7  [          ] 0%
 Phase 8  [          ] 0%
 Phase 9  [          ] 0%
 
-Overall: 1/10 phases complete
+Overall: 1/10 phases complete (4/7 total plans)
 ```
 
 ---
@@ -62,6 +62,12 @@ Overall: 1/10 phases complete
 | PM acceptance rate | 75% | Not measured |
 
 ---
+
+## Execution Metrics
+
+| Phase | Duration | Tasks | Files |
+|-------|----------|-------|-------|
+| Phase 01-input-layer P02 | 6 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -87,6 +93,8 @@ Overall: 1/10 phases complete
 - **patch.object for test isolation**: When sys.modules is popped between tests, use patch.object(module, 'attr') not string-based patch("module.path.attr") to avoid module identity issues.
 - **Wave 0 import-guard pattern**: Test stub files guard imports with try/except ImportError + pytestmark.skipif so files are always collectable even before implementation modules exist.
 - **pytest anyio plugin**: Use pytest_plugins = ("anyio",) in async test files to parametrize across asyncio and trio backends.
+- **sys.modules.pop for settings-dependent tests**: When testing modules that transitively import config.settings singleton, autouse fixture must setenv + pop sys.modules before import — matches test_postgres.py pattern. Required for any module importing config.settings.
+- **future.result() synchronous in publish_event**: Pub/Sub publish() is internally async; calling future.result() synchronously surfaces GoogleAPICallError immediately rather than silently dropping failures.
 
 ### Architecture Principles
 

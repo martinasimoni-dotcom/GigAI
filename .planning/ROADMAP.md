@@ -28,7 +28,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 0. Foundation | 2/2 | Complete    | 2026-03-12 |
-| 1. Input Layer | 1/5 | In progress | - |
+| 1. Input Layer | 2/5 | In Progress|  |
 | 2. Knowledge Folder | 0/1 | Not started | - |
 | 3. Data Processing | 0/1 | Not started | - |
 | 4. Context Enrichment | 0/1 | Not started | - |
