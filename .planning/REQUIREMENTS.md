@@ -162,7 +162,7 @@ All requirements below are in scope for the current build (10-phase implementati
 | PROC-03 | Phase 3 | Pending |
 | PROC-04 | Phase 3 | Complete |
 | PROC-05 | Phase 3 | Complete |
-| CTX-01 | Phase 4 | Pending |
+| CTX-01 | Phase 4 | Complete |
 | CTX-02 | Phase 4 | Complete |
 | DOM-01 | Phase 5 | Pending |
 | DOM-02 | Phase 5 | Pending |
