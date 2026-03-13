@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-13T15:18:00.730Z"
+last_updated: "2026-03-13T15:19:05.639Z"
 progress:
   total_phases: 10
   completed_phases: 5
   total_plans: 19
-  completed_plans: 17
+  completed_plans: 18
 ---
 
 # STATE.md — GigAI
@@ -29,10 +29,10 @@ progress:
 | Field | Value |
 |-------|-------|
 | Current Phase | Phase 5: Domain Processing |
-| Current Plan | 05-02 complete |
+| Current Plan | 05-03 complete |
 | Status | Phase 5 in progress |
 | Last Updated | 2026-03-13 |
-| Stopped At | Completed 05-domain-processing 05-02-PLAN.md |
+| Stopped At | Completed 05-domain-processing 05-03-PLAN.md |
 
 ### Progress Bar
 
@@ -42,13 +42,13 @@ Phase 1  [##########] 100% (5/5 plans complete)
 Phase 2  [##########] 100% (3/3 plans complete)
 Phase 3  [##########] 100% (3/3 plans complete)
 Phase 4  [######    ] 67% (2/3 plans complete)
-Phase 5  [##        ] 14% (1/7 plans complete)
+Phase 5  [###       ] 43% (3/7 plans complete)
 Phase 6  [          ] 0%
 Phase 7  [          ] 0%
 Phase 8  [          ] 0%
 Phase 9  [          ] 0%
 
-Overall: 4/10 phases complete (16/22 total plans)
+Overall: 4/10 phases complete (18/22 total plans)
 ```
 
 ---
@@ -63,6 +63,7 @@ Overall: 4/10 phases complete (16/22 total plans)
 | PM acceptance rate | 75% | Not measured |
 | Phase 04-context-enrichment P02 | 3 min | 2 tasks | 3 files |
 | Phase 05-domain-processing P02 | 4 | 2 tasks | 2 files |
+| Phase 05-domain-processing P03 | 4 min | 2 tasks | 2 files |
 
 ## Execution Metrics
 
@@ -82,6 +83,7 @@ Overall: 4/10 phases complete (16/22 total plans)
 | Phase 04-context-enrichment P02 | 3 min | 2 tasks | 3 files |
 | Phase 05-domain-processing P01 | 1 min | 2 tasks | 3 files |
 | Phase 05-domain-processing P02 | 4 min | 2 tasks | 2 files |
+| Phase 05-domain-processing P03 | 4 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -130,6 +132,8 @@ Overall: 4/10 phases complete (16/22 total plans)
 - **EnrichedEvent composition pattern**: EnrichedEvent embeds NormalizedEvent as event field (composition, not inheritance) — per CONTEXT.md decision from Phase 4 planning.
 - **ACC floor plan stub scope**: enrich_event() always returns W-301..W-312 mock floor plan when ACC_TOKEN absent; real ACC API call is a future placeholder — supports demo scenario without ACC credentials.
 - **os.getenv for ACC_TOKEN in enrichment.py**: Use os.getenv("ACC_TOKEN") at call time (not module-level settings singleton) — prevents Settings() ValidationError at import in test environments.
+- **policy_engine.py uses TYPE_CHECKING guard for EnrichedEvent**: EnrichedEvent import placed under `if TYPE_CHECKING:` block; function signatures use string annotations `"EnrichedEvent"` to avoid triggering config.settings singleton at module import time (Python 3.13 evaluates annotations at runtime without from __future__ import annotations).
+- **change_type derived from event_type in policy_engine**: NormalizedEvent has extra="forbid" and no change_type field. _build_event_fields() maps change_type from event.event.event_type — callers pass granular type (e.g. "material_substitution") as event_type for rule condition matching.
 - **material_change.yaml enrichment_queries (4 entries)**: "material supplier and pricing", "past material change approvals", "lead time window installation schedule", "structural weight load bearing assessment" — last two added in Phase 5 for demo scenario (Aluminum→Wood, 12 units, 3rd floor).
 - **EventTypeConfig YAML strict fields**: Only the five defined fields allowed (event_type, rules_file, allowed_signals, enrichment_queries, time_analysis_enabled) — no extra YAML keys or Pydantic validation fails.
 - **TYPE_CHECKING guard for domain module imports**: time_analysis.py uses `if TYPE_CHECKING: from src.system.context.enrichment import EnrichedEvent` with `from __future__ import annotations` — prevents transitive config.settings singleton trigger at module load while preserving type annotation correctness for IDE and mypy.
