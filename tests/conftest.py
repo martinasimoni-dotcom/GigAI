@@ -48,3 +48,28 @@ def test_env(monkeypatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
     monkeypatch.setenv("VOYAGE_API_KEY", "test-key")
     monkeypatch.setenv("DATABASE_URL", "postgresql://test:test@localhost/test")
+
+
+@pytest.fixture
+def mock_pubsub_publisher():
+    """Mock google.cloud.pubsub_v1.PublisherClient."""
+    publisher = MagicMock()
+    future = MagicMock()
+    future.result.return_value = "test-message-id"
+    publisher.publish.return_value = future
+    publisher.topic_path.return_value = "projects/test-project/topics/raw-events"
+    return publisher
+
+
+@pytest.fixture
+def mock_gmail_service():
+    """Mock Google Gmail API service."""
+    service = MagicMock()
+    return service
+
+
+@pytest.fixture
+def mock_calendar_service():
+    """Mock Google Calendar API service."""
+    service = MagicMock()
+    return service
