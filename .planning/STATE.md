@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-13T15:19:05.639Z"
+last_updated: "2026-03-13T15:25:33.126Z"
 progress:
   total_phases: 10
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 19
-  completed_plans: 18
+  completed_plans: 19
 ---
 
 # STATE.md — GigAI
@@ -29,10 +29,10 @@ progress:
 | Field | Value |
 |-------|-------|
 | Current Phase | Phase 5: Domain Processing |
-| Current Plan | 05-03 complete |
-| Status | Phase 5 in progress |
+| Current Plan | 05-04 complete |
+| Status | Phase 5 complete (wave 2) |
 | Last Updated | 2026-03-13 |
-| Stopped At | Completed 05-domain-processing 05-03-PLAN.md |
+| Stopped At | Completed 05-domain-processing 05-04-PLAN.md |
 
 ### Progress Bar
 
@@ -64,6 +64,7 @@ Overall: 4/10 phases complete (18/22 total plans)
 | Phase 04-context-enrichment P02 | 3 min | 2 tasks | 3 files |
 | Phase 05-domain-processing P02 | 4 | 2 tasks | 2 files |
 | Phase 05-domain-processing P03 | 4 min | 2 tasks | 2 files |
+| Phase 05-domain-processing P04 | 3 | 2 tasks | 4 files |
 
 ## Execution Metrics
 
@@ -84,6 +85,7 @@ Overall: 4/10 phases complete (18/22 total plans)
 | Phase 05-domain-processing P01 | 1 min | 2 tasks | 3 files |
 | Phase 05-domain-processing P02 | 4 min | 2 tasks | 2 files |
 | Phase 05-domain-processing P03 | 4 min | 2 tasks | 2 files |
+| Phase 05-domain-processing P04 | 3 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -138,6 +140,9 @@ Overall: 4/10 phases complete (18/22 total plans)
 - **EventTypeConfig YAML strict fields**: Only the five defined fields allowed (event_type, rules_file, allowed_signals, enrichment_queries, time_analysis_enabled) — no extra YAML keys or Pydantic validation fails.
 - **TYPE_CHECKING guard for domain module imports**: time_analysis.py uses `if TYPE_CHECKING: from src.system.context.enrichment import EnrichedEvent` with `from __future__ import annotations` — prevents transitive config.settings singleton trigger at module load while preserving type annotation correctness for IDE and mypy.
 - **TimeAnalysisResult inline in module**: Domain-specific result models (TimeAnalysisResult) defined inline in their module (time_analysis.py), not in shared models — per CONTEXT.md discretion for domain processing.
+- **signal_generator.py TYPE_CHECKING guard**: EnrichedEvent import placed under `if TYPE_CHECKING:` with `from __future__ import annotations` — consistent with time_analysis.py and policy_engine.py patterns; prevents config.settings singleton trigger at module load.
+- **ProcessingResult inline in processor.py**: Domain-specific result model (ProcessingResult) defined inline in processor.py — consistent with TimeAnalysisResult pattern, not in shared/models.
+- **DOM-07 wiring confirmed**: processor.py consumes routed_event.config (EventTypeConfig already loaded by router.py in Phase 3) — no redundant YAML loading in the domain processing layer.
 
 ### Architecture Principles
 
@@ -188,7 +193,7 @@ Overall: 4/10 phases complete (18/22 total plans)
 | Phase 2 | 2026-03-13 | Complete — 3 plans (content files, DB schema + vector store, seed script) — 6 unit tests passing |
 | Phase 3 | 2026-03-13 | Complete — 3 plans (03-01: model extension + stubs; 03-02: normalizer + scope filter; 03-03: routing prompt + YAML configs + router) — 13 unit tests passing |
 | Phase 4 | In progress | 04-02 complete — EnrichedEvent model + enrich_event() + ACC floor plan stub + 8 unit tests passing (13 total for Phase 4 so far) |
-| Phase 5 | In progress | 05-02 complete — time_analysis.py: analyze_time() + TimeAnalysisResult; RULE-005 (qty>10=42 days, else 21 days); conflict detection; 19 unit tests passing |
+| Phase 5 | 2026-03-13 | Wave 2 complete (05-04) — signal_generator.py + processor.py + ProcessingResult; demo scenario produces all 3 signals; 38 unit tests passing |
 | Phase 6 | - | Not started |
 | Phase 7 | - | Not started |
 | Phase 8 | - | Not started |

@@ -15,7 +15,7 @@
 - [x] **Phase 2: Knowledge Folder** — Domain context files (glossary, team, rules, historical patterns) embedded into pgvector (completed 2026-03-13)
 - [x] **Phase 3: Data Processing** — Haiku-powered normalization, scope filtering, and event routing pipeline (completed 2026-03-13)
 - [x] **Phase 4: Context Enrichment** — ACC API integration and pgvector semantic retrieval for project context and history (completed 2026-03-13)
-- [ ] **Phase 5: Domain Processing** — Config-driven time analysis, policy evaluation, and typed signal generation
+- [x] **Phase 5: Domain Processing** — Config-driven time analysis, policy evaluation, and typed signal generation (completed 2026-03-13)
 - [ ] **Phase 6: Decision Intelligence** — Sonnet 4 proposal generation and weighted confidence scoring
 - [ ] **Phase 7: Output + API** — Proposal builder, action gateway with all executors, notifications, feedback loop, FastAPI routes
 - [ ] **Phase 8: Dashboard** — React SPA with proposal feed, accept/reject flow, confidence display, audit log
@@ -32,7 +32,7 @@
 | 2. Knowledge Folder | 3/3 | Complete    | 2026-03-13 |
 | 3. Data Processing | 3/3 | Complete   | 2026-03-13 |
 | 4. Context Enrichment | 2/2 | Complete   | 2026-03-13 |
-| 5. Domain Processing | 3/4 | In Progress|  |
+| 5. Domain Processing | 4/4 | Complete   | 2026-03-13 |
 | 6. Decision Intelligence | 0/1 | Not started | - |
 | 7. Output + API | 0/1 | Not started | - |
 | 8. Dashboard | 0/1 | Not started | - |
