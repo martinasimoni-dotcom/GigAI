@@ -32,7 +32,7 @@
 | 2. Knowledge Folder | 3/3 | Complete    | 2026-03-13 |
 | 3. Data Processing | 3/3 | Complete   | 2026-03-13 |
 | 4. Context Enrichment | 2/2 | Complete   | 2026-03-13 |
-| 5. Domain Processing | 0/4 | Not started | - |
+| 5. Domain Processing | 1/4 | In Progress|  |
 | 6. Decision Intelligence | 0/1 | Not started | - |
 | 7. Output + API | 0/1 | Not started | - |
 | 8. Dashboard | 0/1 | Not started | - |
