@@ -12,7 +12,7 @@
 
 - [x] **Phase 0: Foundation** — Project scaffold, shared infrastructure, database schema, LLM/embedding clients, Pydantic models
 - [x] **Phase 1: Input Layer** — All event ingestion endpoints: Fireflies webhook, ACC webhook, Gmail polling, Calendar polling
-- [ ] **Phase 2: Knowledge Folder** — Domain context files (glossary, team, rules, historical patterns) embedded into pgvector
+- [x] **Phase 2: Knowledge Folder** — Domain context files (glossary, team, rules, historical patterns) embedded into pgvector (completed 2026-03-13)
 - [ ] **Phase 3: Data Processing** — Haiku-powered normalization, scope filtering, and event routing pipeline
 - [ ] **Phase 4: Context Enrichment** — ACC API integration and pgvector semantic retrieval for project context and history
 - [ ] **Phase 5: Domain Processing** — Config-driven time analysis, policy evaluation, and typed signal generation
@@ -29,7 +29,7 @@
 |-------|----------------|--------|-----------|
 | 0. Foundation | 2/2 | Complete    | 2026-03-12 |
 | 1. Input Layer | 5/5 | Complete    | 2026-03-13 |
-| 2. Knowledge Folder | 2/3 | In Progress|  |
+| 2. Knowledge Folder | 3/3 | Complete   | 2026-03-13 |
 | 3. Data Processing | 0/1 | Not started | - |
 | 4. Context Enrichment | 0/1 | Not started | - |
 | 5. Domain Processing | 0/1 | Not started | - |

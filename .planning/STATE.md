@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-13T11:40:13.054Z"
+last_updated: "2026-03-13T11:47:17.511Z"
 progress:
   total_phases: 10
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 10
-  completed_plans: 9
+  completed_plans: 10
 ---
 
 # STATE.md — GigAI
@@ -29,17 +29,17 @@ progress:
 | Field | Value |
 |-------|-------|
 | Current Phase | Phase 2: Knowledge Folder |
-| Current Plan | 02-02 complete |
-| Status | Phase 2 in progress |
+| Current Plan | 02-03 complete |
+| Status | Phase 2 complete |
 | Last Updated | 2026-03-13 |
-| Stopped At | Completed 02-knowledge-folder 02-02-PLAN.md |
+| Stopped At | Completed 02-knowledge-folder 02-03-PLAN.md |
 
 ### Progress Bar
 
 ```
 Phase 0  [##########] 100% (2/2 plans complete)
 Phase 1  [##########] 100% (5/5 plans complete)
-Phase 2  [##        ] 20% (2/? plans complete)
+Phase 2  [##########] 100% (3/3 plans complete)
 Phase 3  [          ] 0%
 Phase 4  [          ] 0%
 Phase 5  [          ] 0%
@@ -48,7 +48,7 @@ Phase 7  [          ] 0%
 Phase 8  [          ] 0%
 Phase 9  [          ] 0%
 
-Overall: 2/10 phases complete (7/7 total plans)
+Overall: 3/10 phases complete (10/10 total plans)
 ```
 
 ---
@@ -72,6 +72,7 @@ Overall: 2/10 phases complete (7/7 total plans)
 | Phase 01-input-layer P05 | 3 min | 1 task | 1 file |
 | Phase 02-knowledge-folder P01 | 1 min | 1 task | 1 file |
 | Phase 02-knowledge-folder P02 | 3 min | 3 tasks | 4 files |
+| Phase 02-knowledge-folder P03 | 5 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -108,6 +109,7 @@ Overall: 2/10 phases complete (7/7 total plans)
 - **Glossary chunk structure**: 5-section markdown maps 1:1 to pgvector chunks (one ## section per chunk) — seed script splits on ## headers.
 - **Historical patterns retrieval design**: 3 aluminum-to-wood accepted precedents (EVT-001/010/012) support semantic search query "past aluminum to wood window change" — EVT-012 (12 units, structural review) is direct precedent for 3rd floor demo scenario.
 - **Rules condition fields**: String-based conditions interpreted by LLM during enrichment, not executed programmatically — rules are advisory/routing, not a rule engine.
+- **Seed script test lazy import pattern**: test_knowledge_folder.py uses Path.exists() for IMPL_AVAILABLE guard (avoids pydantic ValidationError at collection time) and lazy imports inside each test function — same as test_connectors.py pattern. try/except ImportError is insufficient when settings singleton raises ValidationError at import time.
 
 ### Architecture Principles
 
@@ -155,7 +157,7 @@ Overall: 2/10 phases complete (7/7 total plans)
 |-------|-----------|-------|
 | Phase 0 | 2026-03-12 | Complete — 2 plans (scaffold + DB/LLM layer) |
 | Phase 1 | 2026-03-13 | Complete — 5 plans (pubsub, fireflies/acc webhooks, Gmail/Calendar connectors, main.py wiring) — 26 unit tests passing |
-| Phase 2 | - | Not started |
+| Phase 2 | 2026-03-13 | Complete — 3 plans (content files, DB schema + vector store, seed script) — 6 unit tests passing |
 | Phase 3 | - | Not started |
 | Phase 4 | - | Not started |
 | Phase 5 | - | Not started |
