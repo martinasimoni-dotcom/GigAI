@@ -5,7 +5,11 @@ Uses IMPL_AVAILABLE guard (Path.exists() + stat().st_size > 10) so the file
 is always collectable by pytest even before the implementation exists.
 Imports are lazy (inside each test function) to prevent settings singleton
 from triggering at collection time.
+
+Autouse fixture sets required env vars and pops sys.modules to prevent
+config.settings ValidationError — same pattern as test_retrieval.py (CTX-01/02).
 """
+import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -19,6 +23,34 @@ IMPL_AVAILABLE = IMPL_PATH.exists() and IMPL_PATH.stat().st_size > 10
 pytestmark = pytest.mark.skipif(
     not IMPL_AVAILABLE, reason="time_analysis.py not yet implemented"
 )
+
+_SETTINGS_MODULES = [
+    "src.system.context.enrichment",
+    "src.system.context.historical",
+    "src.system.context",
+    "src.shared.db.vector_store",
+    "src.shared.db.postgres",
+    "src.system.domain_processing.time_analysis",
+    "src.system.domain_processing",
+    "config.settings",
+]
+
+
+@pytest.fixture(autouse=True)
+def _setup_env(monkeypatch):
+    """Set required env vars and reset module cache for clean isolation."""
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-anthropic-key")
+    monkeypatch.setenv("VOYAGE_API_KEY", "test-voyage-key")
+    monkeypatch.setenv("DATABASE_URL", "postgresql://test:test@localhost:5432/test")
+    monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "test-project")
+
+    for mod in _SETTINGS_MODULES:
+        sys.modules.pop(mod, None)
+
+    yield
+
+    for mod in _SETTINGS_MODULES:
+        sys.modules.pop(mod, None)
 
 
 # ---------------------------------------------------------------------------
