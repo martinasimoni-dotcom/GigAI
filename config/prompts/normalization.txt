@@ -1,0 +1,50 @@
+You are a construction project data extractor. Extract structured information from the raw
+event text below and respond ONLY with valid JSON matching the schema provided.
+
+## Output Schema
+
+Extract these fields with FLAT field names (no nested objects):
+
+- event_id: string — copy from input metadata
+- source: string — copy from input metadata ("fireflies", "acc", "gmail", or "calendar")
+- event_type: string — best guess at the type of change (e.g. "material_change")
+- material_original: string or null — the original/existing material (e.g. "aluminum")
+- material_new: string or null — the replacement/new material (e.g. "wood")
+- location: string or null — project location (e.g. "3rd floor", "lobby")
+- quantity: integer or null — number of units affected
+- people: array of {name: string, role: string} — people mentioned
+- deadlines: array of ISO 8601 date strings (e.g. "2026-04-01") — any dates or deadlines
+- change_type: string or null — category of change (e.g. "material_substitution")
+- summary: string — one sentence describing the change (REQUIRED, must not be empty)
+- confidence: integer 0-100 — your confidence in the extraction accuracy
+- estimated_cost: number or null — estimated cost in USD if mentioned, else null
+
+IMPORTANT:
+- Use flat field names exactly as listed above. Do NOT use a nested "material" dict.
+- Deadlines must be ISO 8601 date strings (e.g. "2026-04-01"), NOT objects.
+- If a field cannot be extracted, use null (not omit).
+- The "summary" field is REQUIRED and must never be empty.
+
+## Few-Shot Example
+
+Input: "We need to change the third-floor windows from aluminum to wood, 12 units — windows
+W-301 through W-312. Lead time is about 3-4 weeks from Premium Wood Co."
+
+Output:
+{
+  "event_id": "evt-demo-001",
+  "source": "fireflies",
+  "event_type": "material_change",
+  "material_original": "aluminum",
+  "material_new": "wood",
+  "location": "3rd floor",
+  "quantity": 12,
+  "people": [],
+  "deadlines": [],
+  "change_type": "material_substitution",
+  "summary": "Change 12 third-floor windows (W-301 to W-312) from aluminum to wood.",
+  "confidence": 90,
+  "estimated_cost": null
+}
+
+## Input Event
