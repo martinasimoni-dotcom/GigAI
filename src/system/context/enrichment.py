@@ -4,17 +4,15 @@ CTX-01
 """
 import logging
 import os
-from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from src.shared.clients.acc import get_floor_plan
 from src.shared.db.vector_store import search
 from src.shared.models.events import NormalizedEvent
 from src.system.context.historical import HistoricalMatch, retrieve_historical
 
 logger = logging.getLogger(__name__)
-
-_MOCK_UNIT_IDS = [f"W-{300 + i}" for i in range(1, 13)]  # W-301..W-312
 
 
 class EnrichedEvent(BaseModel):
@@ -28,29 +26,40 @@ class EnrichedEvent(BaseModel):
 
 
 def _get_acc_floor_plan(project_id: str, location: str | None) -> dict:
-    token = os.getenv("ACC_TOKEN")
-    if not token:
-        logger.info("ACC_TOKEN not set — returning mock floor plan for demo scenario")
-        return {
-            "project_id": project_id,
-            "floor": location or "3rd",
-            "units": _MOCK_UNIT_IDS,
-            "source": "stub",
-        }
-    # Real ACC API call would go here (future implementation)
-    # For now fall through to stub even if token present until real endpoint added
-    return {
-        "project_id": project_id,
-        "floor": location or "unknown",
-        "units": _MOCK_UNIT_IDS,
-        "source": "acc_api",
-    }
+    """
+    Fetch real floor plan / location data from ACC Locations API.
+
+    Requires ACC_CLIENT_ID and ACC_CLIENT_SECRET in environment.
+    Raises RuntimeError if credentials are not set.
+    """
+    floor_plan = get_floor_plan(project_id, location_query=location)
+    logger.info(
+        "ACC floor plan fetched: project=%s nodes=%d",
+        project_id,
+        len(floor_plan.get("nodes", [])),
+    )
+    return floor_plan
 
 
-def enrich_event(event: NormalizedEvent, project_id: str = "demo-project") -> "EnrichedEvent":
+def enrich_event(event: NormalizedEvent, project_id: str | None = None) -> "EnrichedEvent":
     """
     Enrich a NormalizedEvent with ACC floor plan data and knowledge folder context.
+
+    Args:
+        event:      The normalized event to enrich.
+        project_id: ACC project ID. Falls back to ACC_PROJECT_ID env var.
+
+    Raises:
+        RuntimeError if ACC_PROJECT_ID, ACC_CLIENT_ID, or ACC_CLIENT_SECRET
+        are not configured in .env.
     """
+    if project_id is None:
+        project_id = os.getenv("ACC_PROJECT_ID")
+        if not project_id:
+            raise RuntimeError(
+                "ACC_PROJECT_ID must be set in .env (or pass project_id explicitly)"
+            )
+
     material_new = event.material_new or ""
     location = event.location or ""
 
@@ -58,7 +67,10 @@ def enrich_event(event: NormalizedEvent, project_id: str = "demo-project") -> "E
     rules_query = f"material change approval threshold {material_new}"
     location_query = f"{location} floor plan units"
 
-    logger.info(f"Enriching event={event.event_id} material_new='{material_new}' location='{location}'")
+    logger.info(
+        "Enriching event=%s material_new='%s' location='%s'",
+        event.event_id, material_new, location,
+    )
 
     supplier_results = search(supplier_query, top_k=5)
     rules_results = search(rules_query, top_k=5)
@@ -87,7 +99,7 @@ def enrich_event(event: NormalizedEvent, project_id: str = "demo-project") -> "E
     # Extract relevant rule texts (top 3 from rules query)
     relevant_rules = [r["content"] for r in rules_results[:3]]
 
-    # ACC floor plan (stub when ACC_TOKEN not set)
+    # ACC floor plan — real API call (raises RuntimeError if credentials not set)
     acc_floor_plan = _get_acc_floor_plan(project_id, location)
 
     # Historical matches

@@ -4,8 +4,8 @@ Domain processor orchestrator — DOM-06.
 process_event(routed_event: RoutedEvent) -> ProcessingResult
 
 Runs the domain processing pipeline in sequence:
-  1. enrich_event (context enrichment from Phase 4)
-  2. analyze_time (temporal conflict detection)
+  1. enrich_event (context enrichment — ACC floor plan + pgvector)
+  2. analyze_time (temporal conflict detection against real ACC schedule)
   3. evaluate_policies (YAML rule evaluation)
   4. generate_signals (typed signal output)
 
@@ -16,6 +16,7 @@ No LLM calls. No config.settings import.
 from __future__ import annotations
 
 import logging
+import os
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -38,6 +39,32 @@ class ProcessingResult(BaseModel):
     time_result: TimeAnalysisResult
 
 
+def _fetch_acc_schedule(project_id: str) -> list[dict]:
+    """
+    Fetch project schedule activities from ACC Schedule API.
+
+    Returns an empty list (and logs a warning) if credentials are unavailable,
+    so time analysis still runs — it just reports no schedule conflicts.
+    This is the only place in the pipeline where missing ACC credentials
+    degrade gracefully rather than raising, because schedule data is
+    supplementary to policy evaluation (the primary decision driver).
+    """
+    from src.shared.clients.acc import get_schedule_activities
+    try:
+        activities = get_schedule_activities(project_id)
+        logger.info(
+            "ACC schedule fetched: project=%s activities=%d",
+            project_id, len(activities),
+        )
+        return activities
+    except RuntimeError as exc:
+        logger.warning("ACC schedule unavailable (%s) — time analysis will run without schedule", exc)
+        return []
+    except Exception as exc:
+        logger.warning("ACC schedule fetch failed (%s) — time analysis will run without schedule", exc)
+        return []
+
+
 def process_event(routed_event: RoutedEvent) -> ProcessingResult:
     """
     Run the full domain processing pipeline for a routed event.
@@ -48,6 +75,9 @@ def process_event(routed_event: RoutedEvent) -> ProcessingResult:
 
     Returns:
         ProcessingResult with enriched event, signals, policy result, time result.
+
+    Raises:
+        RuntimeError if ACC credentials are not configured (propagated from enrich_event).
     """
     logger.info({
         "event": "domain_processing_start",
@@ -55,11 +85,13 @@ def process_event(routed_event: RoutedEvent) -> ProcessingResult:
         "event_type": routed_event.event_type,
     })
 
-    # Step 1: Context enrichment (Phase 4)
+    # Step 1: Context enrichment — ACC floor plan + pgvector (raises if creds absent)
     enriched = enrich_event(routed_event.event)
 
-    # Step 2: Time analysis (DOM-03) — no ACC schedule yet; stub = no conflicts
-    time_result = analyze_time(enriched, schedule=None)
+    # Step 2: Time analysis — fetch real ACC schedule, pass to analyze_time
+    project_id = os.getenv("ACC_PROJECT_ID", "")
+    acc_schedule = _fetch_acc_schedule(project_id) if project_id else []
+    time_result = analyze_time(enriched, schedule=acc_schedule or None)
 
     # Step 3: Policy evaluation (DOM-04)
     policy_result = evaluate_policies(enriched, routed_event.config)
