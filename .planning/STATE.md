@@ -29,10 +29,10 @@ progress:
 | Field | Value |
 |-------|-------|
 | Current Phase | Phase 3: Data Processing |
-| Current Plan | 03-01 complete |
+| Current Plan | 03-02 complete |
 | Status | Phase 3 in progress |
 | Last Updated | 2026-03-13 |
-| Stopped At | Completed 03-data-processing 03-01-PLAN.md |
+| Stopped At | Completed 03-data-processing 03-02-PLAN.md |
 
 ### Progress Bar
 
@@ -40,7 +40,7 @@ progress:
 Phase 0  [##########] 100% (2/2 plans complete)
 Phase 1  [##########] 100% (5/5 plans complete)
 Phase 2  [##########] 100% (3/3 plans complete)
-Phase 3  [###       ] 33% (1/3 plans complete)
+Phase 3  [######    ] 67% (2/3 plans complete)
 Phase 4  [          ] 0%
 Phase 5  [          ] 0%
 Phase 6  [          ] 0%
@@ -74,6 +74,7 @@ Overall: 3/10 phases complete (10/10 total plans)
 | Phase 02-knowledge-folder P02 | 3 min | 3 tasks | 4 files |
 | Phase 02-knowledge-folder P03 | 5 min | 2 tasks | 2 files |
 | Phase 03-data-processing P01 | 3 min | 2 tasks | 5 files |
+| Phase 03-data-processing P02 | 3 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -112,6 +113,9 @@ Overall: 3/10 phases complete (10/10 total plans)
 - **Rules condition fields**: String-based conditions interpreted by LLM during enrichment, not executed programmatically — rules are advisory/routing, not a rule engine.
 - **Seed script test lazy import pattern**: test_knowledge_folder.py uses Path.exists() for IMPL_AVAILABLE guard (avoids pydantic ValidationError at collection time) and lazy imports inside each test function — same as test_connectors.py pattern. try/except ImportError is insufficient when settings singleton raises ValidationError at import time.
 - **NormalizedEvent fields for pipeline**: Added review_required (bool, default False), confidence (int 0-100, default 50), estimated_cost (Optional[float], default None) — required by normalizer, scope_filter, and router modules.
+- **Haiku extraction flat schema**: normalization prompt uses flat field names (material_original, material_new) not nested objects — required by extra="forbid" on NormalizedEvent. change_type stripped from Haiku output before Pydantic construction.
+- **tenacity retry on three exception types**: normalize_event retries on ValidationError, ValueError, and json.JSONDecodeError — all realistic Haiku failure modes. model_copy(update=...) used to set review_required on immutable Pydantic v2 models.
+- **FilterResult never raises**: filter_event() always returns FilterResult. Out-of-scope sets passed=False, alert_pm=True. estimated_cost>50000 sets escalate_immediately=True (location check runs first).
 
 ### Architecture Principles
 
@@ -160,7 +164,7 @@ Overall: 3/10 phases complete (10/10 total plans)
 | Phase 0 | 2026-03-12 | Complete — 2 plans (scaffold + DB/LLM layer) |
 | Phase 1 | 2026-03-13 | Complete — 5 plans (pubsub, fireflies/acc webhooks, Gmail/Calendar connectors, main.py wiring) — 26 unit tests passing |
 | Phase 2 | 2026-03-13 | Complete — 3 plans (content files, DB schema + vector store, seed script) — 6 unit tests passing |
-| Phase 3 | - | In progress — 1/3 plans complete (03-01: model extension + Wave 0 stubs) |
+| Phase 3 | - | In progress — 2/3 plans complete (03-01: model extension + Wave 0 stubs; 03-02: normalizer + scope filter) |
 | Phase 4 | - | Not started |
 | Phase 5 | - | Not started |
 | Phase 6 | - | Not started |
