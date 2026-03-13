@@ -1,7 +1,10 @@
 """
-Unit tests for policy_engine.py — TDD RED phase.
+Unit tests for policy_engine.py — TDD.
 Tests use tmp_path YAML fixture to avoid live filesystem dependency.
+Uses _setup_env autouse fixture to set required env vars and pop sys.modules
+before each test (avoids config.settings singleton triggering at import time).
 """
+import sys
 from pathlib import Path
 
 import pytest
@@ -11,6 +14,36 @@ import yaml
 IMPL_PATH = Path(__file__).resolve().parent.parent.parent / "src/system/domain_processing/policy_engine.py"
 IMPL_AVAILABLE = IMPL_PATH.exists() and IMPL_PATH.stat().st_size > 10
 pytestmark = pytest.mark.skipif(not IMPL_AVAILABLE, reason="policy_engine.py not yet implemented")
+
+
+# Modules that must be popped + re-imported fresh per test
+# (to prevent stale config.settings from a previous test leaking in)
+_MODULES_TO_RESET = [
+    "src.system.domain_processing.policy_engine",
+    "src.system.context.enrichment",
+    "src.system.context.historical",
+    "src.system.context",
+    "src.shared.db.vector_store",
+    "src.shared.db.postgres",
+    "config.settings",
+]
+
+
+@pytest.fixture(autouse=True)
+def _setup_env(monkeypatch):
+    """Set required env vars and reset module cache before each test."""
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-anthropic-key")
+    monkeypatch.setenv("VOYAGE_API_KEY", "test-voyage-key")
+    monkeypatch.setenv("DATABASE_URL", "postgresql://test:test@localhost:5432/test")
+    monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "test-project")
+
+    for mod in _MODULES_TO_RESET:
+        sys.modules.pop(mod, None)
+
+    yield
+
+    for mod in _MODULES_TO_RESET:
+        sys.modules.pop(mod, None)
 
 
 # ---------------------------------------------------------------------------
@@ -102,6 +135,10 @@ def _make_enriched_event(
     """
     Construct a minimal EnrichedEvent without triggering config.settings.
     All imports are lazy to avoid Settings() singleton at collection time.
+
+    NOTE: NormalizedEvent has extra="forbid" and does NOT have a change_type field.
+    change_type is mapped via event_type in the policy engine's _build_event_fields.
+    Pass the granular type (e.g. "material_substitution") as event_type so rules fire.
     """
     from src.shared.models.events import NormalizedEvent
     from src.system.context.enrichment import EnrichedEvent
@@ -109,14 +146,15 @@ def _make_enriched_event(
     norm_event = NormalizedEvent(
         event_id="test-evt-001",
         source="acc",
-        event_type="material_change",
+        # event_type is used as change_type in _build_event_fields; pass the granular
+        # type so rules that condition on change_type evaluate correctly.
+        event_type=change_type or "material_change",
         material_original=material_original,
         material_new=material_new,
         location="3rd floor",
         quantity=quantity,
         summary="Test material change event",
         estimated_cost=estimated_cost,
-        change_type=change_type,
     )
 
     return EnrichedEvent(
