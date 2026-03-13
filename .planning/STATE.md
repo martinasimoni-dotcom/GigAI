@@ -6,7 +6,7 @@ status: unknown
 last_updated: "2026-03-13T11:54:33.742Z"
 progress:
   total_phases: 10
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 10
   completed_plans: 10
 ---
@@ -29,10 +29,10 @@ progress:
 | Field | Value |
 |-------|-------|
 | Current Phase | Phase 3: Data Processing |
-| Current Plan | 03-02 complete |
-| Status | Phase 3 in progress |
+| Current Plan | 03-03 complete |
+| Status | Phase 3 complete |
 | Last Updated | 2026-03-13 |
-| Stopped At | Completed 03-data-processing 03-02-PLAN.md |
+| Stopped At | Completed 03-data-processing 03-03-PLAN.md |
 
 ### Progress Bar
 
@@ -40,7 +40,7 @@ progress:
 Phase 0  [##########] 100% (2/2 plans complete)
 Phase 1  [##########] 100% (5/5 plans complete)
 Phase 2  [##########] 100% (3/3 plans complete)
-Phase 3  [######    ] 67% (2/3 plans complete)
+Phase 3  [##########] 100% (3/3 plans complete)
 Phase 4  [          ] 0%
 Phase 5  [          ] 0%
 Phase 6  [          ] 0%
@@ -75,6 +75,7 @@ Overall: 3/10 phases complete (10/10 total plans)
 | Phase 02-knowledge-folder P03 | 5 min | 2 tasks | 2 files |
 | Phase 03-data-processing P01 | 3 min | 2 tasks | 5 files |
 | Phase 03-data-processing P02 | 3 min | 2 tasks | 3 files |
+| Phase 03-data-processing P03 | 3 min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -116,6 +117,8 @@ Overall: 3/10 phases complete (10/10 total plans)
 - **Haiku extraction flat schema**: normalization prompt uses flat field names (material_original, material_new) not nested objects — required by extra="forbid" on NormalizedEvent. change_type stripped from Haiku output before Pydantic construction.
 - **tenacity retry on three exception types**: normalize_event retries on ValidationError, ValueError, and json.JSONDecodeError — all realistic Haiku failure modes. model_copy(update=...) used to set review_required on immutable Pydantic v2 models.
 - **FilterResult never raises**: filter_event() always returns FilterResult. Out-of-scope sets passed=False, alert_pm=True. estimated_cost>50000 sets escalate_immediately=True (location check runs first).
+- **route_event config_dir injection**: config_dir optional parameter added to route_event() for test-time YAML path override without filesystem mocking. Default uses Path(__file__) anchor from router.py location.
+- **Router fallback chain**: Invalid Haiku classification falls back to event_type="other" before YAML load; YAML load failure also falls back to other.yaml. Both paths guaranteed to return valid EventTypeConfig.
 
 ### Architecture Principles
 
@@ -164,7 +167,7 @@ Overall: 3/10 phases complete (10/10 total plans)
 | Phase 0 | 2026-03-12 | Complete — 2 plans (scaffold + DB/LLM layer) |
 | Phase 1 | 2026-03-13 | Complete — 5 plans (pubsub, fireflies/acc webhooks, Gmail/Calendar connectors, main.py wiring) — 26 unit tests passing |
 | Phase 2 | 2026-03-13 | Complete — 3 plans (content files, DB schema + vector store, seed script) — 6 unit tests passing |
-| Phase 3 | - | In progress — 2/3 plans complete (03-01: model extension + Wave 0 stubs; 03-02: normalizer + scope filter) |
+| Phase 3 | 2026-03-13 | Complete — 3 plans (03-01: model extension + stubs; 03-02: normalizer + scope filter; 03-03: routing prompt + YAML configs + router) — 13 unit tests passing |
 | Phase 4 | - | Not started |
 | Phase 5 | - | Not started |
 | Phase 6 | - | Not started |
