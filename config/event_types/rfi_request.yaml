@@ -1,6 +1,8 @@
-# rfi_request.yaml — Phase 3 stub (expanded in Phase 5)
+# rfi_request.yaml — Event type config stub (DOM-02)
 event_type: rfi_request
 rules_file: knowledge_folder/rules/demo_project.yaml
-allowed_signals: []
-enrichment_queries: []
+allowed_signals:
+  - drawing_markup_required
+enrichment_queries:
+  - "rfi specification clarification"
 time_analysis_enabled: false

@@ -1,7 +1,8 @@
-# schedule_update.yaml — Phase 3 stub (expanded in Phase 5)
+# schedule_update.yaml — Event type config stub (DOM-02)
 event_type: schedule_update
 rules_file: knowledge_folder/rules/demo_project.yaml
 allowed_signals:
   - schedule_update_needed
-enrichment_queries: []
+enrichment_queries:
+  - "schedule delay impact critical path"
 time_analysis_enabled: true
