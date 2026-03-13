@@ -3,6 +3,7 @@ Unit tests for src/input/pubsub.publish_event().
 Pub/Sub client is mocked — no GCP credentials or live topic needed.
 """
 import json
+import sys
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 import pytest
@@ -11,8 +12,14 @@ from src.shared.models.events import RawEvent
 
 
 @pytest.fixture(autouse=True)
-def reset_pubsub_globals():
-    """Reset module-level publisher singleton between tests."""
+def reset_pubsub_globals(monkeypatch):
+    """Set required env vars, clear cached modules, and reset publisher singleton between tests."""
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+    monkeypatch.setenv("VOYAGE_API_KEY", "test-key")
+    monkeypatch.setenv("DATABASE_URL", "postgresql://test:test@localhost/test")
+    # Remove cached settings + pubsub modules so they reimport with the correct env
+    sys.modules.pop("config.settings", None)
+    sys.modules.pop("src.input.pubsub", None)
     import src.input.pubsub as pubsub_module
     pubsub_module._publisher = None
     pubsub_module._topic_path = None
