@@ -169,30 +169,35 @@ def test_enrich_event_returns_enriched_event(monkeypatch):
     import src.system.context.enrichment as enrichment
     from src.system.context.enrichment import enrich_event, EnrichedEvent
 
-    monkeypatch.delenv("ACC_TOKEN", raising=False)
+    monkeypatch.setenv("ACC_PROJECT_ID", "proj-test")
+
+    mock_floor_plan = {"nodes": [{"id": "node-1"}], "source": "acc"}
 
     with patch.object(enrichment, "search", return_value=[]), \
-         patch.object(enrichment, "retrieve_historical", return_value=[]):
+         patch.object(enrichment, "retrieve_historical", return_value=[]), \
+         patch("src.system.context.enrichment.get_floor_plan", return_value=mock_floor_plan):
         result = enrich_event(_make_event())
 
     assert isinstance(result, EnrichedEvent)
     assert result.event.event_id == "e-demo"
 
 
-def test_enrich_event_stub_returns_w_unit_ids(monkeypatch):
-    """When ACC_TOKEN is not set, acc_floor_plan should contain W-301..W-312."""
+def test_enrich_event_acc_floor_plan_from_api(monkeypatch):
+    """enrich_event() should return acc_floor_plan data from the ACC API call."""
     import src.system.context.enrichment as enrichment
     from src.system.context.enrichment import enrich_event
 
-    monkeypatch.delenv("ACC_TOKEN", raising=False)
+    monkeypatch.setenv("ACC_PROJECT_ID", "proj-test")
+
+    mock_floor_plan = {"nodes": [{"id": "loc-001"}, {"id": "loc-002"}], "source": "acc"}
 
     with patch.object(enrichment, "search", return_value=[]), \
-         patch.object(enrichment, "retrieve_historical", return_value=[]):
+         patch.object(enrichment, "retrieve_historical", return_value=[]), \
+         patch("src.system.context.enrichment.get_floor_plan", return_value=mock_floor_plan):
         result = enrich_event(_make_event())
 
-    assert "W-301" in result.acc_floor_plan["units"]
-    assert "W-312" in result.acc_floor_plan["units"]
-    assert len(result.acc_floor_plan["units"]) == 12
+    assert result.acc_floor_plan == mock_floor_plan
+    assert result.acc_floor_plan["source"] == "acc"
 
 
 def test_enrich_event_supplier_info_from_search(monkeypatch):
@@ -200,7 +205,7 @@ def test_enrich_event_supplier_info_from_search(monkeypatch):
     import src.system.context.enrichment as enrichment
     from src.system.context.enrichment import enrich_event
 
-    monkeypatch.delenv("ACC_TOKEN", raising=False)
+    monkeypatch.setenv("ACC_PROJECT_ID", "proj-test")
 
     mock_supplier_row = _mock_row(
         "Premium Wood Co pricing $45/sqft",
@@ -208,14 +213,16 @@ def test_enrich_event_supplier_info_from_search(monkeypatch):
         similarity=0.88,
     )
 
+    mock_floor_plan = {"nodes": [], "source": "acc"}
+
     def _mock_search(query_text, top_k=5, source_filter=None):
-        # Return supplier row only for supplier query (first call)
         if "supplier" in query_text:
             return [mock_supplier_row]
         return []
 
     with patch.object(enrichment, "search", side_effect=_mock_search), \
-         patch.object(enrichment, "retrieve_historical", return_value=[]):
+         patch.object(enrichment, "retrieve_historical", return_value=[]), \
+         patch("src.system.context.enrichment.get_floor_plan", return_value=mock_floor_plan):
         result = enrich_event(_make_event())
 
     assert result.supplier_info is not None
