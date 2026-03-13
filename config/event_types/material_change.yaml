@@ -1,0 +1,12 @@
+# material_change.yaml — Phase 3 working stub
+# Full rules, signal types, and enrichment queries added in Phase 5 (DOM-01)
+event_type: material_change
+rules_file: knowledge_folder/rules/demo_project.yaml
+allowed_signals:
+  - material_order_required
+  - schedule_update_needed
+  - drawing_markup_required
+enrichment_queries:
+  - "material supplier and pricing"
+  - "past material change approvals"
+time_analysis_enabled: true

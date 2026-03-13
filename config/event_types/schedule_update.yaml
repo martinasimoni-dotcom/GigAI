@@ -1,0 +1,7 @@
+# schedule_update.yaml — Phase 3 stub (expanded in Phase 5)
+event_type: schedule_update
+rules_file: knowledge_folder/rules/demo_project.yaml
+allowed_signals:
+  - schedule_update_needed
+enrichment_queries: []
+time_analysis_enabled: true
