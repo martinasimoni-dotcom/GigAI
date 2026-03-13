@@ -26,6 +26,8 @@ langchain-anthropic>=0.1
 # Google Cloud
 google-cloud-pubsub>=2.18
 google-auth>=2.27
+google-api-python-client>=2.115
+google-auth-httplib2>=0.2.0
 
 # Retry logic
 tenacity>=8.2.3
