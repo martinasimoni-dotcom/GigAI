@@ -152,11 +152,11 @@ All requirements below are in scope for the current build (10-phase implementati
 | INPUT-02 | Phase 1 | Complete |
 | INPUT-03 | Phase 1 | Complete |
 | INPUT-04 | Phase 1 | Complete |
-| KF-01 | Phase 2 | Pending |
-| KF-02 | Phase 2 | Pending |
-| KF-03 | Phase 2 | Pending |
-| KF-04 | Phase 2 | Pending |
-| KF-05 | Phase 2 | Pending |
+| KF-01 | Phase 2 | Complete |
+| KF-02 | Phase 2 | Complete |
+| KF-03 | Phase 2 | Complete |
+| KF-04 | Phase 2 | Complete |
+| KF-05 | Phase 2 | Complete |
 | PROC-01 | Phase 3 | Pending |
 | PROC-02 | Phase 3 | Pending |
 | PROC-03 | Phase 3 | Pending |
