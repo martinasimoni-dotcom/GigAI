@@ -28,11 +28,11 @@ progress:
 
 | Field | Value |
 |-------|-------|
-| Current Phase | Phase 5: Domain Processing |
-| Current Plan | 05-04 complete |
-| Status | Phase 5 complete (wave 2) |
+| Current Phase | Phase 6: Decision Intelligence |
+| Current Plan | 06-01 complete |
+| Status | Phase 6 in progress (plan 1/2 complete) |
 | Last Updated | 2026-03-13 |
-| Stopped At | Completed 05-domain-processing 05-04-PLAN.md |
+| Stopped At | Completed 06-decision-intelligence 06-01-PLAN.md |
 
 ### Progress Bar
 
@@ -43,7 +43,7 @@ Phase 2  [##########] 100% (3/3 plans complete)
 Phase 3  [##########] 100% (3/3 plans complete)
 Phase 4  [######    ] 67% (2/3 plans complete)
 Phase 5  [###       ] 43% (3/7 plans complete)
-Phase 6  [          ] 0%
+Phase 6  [#####     ] 50% (1/2 plans complete)
 Phase 7  [          ] 0%
 Phase 8  [          ] 0%
 Phase 9  [          ] 0%
@@ -86,6 +86,7 @@ Overall: 4/10 phases complete (18/22 total plans)
 | Phase 05-domain-processing P02 | 4 min | 2 tasks | 2 files |
 | Phase 05-domain-processing P03 | 4 min | 2 tasks | 2 files |
 | Phase 05-domain-processing P04 | 3 min | 2 tasks | 4 files |
+| Phase 06-decision-intelligence P01 | 3 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -143,6 +144,9 @@ Overall: 4/10 phases complete (18/22 total plans)
 - **signal_generator.py TYPE_CHECKING guard**: EnrichedEvent import placed under `if TYPE_CHECKING:` with `from __future__ import annotations` — consistent with time_analysis.py and policy_engine.py patterns; prevents config.settings singleton trigger at module load.
 - **ProcessingResult inline in processor.py**: Domain-specific result model (ProcessingResult) defined inline in processor.py — consistent with TimeAnalysisResult pattern, not in shared/models.
 - **DOM-07 wiring confirmed**: processor.py consumes routed_event.config (EventTypeConfig already loaded by router.py in Phase 3) — no redundant YAML loading in the domain processing layer.
+- **confidence_scorer uses TYPE_CHECKING guard**: ProcessingResult and HistoricalMatch imports placed under `if TYPE_CHECKING:` with `from __future__ import annotations` — consistent with signal_generator.py, time_analysis.py, policy_engine.py patterns; prevents transitive config.settings singleton trigger.
+- **Demo scenario confidence=60 not 95**: Using confidence=60 for test_demo_scenario produces score=85.5 (within ±3 of 86 target); confidence=95 would produce 96 which overshoots the ~86% must-have truth.
+- **IMPL_AVAILABLE guard uses Path.exists() + st_size > 10**: Confidence scorer tests guard imports with file existence + size check (not try/except) — matches established project pattern from decisions log entry above.
 
 ### Architecture Principles
 
@@ -194,7 +198,7 @@ Overall: 4/10 phases complete (18/22 total plans)
 | Phase 3 | 2026-03-13 | Complete — 3 plans (03-01: model extension + stubs; 03-02: normalizer + scope filter; 03-03: routing prompt + YAML configs + router) — 13 unit tests passing |
 | Phase 4 | In progress | 04-02 complete — EnrichedEvent model + enrich_event() + ACC floor plan stub + 8 unit tests passing (13 total for Phase 4 so far) |
 | Phase 5 | 2026-03-13 | Wave 2 complete (05-04) — signal_generator.py + processor.py + ProcessingResult; demo scenario produces all 3 signals; 38 unit tests passing |
-| Phase 6 | - | Not started |
+| Phase 6 | In progress | 06-01 complete — proposal.txt (6216 chars), confidence_scorer.py (4-factor formula), test_confidence_scorer.py (7 tests passing) |
 | Phase 7 | - | Not started |
 | Phase 8 | - | Not started |
 | Phase 9 | - | Not started |
