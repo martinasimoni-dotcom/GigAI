@@ -11,7 +11,7 @@
 ## Phases
 
 - [x] **Phase 0: Foundation** — Project scaffold, shared infrastructure, database schema, LLM/embedding clients, Pydantic models
-- [ ] **Phase 1: Input Layer** — All event ingestion endpoints: Fireflies webhook, ACC webhook, Gmail polling, Calendar polling
+- [x] **Phase 1: Input Layer** — All event ingestion endpoints: Fireflies webhook, ACC webhook, Gmail polling, Calendar polling
 - [ ] **Phase 2: Knowledge Folder** — Domain context files (glossary, team, rules, historical patterns) embedded into pgvector
 - [ ] **Phase 3: Data Processing** — Haiku-powered normalization, scope filtering, and event routing pipeline
 - [ ] **Phase 4: Context Enrichment** — ACC API integration and pgvector semantic retrieval for project context and history
@@ -28,7 +28,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 0. Foundation | 2/2 | Complete    | 2026-03-12 |
-| 1. Input Layer | 4/5 | In Progress|  |
+| 1. Input Layer | 5/5 | Complete    | 2026-03-13 |
 | 2. Knowledge Folder | 0/1 | Not started | - |
 | 3. Data Processing | 0/1 | Not started | - |
 | 4. Context Enrichment | 0/1 | Not started | - |
@@ -71,8 +71,8 @@ Plans:
 - [x] 01-01-PLAN.md — Wave 0: test stubs + add google-api-python-client to requirements.txt (INPUT-01, INPUT-02, INPUT-03, INPUT-04)
 - [x] 01-02-PLAN.md — Shared Pub/Sub publisher helper (src/input/pubsub.py) + infra/pubsub/setup.sh (INPUT-01, INPUT-02, INPUT-03, INPUT-04)
 - [x] 01-03-PLAN.md — Webhook endpoints: POST /webhooks/fireflies and POST /webhooks/acc (INPUT-01, INPUT-02)
-- [ ] 01-04-PLAN.md — Polling connectors: poll_gmail() and poll_calendar() (INPUT-03, INPUT-04)
-- [ ] 01-05-PLAN.md — FastAPI app wiring: src/main.py with all routers and GET /health (INPUT-01, INPUT-02)
+- [x] 01-04-PLAN.md — Polling connectors: poll_gmail() and poll_calendar() (INPUT-03, INPUT-04)
+- [x] 01-05-PLAN.md — FastAPI app wiring: src/main.py with all routers and GET /health (INPUT-01, INPUT-02)
 
 ### Phase 2: Knowledge Folder
 **Goal**: Project domain knowledge (team, materials, rules, history) is stored in pgvector and retrievable by semantic query.

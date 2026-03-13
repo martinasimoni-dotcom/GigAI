@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-13T11:01:26.596Z"
+last_updated: "2026-03-13T11:08:47.043Z"
 progress:
   total_phases: 10
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # STATE.md — GigAI
@@ -29,15 +29,16 @@ progress:
 | Field | Value |
 |-------|-------|
 | Current Phase | Phase 1: Input Layer |
-| Current Plan | 01-05 |
-| Status | In progress |
+| Current Plan | Complete (01-05 done) |
+| Status | Phase 1 complete |
 | Last Updated | 2026-03-13 |
+| Stopped At | Completed 01-input-layer 01-05-PLAN.md |
 
 ### Progress Bar
 
 ```
 Phase 0  [##########] 100% (2/2 plans complete)
-Phase 1  [████      ] 80% (4/5 plans complete)
+Phase 1  [##########] 100% (5/5 plans complete)
 Phase 2  [          ] 0%
 Phase 3  [          ] 0%
 Phase 4  [          ] 0%
@@ -47,7 +48,7 @@ Phase 7  [          ] 0%
 Phase 8  [          ] 0%
 Phase 9  [          ] 0%
 
-Overall: 1/10 phases complete (6/7 total plans)
+Overall: 2/10 phases complete (7/7 total plans)
 ```
 
 ---
@@ -68,6 +69,7 @@ Overall: 1/10 phases complete (6/7 total plans)
 | Phase 01-input-layer P02 | 6 min | 2 tasks | 3 files |
 | Phase 01-input-layer P03 | 18 min | 2 tasks | 4 files |
 | Phase 01-input-layer P04 | 5 min | 2 tasks | 3 files |
+| Phase 01-input-layer P05 | 3 min | 1 task | 1 file |
 
 ## Accumulated Context
 
@@ -100,6 +102,7 @@ Overall: 1/10 phases complete (6/7 total plans)
 - **Connector test lazy import pattern**: Connectors importing config.settings must use lazy imports inside test functions (not module-level) with autouse fixture setting env vars + popping sys.modules — otherwise settings singleton triggers at collection time before any fixture runs.
 - **Calendar singleEvents=True required**: Calendar API requires singleEvents=True when using orderBy="startTime" — hard API constraint.
 - **Calendar datetime.now(timezone.utc)**: Use datetime.now(timezone.utc) not datetime.utcnow() for RFC3339-compliant ISO strings with timezone offset required by Calendar API.
+- **test_main.py isolation pattern**: test_main.py requires same sys.modules.pop + env var setup as test_webhooks.py because import chain src.main -> src.input.webhooks -> src.input.pubsub -> config.settings triggers Settings() singleton at import time. Also requires anyio_backend fixture to restrict async tests to asyncio only.
 
 ### Architecture Principles
 
@@ -146,7 +149,7 @@ Overall: 1/10 phases complete (6/7 total plans)
 | Phase | Completed | Notes |
 |-------|-----------|-------|
 | Phase 0 | 2026-03-12 | Complete — 2 plans (scaffold + DB/LLM layer) |
-| Phase 1 | - | Not started |
+| Phase 1 | 2026-03-13 | Complete — 5 plans (pubsub, fireflies/acc webhooks, Gmail/Calendar connectors, main.py wiring) — 26 unit tests passing |
 | Phase 2 | - | Not started |
 | Phase 3 | - | Not started |
 | Phase 4 | - | Not started |
