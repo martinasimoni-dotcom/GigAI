@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-13T11:54:33.742Z"
+last_updated: "2026-03-13T14:48:51.775Z"
 progress:
   total_phases: 10
   completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 15
+  completed_plans: 14
 ---
 
 # STATE.md — GigAI
@@ -28,11 +28,11 @@ progress:
 
 | Field | Value |
 |-------|-------|
-| Current Phase | Phase 3: Data Processing |
-| Current Plan | 03-03 complete |
-| Status | Phase 3 complete |
+| Current Phase | Phase 4: Context Enrichment |
+| Current Plan | 04-01 complete |
+| Status | Phase 4 in progress |
 | Last Updated | 2026-03-13 |
-| Stopped At | Completed 03-data-processing 03-03-PLAN.md |
+| Stopped At | Completed 04-context-enrichment 04-01-PLAN.md |
 
 ### Progress Bar
 
@@ -41,14 +41,14 @@ Phase 0  [##########] 100% (2/2 plans complete)
 Phase 1  [##########] 100% (5/5 plans complete)
 Phase 2  [##########] 100% (3/3 plans complete)
 Phase 3  [##########] 100% (3/3 plans complete)
-Phase 4  [          ] 0%
+Phase 4  [#         ] 33% (1/3 plans complete)
 Phase 5  [          ] 0%
 Phase 6  [          ] 0%
 Phase 7  [          ] 0%
 Phase 8  [          ] 0%
 Phase 9  [          ] 0%
 
-Overall: 3/10 phases complete (10/10 total plans)
+Overall: 3/10 phases complete (14/15 total plans)
 ```
 
 ---
@@ -76,6 +76,7 @@ Overall: 3/10 phases complete (10/10 total plans)
 | Phase 03-data-processing P01 | 3 min | 2 tasks | 5 files |
 | Phase 03-data-processing P02 | 3 min | 2 tasks | 3 files |
 | Phase 03-data-processing P03 | 3 min | 2 tasks | 8 files |
+| Phase 04-context-enrichment P01 | 3 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -119,6 +120,8 @@ Overall: 3/10 phases complete (10/10 total plans)
 - **FilterResult never raises**: filter_event() always returns FilterResult. Out-of-scope sets passed=False, alert_pm=True. estimated_cost>50000 sets escalate_immediately=True (location check runs first).
 - **route_event config_dir injection**: config_dir optional parameter added to route_event() for test-time YAML path override without filesystem mocking. Default uses Path(__file__) anchor from router.py location.
 - **Router fallback chain**: Invalid Haiku classification falls back to event_type="other" before YAML load; YAML load failure also falls back to other.yaml. Both paths guaranteed to return valid EventTypeConfig.
+- **IMPL_AVAILABLE guard uses Path.exists()**: Test stub files guard imports with Path.exists() + stat().st_size > 10 (not try/except ImportError) — avoids pydantic ValidationError at collection time when settings singleton raises on missing env vars.
+- **historical.py avoids config.settings import**: search() imported directly from vector_store; no config.settings at module level in historical.py — keeps the module importable in test environments that set env vars via monkeypatch.
 
 ### Architecture Principles
 
@@ -168,7 +171,7 @@ Overall: 3/10 phases complete (10/10 total plans)
 | Phase 1 | 2026-03-13 | Complete — 5 plans (pubsub, fireflies/acc webhooks, Gmail/Calendar connectors, main.py wiring) — 26 unit tests passing |
 | Phase 2 | 2026-03-13 | Complete — 3 plans (content files, DB schema + vector store, seed script) — 6 unit tests passing |
 | Phase 3 | 2026-03-13 | Complete — 3 plans (03-01: model extension + stubs; 03-02: normalizer + scope filter; 03-03: routing prompt + YAML configs + router) — 13 unit tests passing |
-| Phase 4 | - | Not started |
+| Phase 4 | In progress | 04-01 complete — HistoricalMatch model + retrieve_historical() + 5 Wave 0 test stubs — 5 unit tests passing |
 | Phase 5 | - | Not started |
 | Phase 6 | - | Not started |
 | Phase 7 | - | Not started |
