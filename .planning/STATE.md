@@ -29,10 +29,10 @@ progress:
 | Field | Value |
 |-------|-------|
 | Current Phase | Phase 6: Decision Intelligence |
-| Current Plan | 06-01 complete |
-| Status | Phase 6 in progress (plan 1/2 complete) |
+| Current Plan | 06-02 complete |
+| Status | Phase 6 complete (plan 2/2 complete) |
 | Last Updated | 2026-03-13 |
-| Stopped At | Completed 06-decision-intelligence 06-01-PLAN.md |
+| Stopped At | Completed 06-decision-intelligence 06-02-PLAN.md |
 
 ### Progress Bar
 
@@ -43,7 +43,7 @@ Phase 2  [##########] 100% (3/3 plans complete)
 Phase 3  [##########] 100% (3/3 plans complete)
 Phase 4  [######    ] 67% (2/3 plans complete)
 Phase 5  [###       ] 43% (3/7 plans complete)
-Phase 6  [#####     ] 50% (1/2 plans complete)
+Phase 6  [##########] 100% (2/2 plans complete)
 Phase 7  [          ] 0%
 Phase 8  [          ] 0%
 Phase 9  [          ] 0%
@@ -87,6 +87,7 @@ Overall: 4/10 phases complete (18/22 total plans)
 | Phase 05-domain-processing P03 | 4 min | 2 tasks | 2 files |
 | Phase 05-domain-processing P04 | 3 min | 2 tasks | 4 files |
 | Phase 06-decision-intelligence P01 | 3 min | 2 tasks | 3 files |
+| Phase 06-decision-intelligence P02 | 3 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -147,6 +148,9 @@ Overall: 4/10 phases complete (18/22 total plans)
 - **confidence_scorer uses TYPE_CHECKING guard**: ProcessingResult and HistoricalMatch imports placed under `if TYPE_CHECKING:` with `from __future__ import annotations` — consistent with signal_generator.py, time_analysis.py, policy_engine.py patterns; prevents transitive config.settings singleton trigger.
 - **Demo scenario confidence=60 not 95**: Using confidence=60 for test_demo_scenario produces score=85.5 (within ±3 of 86 target); confidence=95 would produce 96 which overshoots the ~86% must-have truth.
 - **IMPL_AVAILABLE guard uses Path.exists() + st_size > 10**: Confidence scorer tests guard imports with file existence + size check (not try/except) — matches established project pattern from decisions log entry above.
+- **call_sonnet lazy import in proposal_generator**: call_sonnet and score_proposal imported inside generate_proposal() body (not at module level) — prevents anthropic.Anthropic() from reading ANTHROPIC_API_KEY at module import time, enabling test isolation via monkeypatch.setenv.
+- **Outer tenacity retry on generate_proposal**: @retry(stop_after_attempt(3), reraise=True) on generate_proposal() body catches JSONDecodeError and ValidationError from parse/validate step; call_sonnet already has its own inner @retry for API errors — dual-layer retry is intentional.
+- **Test retry uses __wrapped__ + wait_none()**: Retry tests access generate_proposal.__wrapped__ and re-wrap with wait_none() to avoid 2-10s exponential wait delays in unit tests.
 
 ### Architecture Principles
 
@@ -198,7 +202,7 @@ Overall: 4/10 phases complete (18/22 total plans)
 | Phase 3 | 2026-03-13 | Complete — 3 plans (03-01: model extension + stubs; 03-02: normalizer + scope filter; 03-03: routing prompt + YAML configs + router) — 13 unit tests passing |
 | Phase 4 | In progress | 04-02 complete — EnrichedEvent model + enrich_event() + ACC floor plan stub + 8 unit tests passing (13 total for Phase 4 so far) |
 | Phase 5 | 2026-03-13 | Wave 2 complete (05-04) — signal_generator.py + processor.py + ProcessingResult; demo scenario produces all 3 signals; 38 unit tests passing |
-| Phase 6 | In progress | 06-01 complete — proposal.txt (6216 chars), confidence_scorer.py (4-factor formula), test_confidence_scorer.py (7 tests passing) |
+| Phase 6 | 2026-03-13 | Complete — 06-01: proposal.txt + confidence_scorer.py (7 tests); 06-02: proposal_generator.py + __init__.py (5 tests) — 12 Phase 6 unit tests passing |
 | Phase 7 | - | Not started |
 | Phase 8 | - | Not started |
 | Phase 9 | - | Not started |
