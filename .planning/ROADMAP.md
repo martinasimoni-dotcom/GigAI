@@ -28,7 +28,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 0. Foundation | 2/2 | Complete    | 2026-03-12 |
-| 1. Input Layer | 2/5 | In Progress|  |
+| 1. Input Layer | 3/5 | In Progress|  |
 | 2. Knowledge Folder | 0/1 | Not started | - |
 | 3. Data Processing | 0/1 | Not started | - |
 | 4. Context Enrichment | 0/1 | Not started | - |
@@ -69,8 +69,8 @@ Plans:
 **Plans**: 5 plans
 Plans:
 - [x] 01-01-PLAN.md — Wave 0: test stubs + add google-api-python-client to requirements.txt (INPUT-01, INPUT-02, INPUT-03, INPUT-04)
-- [ ] 01-02-PLAN.md — Shared Pub/Sub publisher helper (src/input/pubsub.py) + infra/pubsub/setup.sh (INPUT-01, INPUT-02, INPUT-03, INPUT-04)
-- [ ] 01-03-PLAN.md — Webhook endpoints: POST /webhooks/fireflies and POST /webhooks/acc (INPUT-01, INPUT-02)
+- [x] 01-02-PLAN.md — Shared Pub/Sub publisher helper (src/input/pubsub.py) + infra/pubsub/setup.sh (INPUT-01, INPUT-02, INPUT-03, INPUT-04)
+- [x] 01-03-PLAN.md — Webhook endpoints: POST /webhooks/fireflies and POST /webhooks/acc (INPUT-01, INPUT-02)
 - [ ] 01-04-PLAN.md — Polling connectors: poll_gmail() and poll_calendar() (INPUT-03, INPUT-04)
 - [ ] 01-05-PLAN.md — FastAPI app wiring: src/main.py with all routers and GET /health (INPUT-01, INPUT-02)
 

@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-13T10:38:44.022Z"
+last_updated: "2026-03-13T10:53:07.793Z"
 progress:
   total_phases: 10
   completed_phases: 1
   total_plans: 7
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # STATE.md — GigAI
@@ -29,7 +29,7 @@ progress:
 | Field | Value |
 |-------|-------|
 | Current Phase | Phase 1: Input Layer |
-| Current Plan | 01-03 |
+| Current Plan | 01-04 |
 | Status | In progress |
 | Last Updated | 2026-03-13 |
 
@@ -37,7 +37,7 @@ progress:
 
 ```
 Phase 0  [##########] 100% (2/2 plans complete)
-Phase 1  [##        ] 40% (2/5 plans complete)
+Phase 1  [###       ] 60% (3/5 plans complete)
 Phase 2  [          ] 0%
 Phase 3  [          ] 0%
 Phase 4  [          ] 0%
@@ -47,7 +47,7 @@ Phase 7  [          ] 0%
 Phase 8  [          ] 0%
 Phase 9  [          ] 0%
 
-Overall: 1/10 phases complete (4/7 total plans)
+Overall: 1/10 phases complete (5/7 total plans)
 ```
 
 ---
@@ -61,13 +61,12 @@ Overall: 1/10 phases complete (4/7 total plans)
 | Event-to-proposal latency | <5 min | Not measured |
 | PM acceptance rate | 75% | Not measured |
 
----
-
 ## Execution Metrics
 
 | Phase | Duration | Tasks | Files |
 |-------|----------|-------|-------|
 | Phase 01-input-layer P02 | 6 min | 2 tasks | 3 files |
+| Phase 01-input-layer P03 | 18 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -95,6 +94,8 @@ Overall: 1/10 phases complete (4/7 total plans)
 - **pytest anyio plugin**: Use pytest_plugins = ("anyio",) in async test files to parametrize across asyncio and trio backends.
 - **sys.modules.pop for settings-dependent tests**: When testing modules that transitively import config.settings singleton, autouse fixture must setenv + pop sys.modules before import — matches test_postgres.py pattern. Required for any module importing config.settings.
 - **future.result() synchronous in publish_event**: Pub/Sub publish() is internally async; calling future.result() synchronously surfaces GoogleAPICallError immediately rather than silently dropping failures.
+- **sys.modules.pop must include PACKAGE module**: When popping submodules for test isolation, also pop the parent package (e.g., `src.input.webhooks`) — otherwise `from pkg import submod` retrieves the old module object from the package's attribute cache, bypassing the freshly-imported sys.modules entry and causing mock patches to miss.
+- **anyio_backend fixture for asyncio-only tests**: Use `@pytest.fixture(params=["asyncio"]) def anyio_backend` to prevent anyio from parametrizing tests over trio when trio is not installed in the environment.
 
 ### Architecture Principles
 
