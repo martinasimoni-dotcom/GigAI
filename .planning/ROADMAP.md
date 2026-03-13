@@ -29,7 +29,7 @@
 |-------|----------------|--------|-----------|
 | 0. Foundation | 2/2 | Complete    | 2026-03-12 |
 | 1. Input Layer | 5/5 | Complete    | 2026-03-13 |
-| 2. Knowledge Folder | 0/1 | Not started | - |
+| 2. Knowledge Folder | 0/3 | Not started | - |
 | 3. Data Processing | 0/1 | Not started | - |
 | 4. Context Enrichment | 0/1 | Not started | - |
 | 5. Domain Processing | 0/1 | Not started | - |
@@ -84,7 +84,11 @@ Plans:
   3. A semantic query for "material change approval threshold" returns a rule specifying the $50K escalation threshold from the rules file.
   4. A semantic query for "past aluminum to wood window change" returns at least one historical pattern from the historical_patterns file.
   5. The seed script completes without errors and reports the number of chunks embedded for each knowledge folder file.
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 02-01-PLAN.md — Wave 0: test stubs for all chunker functions and seed script (KF-01, KF-02, KF-03, KF-04, KF-05)
+- [ ] 02-02-PLAN.md — All 4 content files: glossary, team directory, rules, historical patterns (KF-01, KF-02, KF-03, KF-04)
+- [ ] 02-03-PLAN.md — Seed script: chunk + embed_batch + bulk INSERT + real tests (KF-05)
 
 ### Phase 3: Data Processing
 **Goal**: Raw events from Pub/Sub are normalized into structured JSON, validated against project scope, and routed to the correct event-type processing config.
