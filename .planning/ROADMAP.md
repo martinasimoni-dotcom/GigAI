@@ -30,7 +30,7 @@
 | 0. Foundation | 2/2 | Complete    | 2026-03-12 |
 | 1. Input Layer | 5/5 | Complete    | 2026-03-13 |
 | 2. Knowledge Folder | 3/3 | Complete    | 2026-03-13 |
-| 3. Data Processing | 0/1 | Not started | - |
+| 3. Data Processing | 0/3 | Not started | - |
 | 4. Context Enrichment | 0/1 | Not started | - |
 | 5. Domain Processing | 0/1 | Not started | - |
 | 6. Decision Intelligence | 0/1 | Not started | - |
@@ -100,7 +100,11 @@ Plans:
   3. An event describing a change at "the neighboring property" is rejected by the scope filter with an out_of_scope reason, and the PM receives an alert for manual review.
   4. An event with estimated cost above $50,000 is escalated immediately with a high_cost flag before further processing.
   5. The router classifies the demo transcript as event_type "material_change" and loads the material_change.yaml config successfully.
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 03-01-PLAN.md — Wave 1: extend NormalizedEvent (review_required, confidence, estimated_cost) + test stubs for normalizer, scope_filter, router (PROC-01, PROC-02, PROC-03, PROC-04, PROC-05)
+- [ ] 03-02-PLAN.md — Wave 2: normalization prompt + normalizer module + scope filter module (PROC-01, PROC-02, PROC-03)
+- [ ] 03-03-PLAN.md — Wave 3: routing prompt + YAML event type configs + router module + package inits (PROC-04, PROC-05)
 
 ### Phase 4: Context Enrichment
 **Goal**: Normalized events are enriched with ACC floor plan data, supplier contacts, and semantically similar historical changes — giving downstream stages everything they need to generate accurate proposals.
