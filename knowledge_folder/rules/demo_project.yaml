@@ -1,0 +1,126 @@
+rules:
+  - rule_id: RULE-001
+    description: "PM approval required for material changes under $5,000"
+    condition: "estimated_cost < 5000 AND change_type == 'material_substitution'"
+    action: "Route to Project Manager (Sarah Chen) for approval"
+    stakeholders: ["Project Manager"]
+    priority: normal
+
+  - rule_id: RULE-002
+    description: "PM and Owner approval required for material changes between $5,000 and $50,000"
+    condition: "estimated_cost >= 5000 AND estimated_cost <= 50000 AND change_type == 'material_substitution'"
+    action: "Route to PM and Owner Representative (Robert Hayes) for dual approval"
+    stakeholders: ["Project Manager", "Owner Representative"]
+    priority: high
+
+  - rule_id: RULE-003
+    description: "Immediate escalation for material changes exceeding $50,000"
+    condition: "estimated_cost > 50000"
+    action: "Flag as high_cost, escalate immediately to Owner Representative, pause pipeline pending approval"
+    stakeholders: ["Project Manager", "Owner Representative"]
+    priority: critical
+
+  - rule_id: RULE-004
+    description: "Structural material changes require architect and structural engineer sign-off"
+    condition: "material_category == 'structural' OR affects_load_bearing == true"
+    action: "Require sign-off from Lead Architect (James Park) and Structural Engineer (Lisa Wong)"
+    stakeholders: ["Lead Architect", "Structural Engineer"]
+    priority: critical
+
+  - rule_id: RULE-005
+    description: "Window orders exceeding 10 units require 6-week lead time allowance"
+    condition: "element_type == 'window' AND quantity > 10"
+    action: "Set minimum lead time to 6 weeks, notify Procurement Officer to initiate PO immediately"
+    stakeholders: ["Procurement Officer"]
+    priority: high
+
+  - rule_id: RULE-006
+    description: "Window orders of 10 units or fewer require 4-week lead time"
+    condition: "element_type == 'window' AND quantity <= 10"
+    action: "Set minimum lead time to 4 weeks, notify Procurement Officer"
+    stakeholders: ["Procurement Officer"]
+    priority: normal
+
+  - rule_id: RULE-007
+    description: "All material substitutions must meet or exceed original specification performance"
+    condition: "change_type == 'material_substitution'"
+    action: "Require specification comparison document from Lead Architect confirming equivalence or improvement"
+    stakeholders: ["Lead Architect"]
+    priority: high
+
+  - rule_id: RULE-008
+    description: "Wood frame window substitution for quantities above 8 units requires structural weight assessment"
+    condition: "material_original == 'aluminum' AND material_new == 'wood' AND element_type == 'window' AND quantity > 8"
+    action: "Request structural weight assessment from Lisa Wong before PO issuance"
+    stakeholders: ["Structural Engineer"]
+    priority: high
+
+  - rule_id: RULE-009
+    description: "Changes affecting the critical path must notify the Owner within 24 hours"
+    condition: "schedule_impact_days > 0 AND on_critical_path == true"
+    action: "Send Owner Representative notification within 24 hours of change detection"
+    stakeholders: ["Owner Representative", "Project Manager"]
+    priority: critical
+
+  - rule_id: RULE-010
+    description: "Site Superintendent must be notified for any material change affecting active construction zones"
+    condition: "location IN active_construction_zones"
+    action: "Send notification to Site Superintendent (Carlos Rivera)"
+    stakeholders: ["Site Superintendent"]
+    priority: high
+
+  - rule_id: RULE-011
+    description: "All change orders require a drawing markup in ACC before execution"
+    condition: "change_type IN ['material_substitution', 'scope_change', 'rfi_resolution']"
+    action: "Create drawing markup in ACC Docs for the affected drawing (e.g., A-301 for 3rd floor windows)"
+    stakeholders: ["Lead Architect", "Project Manager"]
+    priority: high
+
+  - rule_id: RULE-012
+    description: "Vinyl frames are not approved for exterior use above the 3rd floor"
+    condition: "material_new == 'vinyl' AND floor_number > 3 AND location_type == 'exterior'"
+    action: "Reject substitution, notify Lead Architect and PM, request alternative material proposal"
+    stakeholders: ["Lead Architect", "Project Manager"]
+    priority: critical
+
+  - rule_id: RULE-013
+    description: "Material changes in occupied units require 48-hour resident notification"
+    condition: "units_occupied == true AND change_affects_unit_interior == true"
+    action: "Notify PM to coordinate resident communication 48 hours before work begins"
+    stakeholders: ["Project Manager", "Site Superintendent"]
+    priority: high
+
+  - rule_id: RULE-014
+    description: "RFI must be issued to the architect for any material not listed in the project specifications"
+    condition: "material_in_spec == false"
+    action: "Issue RFI to Lead Architect (James Park) requesting specification inclusion or substitution approval"
+    stakeholders: ["Lead Architect"]
+    priority: normal
+
+  - rule_id: RULE-015
+    description: "Procurement Officer must receive supplier quote before any PO is issued"
+    condition: "change_type == 'material_substitution' AND po_issued == false"
+    action: "Request quote from relevant supplier; for wood frames contact Jane Miller at Premium Wood Co."
+    stakeholders: ["Procurement Officer"]
+    priority: high
+
+  - rule_id: RULE-016
+    description: "Any change with schedule impact over 14 days requires owner approval regardless of cost"
+    condition: "schedule_impact_days > 14"
+    action: "Escalate to Owner Representative for schedule impact review, independent of cost threshold"
+    stakeholders: ["Owner Representative", "Project Manager"]
+    priority: critical
+
+  - rule_id: RULE-017
+    description: "FSC certification required for all wood materials in the project"
+    condition: "material_category == 'wood'"
+    action: "Require FSC certification documentation from supplier before PO issuance"
+    stakeholders: ["Procurement Officer", "Lead Architect"]
+    priority: high
+
+  - rule_id: RULE-018
+    description: "Follow-up calendar event must be created for all accepted material change orders"
+    condition: "pm_decision == 'accepted' AND change_type == 'material_substitution'"
+    action: "Create follow-up calendar event 2 weeks after PO issuance to verify delivery and installation"
+    stakeholders: ["Project Manager", "Procurement Officer"]
+    priority: normal
