@@ -14,8 +14,10 @@ input_type asymmetry:
 This asymmetry improves retrieval recall quality.
 """
 import logging
+from typing import TYPE_CHECKING, Any
 
-import voyageai
+if TYPE_CHECKING:
+    import voyageai
 
 logger = logging.getLogger(__name__)
 
@@ -23,15 +25,17 @@ logger = logging.getLogger(__name__)
 VOYAGE_MODEL = "voyage-3"
 
 # Lazy client — initialized on first call to avoid import-time failure when
-# VOYAGE_API_KEY is not set (e.g., during pytest collection or in test environments
-# that patch the client). Call _get_client() instead of using _client directly.
-_client: voyageai.Client | None = None
+# VOYAGE_API_KEY is not set or when voyageai's spacy dependency chain has a
+# binary incompatibility (numpy/thinc). Call _get_client() instead of using
+# _client directly.
+_client: Any = None
 
 
-def _get_client() -> voyageai.Client:
+def _get_client() -> Any:
     """Get or create the Voyage AI client (lazy init)."""
     global _client
     if _client is None:
+        import voyageai  # lazy import — avoids spacy/thinc/numpy binary incompatibility at module load
         _client = voyageai.Client()
     return _client
 
