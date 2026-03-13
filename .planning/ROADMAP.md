@@ -33,7 +33,7 @@
 | 3. Data Processing | 3/3 | Complete   | 2026-03-13 |
 | 4. Context Enrichment | 2/2 | Complete   | 2026-03-13 |
 | 5. Domain Processing | 4/4 | Complete   | 2026-03-13 |
-| 6. Decision Intelligence | 0/1 | Not started | - |
+| 6. Decision Intelligence | 0/2 | Not started | - |
 | 7. Output + API | 0/1 | Not started | - |
 | 8. Dashboard | 0/1 | Not started | - |
 | 9. Tests and Demo | 0/1 | Not started | - |
@@ -146,7 +146,10 @@ Plans:
   2. The confidence scorer calculates a score of approximately 86% for the demo scenario (data clarity 95%, historical match 90%, cost 100%, no red flags 100%) and outputs "Accept" as the recommendation.
   3. A scenario with estimated cost exceeding $50K produces a confidence score below 50% and a "Requires Review" recommendation.
   4. When the Claude API returns an error, the system retries up to 3 times with exponential backoff before failing gracefully with a logged error.
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 06-01-PLAN.md — Wave 1: proposal.txt prompt (DI-01) + confidence_scorer.py + tests (DI-03)
+- [ ] 06-02-PLAN.md — Wave 2: proposal_generator.py + __init__.py + tests (DI-02)
 
 ### Phase 7: Output + API
 **Goal**: Approved proposals execute automatically across all external APIs, rejected proposals capture feedback, and the full pipeline is accessible via REST endpoints.
