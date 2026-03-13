@@ -31,7 +31,7 @@
 | 1. Input Layer | 5/5 | Complete    | 2026-03-13 |
 | 2. Knowledge Folder | 3/3 | Complete    | 2026-03-13 |
 | 3. Data Processing | 3/3 | Complete   | 2026-03-13 |
-| 4. Context Enrichment | 0/1 | Not started | - |
+| 4. Context Enrichment | 0/2 | Not started | - |
 | 5. Domain Processing | 0/1 | Not started | - |
 | 6. Decision Intelligence | 0/1 | Not started | - |
 | 7. Output + API | 0/1 | Not started | - |
@@ -115,7 +115,10 @@ Plans:
   2. The enrichment module retrieves the correct supplier name, pricing, and lead time for wood frames from the knowledge folder via pgvector semantic search.
   3. The historical retrieval module returns at least 3 past events similar to the demo scenario, each with outcome and success rate fields populated.
   4. The enriched event object passes Pydantic validation and contains all fields required by the domain processing stage.
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 04-01-PLAN.md — Wave 1: test stubs + HistoricalMatch model + retrieve_historical() (CTX-02)
+- [ ] 04-02-PLAN.md — Wave 2: EnrichedEvent model + enrich_event() + __init__.py + filled tests (CTX-01, CTX-02)
 
 ### Phase 5: Domain Processing
 **Goal**: Enriched events are analyzed for time impacts and policy compliance, and produce a typed set of signals that drive action generation.
