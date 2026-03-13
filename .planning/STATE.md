@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-12T15:38:15.195Z"
+last_updated: "2026-03-13T10:29:30Z"
 progress:
   total_phases: 10
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 7
+  completed_plans: 3
 ---
 
 # STATE.md — GigAI
@@ -29,9 +29,9 @@ progress:
 | Field | Value |
 |-------|-------|
 | Current Phase | Phase 1: Input Layer |
-| Current Plan | 01-01 (Phase 0 complete) |
+| Current Plan | 01-02 |
 | Status | In progress |
-| Last Updated | 2026-03-12 |
+| Last Updated | 2026-03-13 |
 
 ### Progress Bar
 
@@ -85,6 +85,8 @@ Overall: 1/10 phases complete
 - **result.embeddings[0] pattern**: voyageai embed() returns EmbeddingsObject. Access result.embeddings[0] (single) or result.embeddings (batch) — never result[0].
 - **Asymmetric embeddings**: input_type="document" for storage, input_type="query" for retrieval — improves cosine similarity recall quality.
 - **patch.object for test isolation**: When sys.modules is popped between tests, use patch.object(module, 'attr') not string-based patch("module.path.attr") to avoid module identity issues.
+- **Wave 0 import-guard pattern**: Test stub files guard imports with try/except ImportError + pytestmark.skipif so files are always collectable even before implementation modules exist.
+- **pytest anyio plugin**: Use pytest_plugins = ("anyio",) in async test files to parametrize across asyncio and trio backends.
 
 ### Architecture Principles
 

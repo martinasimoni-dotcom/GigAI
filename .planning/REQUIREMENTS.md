@@ -148,10 +148,10 @@ All requirements below are in scope for the current build (10-phase implementati
 | FOUND-08 | Phase 0 | Complete |
 | FOUND-09 | Phase 0 | Complete |
 | FOUND-10 | Phase 0 | Complete |
-| INPUT-01 | Phase 1 | Pending |
-| INPUT-02 | Phase 1 | Pending |
-| INPUT-03 | Phase 1 | Pending |
-| INPUT-04 | Phase 1 | Pending |
+| INPUT-01 | Phase 1 | Complete |
+| INPUT-02 | Phase 1 | Complete |
+| INPUT-03 | Phase 1 | Complete |
+| INPUT-04 | Phase 1 | Complete |
 | KF-01 | Phase 2 | Pending |
 | KF-02 | Phase 2 | Pending |
 | KF-03 | Phase 2 | Pending |
