@@ -34,7 +34,7 @@
 | 4. Context Enrichment | 2/2 | Complete   | 2026-03-13 |
 | 5. Domain Processing | 4/4 | Complete   | 2026-03-13 |
 | 6. Decision Intelligence | 0/2 | Not started | - |
-| 7. Output + API | 0/1 | Not started | - |
+| 7. Output + API | 0/4 | Not started | - |
 | 8. Dashboard | 0/1 | Not started | - |
 | 9. Tests and Demo | 0/1 | Not started | - |
 
@@ -161,7 +161,12 @@ Plans:
   3. Rejecting a proposal with a reason stores the decision and reason in PostgreSQL and triggers an embedding of the decision pattern in pgvector via the feedback loop.
   4. GET /api/proposals returns the current proposal list, and POST /api/proposals/:id/decision accepts an accept/reject payload and returns execution status — both within 2 seconds.
   5. The dashboard notifier pushes a real-time notification to connected dashboard clients when a new proposal is created.
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 07-01-PLAN.md — Wave 1: proposal builder + ActionResult model + 4 executors (ACC, Gmail, Calendar, Document) (OUT-01, OUT-03, OUT-04, OUT-05, OUT-06)
+- [ ] 07-02-PLAN.md — Wave 1: dashboard notifier (SSE) + ACC notifier + email notifier + feedback loop (OUT-07, OUT-08, OUT-09, OUT-10)
+- [ ] 07-03-PLAN.md — Wave 2: action gateway (parallel dispatch + ExecutionResult) + FastAPI routes (OUT-02, OUT-11)
+- [ ] 07-04-PLAN.md — Wave 2: FastAPI middleware (CORS + auth + error handler) + package __init__s + main.py wiring (OUT-12)
 
 ### Phase 8: Dashboard
 **Goal**: The PM can view incoming proposals, inspect all proposed actions and confidence details, and accept or reject with a single click from a browser.
