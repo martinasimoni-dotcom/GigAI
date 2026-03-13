@@ -178,7 +178,10 @@ Plans:
   3. Clicking "Reject" opens a reason input field; submitting stores the rejection and removes the proposal from the active feed.
   4. The AuditLog component shows a chronological history of past decisions with proposal title, decision, confidence score, and timestamp.
   5. The dashboard works correctly on a mobile browser (375px width) — proposal cards are readable and accept/reject buttons are tappable.
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 08-01-PLAN.md — Vite + React + Tailwind scaffold and api.js backend client
+- [ ] 08-02-PLAN.md — All components (ProposalCard, ProposalFeed, AuditLog), hooks, App.jsx SPA wiring
 
 ### Phase 9: Tests and Demo
 **Goal**: The system is verifiably correct end-to-end, and a single script can demonstrate the complete window-substitution scenario to a stakeholder.
