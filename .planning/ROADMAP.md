@@ -29,7 +29,7 @@
 |-------|----------------|--------|-----------|
 | 0. Foundation | 2/2 | Complete    | 2026-03-12 |
 | 1. Input Layer | 5/5 | Complete    | 2026-03-13 |
-| 2. Knowledge Folder | 3/3 | Complete   | 2026-03-13 |
+| 2. Knowledge Folder | 3/3 | Complete    | 2026-03-13 |
 | 3. Data Processing | 0/1 | Not started | - |
 | 4. Context Enrichment | 0/1 | Not started | - |
 | 5. Domain Processing | 0/1 | Not started | - |
