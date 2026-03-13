@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-13T15:15:20.356Z"
+last_updated: "2026-03-13T15:18:00.730Z"
 progress:
   total_phases: 10
   completed_phases: 5
   total_plans: 19
-  completed_plans: 16
+  completed_plans: 17
 ---
 
 # STATE.md — GigAI
@@ -29,10 +29,10 @@ progress:
 | Field | Value |
 |-------|-------|
 | Current Phase | Phase 5: Domain Processing |
-| Current Plan | 05-01 complete |
+| Current Plan | 05-02 complete |
 | Status | Phase 5 in progress |
 | Last Updated | 2026-03-13 |
-| Stopped At | Completed 05-domain-processing 05-01-PLAN.md |
+| Stopped At | Completed 05-domain-processing 05-02-PLAN.md |
 
 ### Progress Bar
 
@@ -62,6 +62,7 @@ Overall: 4/10 phases complete (16/22 total plans)
 | Event-to-proposal latency | <5 min | Not measured |
 | PM acceptance rate | 75% | Not measured |
 | Phase 04-context-enrichment P02 | 3 min | 2 tasks | 3 files |
+| Phase 05-domain-processing P02 | 4 | 2 tasks | 2 files |
 
 ## Execution Metrics
 
@@ -80,6 +81,7 @@ Overall: 4/10 phases complete (16/22 total plans)
 | Phase 04-context-enrichment P01 | 3 min | 2 tasks | 2 files |
 | Phase 04-context-enrichment P02 | 3 min | 2 tasks | 3 files |
 | Phase 05-domain-processing P01 | 1 min | 2 tasks | 3 files |
+| Phase 05-domain-processing P02 | 4 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -130,6 +132,8 @@ Overall: 4/10 phases complete (16/22 total plans)
 - **os.getenv for ACC_TOKEN in enrichment.py**: Use os.getenv("ACC_TOKEN") at call time (not module-level settings singleton) — prevents Settings() ValidationError at import in test environments.
 - **material_change.yaml enrichment_queries (4 entries)**: "material supplier and pricing", "past material change approvals", "lead time window installation schedule", "structural weight load bearing assessment" — last two added in Phase 5 for demo scenario (Aluminum→Wood, 12 units, 3rd floor).
 - **EventTypeConfig YAML strict fields**: Only the five defined fields allowed (event_type, rules_file, allowed_signals, enrichment_queries, time_analysis_enabled) — no extra YAML keys or Pydantic validation fails.
+- **TYPE_CHECKING guard for domain module imports**: time_analysis.py uses `if TYPE_CHECKING: from src.system.context.enrichment import EnrichedEvent` with `from __future__ import annotations` — prevents transitive config.settings singleton trigger at module load while preserving type annotation correctness for IDE and mypy.
+- **TimeAnalysisResult inline in module**: Domain-specific result models (TimeAnalysisResult) defined inline in their module (time_analysis.py), not in shared models — per CONTEXT.md discretion for domain processing.
 
 ### Architecture Principles
 
@@ -180,7 +184,7 @@ Overall: 4/10 phases complete (16/22 total plans)
 | Phase 2 | 2026-03-13 | Complete — 3 plans (content files, DB schema + vector store, seed script) — 6 unit tests passing |
 | Phase 3 | 2026-03-13 | Complete — 3 plans (03-01: model extension + stubs; 03-02: normalizer + scope filter; 03-03: routing prompt + YAML configs + router) — 13 unit tests passing |
 | Phase 4 | In progress | 04-02 complete — EnrichedEvent model + enrich_event() + ACC floor plan stub + 8 unit tests passing (13 total for Phase 4 so far) |
-| Phase 5 | In progress | 05-01 complete — material_change.yaml expanded to 4 enrichment_queries; schedule_update.yaml and rfi_request.yaml stubs improved; all 3 EventTypeConfig YAML files validated |
+| Phase 5 | In progress | 05-02 complete — time_analysis.py: analyze_time() + TimeAnalysisResult; RULE-005 (qty>10=42 days, else 21 days); conflict detection; 19 unit tests passing |
 | Phase 6 | - | Not started |
 | Phase 7 | - | Not started |
 | Phase 8 | - | Not started |

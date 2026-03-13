@@ -166,7 +166,7 @@ All requirements below are in scope for the current build (10-phase implementati
 | CTX-02 | Phase 4 | Complete |
 | DOM-01 | Phase 5 | Complete |
 | DOM-02 | Phase 5 | Complete |
-| DOM-03 | Phase 5 | Pending |
+| DOM-03 | Phase 5 | Complete |
 | DOM-04 | Phase 5 | Pending |
 | DOM-05 | Phase 5 | Pending |
 | DOM-06 | Phase 5 | Pending |
