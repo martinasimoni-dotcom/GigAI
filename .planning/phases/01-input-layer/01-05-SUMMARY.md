@@ -119,3 +119,10 @@ None - no external service configuration required.
 ---
 *Phase: 01-input-layer*
 *Completed: 2026-03-13*
+
+## Self-Check: PASSED
+
+- FOUND: tests/unit/test_main.py
+- FOUND: .planning/phases/01-input-layer/01-05-SUMMARY.md
+- FOUND commit: cf2d8ff (feat: task 1)
+- FOUND commit: 417384a (docs: final metadata)
