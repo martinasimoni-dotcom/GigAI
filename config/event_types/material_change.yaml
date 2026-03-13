@@ -1,5 +1,5 @@
-# material_change.yaml — Phase 3 working stub
-# Full rules, signal types, and enrichment queries added in Phase 5 (DOM-01)
+# material_change.yaml — Full config for domain processing (DOM-01)
+# Expanded in Phase 5 from Phase 3 stub.
 event_type: material_change
 rules_file: knowledge_folder/rules/demo_project.yaml
 allowed_signals:
@@ -9,4 +9,6 @@ allowed_signals:
 enrichment_queries:
   - "material supplier and pricing"
   - "past material change approvals"
+  - "lead time window installation schedule"
+  - "structural weight load bearing assessment"
 time_analysis_enabled: true
