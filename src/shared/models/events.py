@@ -31,6 +31,9 @@ class NormalizedEvent(BaseModel):
     deadlines: list[datetime] = Field(default_factory=list)
     summary: str
     extracted_at: datetime = Field(default_factory=datetime.utcnow)
+    review_required: bool = False
+    confidence: int = Field(ge=0, le=100, default=50)
+    estimated_cost: Optional[float] = None
 
     @field_validator("summary")
     @classmethod

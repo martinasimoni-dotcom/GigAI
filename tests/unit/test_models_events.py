@@ -66,3 +66,40 @@ def test_normalized_event_extra_fields_forbidden():
             summary="Valid summary",
             unexpected_field="should fail",
         )
+
+
+def test_normalized_event_new_fields_defaults():
+    """New fields must have correct defaults."""
+    _, NormalizedEvent = _import_models()
+    event = NormalizedEvent(
+        event_id="e5", source="acc", event_type="material_change", summary="test summary"
+    )
+    assert event.review_required is False
+    assert event.confidence == 50
+    assert event.estimated_cost is None
+
+
+def test_normalized_event_confidence_bounds():
+    """confidence must be 0-100 inclusive."""
+    from pydantic import ValidationError
+    _, NormalizedEvent = _import_models()
+    # Valid bounds
+    NormalizedEvent(event_id="e6", source="acc", event_type="mc", summary="s", confidence=0)
+    NormalizedEvent(event_id="e7", source="acc", event_type="mc", summary="s", confidence=100)
+    # Out of bounds
+    with pytest.raises(ValidationError):
+        NormalizedEvent(event_id="e8", source="acc", event_type="mc", summary="s", confidence=101)
+    with pytest.raises(ValidationError):
+        NormalizedEvent(event_id="e9", source="acc", event_type="mc", summary="s", confidence=-1)
+
+
+def test_normalized_event_new_fields_set():
+    """New fields accept explicit values."""
+    _, NormalizedEvent = _import_models()
+    event = NormalizedEvent(
+        event_id="e10", source="acc", event_type="material_change", summary="test",
+        review_required=True, confidence=65, estimated_cost=75000.0,
+    )
+    assert event.review_required is True
+    assert event.confidence == 65
+    assert event.estimated_cost == 75000.0
