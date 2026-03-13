@@ -1,0 +1,98 @@
+[
+  {
+    "name": "Sarah Chen",
+    "role": "Project Manager",
+    "email": "s.chen@apexconstruction.com",
+    "phone": "510-555-0101",
+    "responsibilities": [
+      "Overall project coordination",
+      "Change order review and approval for costs under $50,000",
+      "Stakeholder communication",
+      "Schedule management",
+      "Risk escalation"
+    ],
+    "area_of_authority": "All project decisions up to $50,000; escalates to owner above threshold"
+  },
+  {
+    "name": "Mike Torres",
+    "role": "Procurement Officer",
+    "email": "m.torres@apexconstruction.com",
+    "phone": "510-555-0102",
+    "responsibilities": [
+      "Vendor sourcing and RFQ issuance",
+      "Material procurement and PO management",
+      "Lead time coordination",
+      "Budget tracking for materials",
+      "Supplier relationship management"
+    ],
+    "area_of_authority": "All procurement actions; notified for any material substitution affecting cost or lead time"
+  },
+  {
+    "name": "James Park",
+    "role": "Lead Architect",
+    "email": "j.park@parkstudioarch.com",
+    "phone": "415-555-0201",
+    "responsibilities": [
+      "Architectural design and drawing maintenance",
+      "Material specification sign-off",
+      "RFI responses",
+      "Drawing markup review and approval",
+      "Code compliance verification"
+    ],
+    "area_of_authority": "All architectural substitutions and specification changes; structural material changes require co-sign with Lisa Wong"
+  },
+  {
+    "name": "Lisa Wong",
+    "role": "Structural Engineer",
+    "email": "l.wong@structuralfocus.com",
+    "phone": "415-555-0301",
+    "responsibilities": [
+      "Structural analysis for material substitutions",
+      "Load calculations for weight changes",
+      "Drawing markups for structural elements",
+      "PE stamp for structural modifications"
+    ],
+    "area_of_authority": "Structural material changes; wood frame weight assessment for window substitutions above 8 units"
+  },
+  {
+    "name": "Carlos Rivera",
+    "role": "Site Superintendent",
+    "email": "c.rivera@apexconstruction.com",
+    "phone": "510-555-0103",
+    "responsibilities": [
+      "On-site construction management",
+      "Subcontractor coordination",
+      "Quality control inspections",
+      "RFI field clarifications",
+      "Schedule adherence"
+    ],
+    "area_of_authority": "Field-level decisions; escalates material changes to PM immediately"
+  },
+  {
+    "name": "Jane Miller",
+    "role": "Supplier Contact — Premium Wood Co.",
+    "email": "j.miller@premiumwoodco.com",
+    "phone": "650-555-0401",
+    "responsibilities": [
+      "Wood frame window quotations",
+      "Lead time confirmation",
+      "FSC certification documentation",
+      "Delivery scheduling",
+      "Product specification sheets"
+    ],
+    "area_of_authority": "Supplier representative for all wood frame window orders; primary contact for aluminum-to-wood substitution quotes"
+  },
+  {
+    "name": "Robert Hayes",
+    "role": "Owner Representative",
+    "email": "r.hayes@harbordevelopment.com",
+    "phone": "510-555-0501",
+    "responsibilities": [
+      "Owner approval for change orders above $50,000",
+      "Budget authorization",
+      "Final sign-off on major material substitutions",
+      "Stakeholder reporting"
+    ],
+    "area_of_authority": "Mandatory approval for any change order or material substitution exceeding $50,000"
+  }
+]
