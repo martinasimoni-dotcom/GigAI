@@ -32,7 +32,7 @@
 | 2. Knowledge Folder | 3/3 | Complete    | 2026-03-13 |
 | 3. Data Processing | 3/3 | Complete   | 2026-03-13 |
 | 4. Context Enrichment | 2/2 | Complete   | 2026-03-13 |
-| 5. Domain Processing | 0/1 | Not started | - |
+| 5. Domain Processing | 0/4 | Not started | - |
 | 6. Decision Intelligence | 0/1 | Not started | - |
 | 7. Output + API | 0/1 | Not started | - |
 | 8. Dashboard | 0/1 | Not started | - |
@@ -130,7 +130,12 @@ Plans:
   3. The time analysis module detects a schedule conflict when the demo event's implied lead time (3-4 weeks) overlaps with an existing installation event in the calendar.
   4. Processing the demo enriched event through the full domain processor produces a typed Signal list that passes Pydantic validation.
   5. Stub configs for schedule_update and rfi_request load without errors from their YAML files.
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 05-01-PLAN.md — Wave 1: expand material_change.yaml + verify schedule_update/rfi_request stubs (DOM-01, DOM-02)
+- [ ] 05-02-PLAN.md — Wave 1: time_analysis.py — TDD, dateutil lead time + conflict detection (DOM-03)
+- [ ] 05-03-PLAN.md — Wave 1: policy_engine.py — TDD, safe YAML rule evaluation (DOM-04)
+- [ ] 05-04-PLAN.md — Wave 2: signal_generator.py + processor.py + __init__.py + tests (DOM-05, DOM-06, DOM-07)
 
 ### Phase 6: Decision Intelligence
 **Goal**: Signals and enriched context are synthesized by Claude Sonnet 4 into a complete proposal with four action types and a weighted confidence score.
