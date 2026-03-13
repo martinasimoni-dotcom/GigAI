@@ -1,40 +1,97 @@
 """
-Wave 0 test stubs for INPUT-01 (Fireflies webhook) and INPUT-02 (ACC webhook).
-All tests are skipped until implementation is complete.
+Unit tests for webhook endpoints (INPUT-01, INPUT-02).
+Uses httpx.AsyncClient to POST to the FastAPI app with publish_event mocked.
 """
 import pytest
+from unittest.mock import patch, MagicMock
+from httpx import AsyncClient, ASGITransport
 
 pytest_plugins = ("anyio",)
 
-try:
-    from httpx import AsyncClient
-    from src.main import app
-    IMPORT_OK = True
-except (ImportError, Exception):
-    IMPORT_OK = False
 
-pytestmark = pytest.mark.skipif(not IMPORT_OK, reason="src.main not implemented yet")
+@pytest.fixture
+def app():
+    from src.main import app as fastapi_app
+    return fastapi_app
 
 
-@pytest.mark.anyio
-async def test_fireflies_valid():
-    """POST /webhooks/fireflies with valid payload returns 200 with status ok and message_id."""
-    pytest.skip("not implemented")
-
-
-@pytest.mark.anyio
-async def test_fireflies_invalid():
-    """POST /webhooks/fireflies with empty payload returns 400."""
-    pytest.skip("not implemented")
+@pytest.fixture
+def mock_publish():
+    """Mock publish_event to return a fixed message_id without hitting Pub/Sub."""
+    with patch("src.input.webhooks.fireflies.publish_event", return_value="test-message-id") as m_f, \
+         patch("src.input.webhooks.acc.publish_event", return_value="test-message-id") as m_a:
+        yield {"fireflies": m_f, "acc": m_a}
 
 
 @pytest.mark.anyio
-async def test_acc_valid():
-    """POST /webhooks/acc with valid payload returns 200."""
-    pytest.skip("not implemented")
+async def test_fireflies_valid(app, mock_publish):
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        resp = await client.post("/webhooks/fireflies", json={"transcript": "window change", "meeting": "site call"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["status"] == "ok"
+    assert "message_id" in body
 
 
 @pytest.mark.anyio
-async def test_acc_invalid():
-    """POST /webhooks/acc with empty payload returns 400."""
-    pytest.skip("not implemented")
+async def test_fireflies_with_meeting_only(app, mock_publish):
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        resp = await client.post("/webhooks/fireflies", json={"meeting": "budget discussion"})
+    assert resp.status_code == 200
+
+
+@pytest.mark.anyio
+async def test_fireflies_invalid_empty(app, mock_publish):
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        resp = await client.post("/webhooks/fireflies", json={})
+    assert resp.status_code == 400
+
+
+@pytest.mark.anyio
+async def test_fireflies_invalid_wrong_keys(app, mock_publish):
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        resp = await client.post("/webhooks/fireflies", json={"unrelated": "data", "foo": "bar"})
+    assert resp.status_code == 400
+
+
+@pytest.mark.anyio
+async def test_fireflies_publishes_raw_event(app, mock_publish):
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        await client.post("/webhooks/fireflies", json={"transcript": "material change"})
+    mock_publish["fireflies"].assert_called_once()
+    call_args = mock_publish["fireflies"].call_args[0][0]
+    assert call_args.source == "fireflies"
+    assert call_args.raw_payload == {"transcript": "material change"}
+
+
+@pytest.mark.anyio
+async def test_acc_valid(app, mock_publish):
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        resp = await client.post("/webhooks/acc", json={"eventType": "material_change", "resource": "floors"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["status"] == "ok"
+    assert "message_id" in body
+
+
+@pytest.mark.anyio
+async def test_acc_valid_minimal(app, mock_publish):
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        resp = await client.post("/webhooks/acc", json={"type": "update"})
+    assert resp.status_code == 200
+
+
+@pytest.mark.anyio
+async def test_acc_invalid_empty(app, mock_publish):
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        resp = await client.post("/webhooks/acc", json={})
+    assert resp.status_code == 400
+
+
+@pytest.mark.anyio
+async def test_acc_publishes_raw_event(app, mock_publish):
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        await client.post("/webhooks/acc", json={"eventType": "material_change"})
+    mock_publish["acc"].assert_called_once()
+    call_args = mock_publish["acc"].call_args[0][0]
+    assert call_args.source == "acc"
