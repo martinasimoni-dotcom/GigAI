@@ -28,7 +28,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 0. Foundation | 2/2 | Complete    | 2026-03-12 |
-| 1. Input Layer | 0/1 | Not started | - |
+| 1. Input Layer | 0/5 | Not started | - |
 | 2. Knowledge Folder | 0/1 | Not started | - |
 | 3. Data Processing | 0/1 | Not started | - |
 | 4. Context Enrichment | 0/1 | Not started | - |
@@ -66,7 +66,13 @@ Plans:
   2. Posting a sample ACC webhook payload to POST /webhooks/acc results in a message on the raw-events topic with the correct source field.
   3. Running the Gmail polling connector against a test inbox with a material-related email publishes that email to the Pub/Sub topic.
   4. Running the Calendar polling connector against a calendar with a delivery event publishes that event to the Pub/Sub topic.
-**Plans**: TBD
+**Plans**: 5 plans
+Plans:
+- [ ] 01-01-PLAN.md — Wave 0: test stubs + add google-api-python-client to requirements.txt (INPUT-01, INPUT-02, INPUT-03, INPUT-04)
+- [ ] 01-02-PLAN.md — Shared Pub/Sub publisher helper (src/input/pubsub.py) + infra/pubsub/setup.sh (INPUT-01, INPUT-02, INPUT-03, INPUT-04)
+- [ ] 01-03-PLAN.md — Webhook endpoints: POST /webhooks/fireflies and POST /webhooks/acc (INPUT-01, INPUT-02)
+- [ ] 01-04-PLAN.md — Polling connectors: poll_gmail() and poll_calendar() (INPUT-03, INPUT-04)
+- [ ] 01-05-PLAN.md — FastAPI app wiring: src/main.py with all routers and GET /health (INPUT-01, INPUT-02)
 
 ### Phase 2: Knowledge Folder
 **Goal**: Project domain knowledge (team, materials, rules, history) is stored in pgvector and retrievable by semantic query.
