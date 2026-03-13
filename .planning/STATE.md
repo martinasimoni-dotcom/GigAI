@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-13T11:35:06.357Z"
+last_updated: "2026-03-13T11:40:13.054Z"
 progress:
   total_phases: 10
   completed_phases: 2
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 # STATE.md — GigAI
@@ -29,17 +29,17 @@ progress:
 | Field | Value |
 |-------|-------|
 | Current Phase | Phase 2: Knowledge Folder |
-| Current Plan | 02-01 complete |
+| Current Plan | 02-02 complete |
 | Status | Phase 2 in progress |
 | Last Updated | 2026-03-13 |
-| Stopped At | Completed 02-knowledge-folder 02-01-PLAN.md |
+| Stopped At | Completed 02-knowledge-folder 02-02-PLAN.md |
 
 ### Progress Bar
 
 ```
 Phase 0  [##########] 100% (2/2 plans complete)
 Phase 1  [##########] 100% (5/5 plans complete)
-Phase 2  [#         ] 10% (1/? plans complete)
+Phase 2  [##        ] 20% (2/? plans complete)
 Phase 3  [          ] 0%
 Phase 4  [          ] 0%
 Phase 5  [          ] 0%
@@ -71,6 +71,7 @@ Overall: 2/10 phases complete (7/7 total plans)
 | Phase 01-input-layer P04 | 5 min | 2 tasks | 3 files |
 | Phase 01-input-layer P05 | 3 min | 1 task | 1 file |
 | Phase 02-knowledge-folder P01 | 1 min | 1 task | 1 file |
+| Phase 02-knowledge-folder P02 | 3 min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -104,6 +105,9 @@ Overall: 2/10 phases complete (7/7 total plans)
 - **Calendar singleEvents=True required**: Calendar API requires singleEvents=True when using orderBy="startTime" — hard API constraint.
 - **Calendar datetime.now(timezone.utc)**: Use datetime.now(timezone.utc) not datetime.utcnow() for RFC3339-compliant ISO strings with timezone offset required by Calendar API.
 - **test_main.py isolation pattern**: test_main.py requires same sys.modules.pop + env var setup as test_webhooks.py because import chain src.main -> src.input.webhooks -> src.input.pubsub -> config.settings triggers Settings() singleton at import time. Also requires anyio_backend fixture to restrict async tests to asyncio only.
+- **Glossary chunk structure**: 5-section markdown maps 1:1 to pgvector chunks (one ## section per chunk) — seed script splits on ## headers.
+- **Historical patterns retrieval design**: 3 aluminum-to-wood accepted precedents (EVT-001/010/012) support semantic search query "past aluminum to wood window change" — EVT-012 (12 units, structural review) is direct precedent for 3rd floor demo scenario.
+- **Rules condition fields**: String-based conditions interpreted by LLM during enrichment, not executed programmatically — rules are advisory/routing, not a rule engine.
 
 ### Architecture Principles
 
