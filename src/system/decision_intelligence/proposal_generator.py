@@ -63,7 +63,8 @@ def _build_user_prompt(processing_result: "ProcessingResult") -> str:
             }
             for m in (processing_result.event.historical_matches or [])
         ],
-        "floor_plan_data": processing_result.event.floor_plan_data,
+        "floor_plan_data": getattr(processing_result.event, "floor_plan_data",
+                                    getattr(processing_result.event, "acc_floor_plan", {})),
     }
     return json.dumps(context, indent=2, default=str)
 

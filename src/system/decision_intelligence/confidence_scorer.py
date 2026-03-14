@@ -84,7 +84,9 @@ def score_proposal(
     cost_acceptable_contribution = cost_acceptable_factor * 25.0
 
     # Factor 4: no_red_flags (weight 0.20)
-    escalate = processing_result.policy_result.escalate_immediately
+    # PolicyResult uses .escalate (not .escalate_immediately); fall back to False if missing.
+    escalate = getattr(processing_result.policy_result, "escalate_immediately",
+                       getattr(processing_result.policy_result, "escalate", False))
     no_red_flags_factor = 0.5 if escalate else 1.0
     no_red_flags_contribution = no_red_flags_factor * 20.0
 
