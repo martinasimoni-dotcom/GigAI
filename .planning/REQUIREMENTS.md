@@ -186,8 +186,8 @@ All requirements below are in scope for the current build (10-phase implementati
 | OUT-10 | Phase 7 | Pending |
 | OUT-11 | Phase 7 | Pending |
 | OUT-12 | Phase 7 | Pending |
-| DASH-01 | Phase 8 | Pending |
-| DASH-02 | Phase 8 | Pending |
+| DASH-01 | Phase 8 | Complete |
+| DASH-02 | Phase 8 | Complete |
 | DASH-03 | Phase 8 | Pending |
 | DASH-04 | Phase 8 | Pending |
 | DASH-05 | Phase 8 | Pending |

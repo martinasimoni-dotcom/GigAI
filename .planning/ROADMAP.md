@@ -35,7 +35,7 @@
 | 5. Domain Processing | 4/4 | Complete   | 2026-03-13 |
 | 6. Decision Intelligence | 0/2 | Not started | - |
 | 7. Output + API | 0/4 | Not started | - |
-| 8. Dashboard | 0/1 | Not started | - |
+| 8. Dashboard | 1/2 | In Progress|  |
 | 9. Tests and Demo | 0/1 | Not started | - |
 
 ---
