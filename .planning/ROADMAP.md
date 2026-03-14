@@ -18,7 +18,8 @@
 - [x] **Phase 5: Domain Processing** — Config-driven time analysis, policy evaluation, and typed signal generation (completed 2026-03-13)
 - [ ] **Phase 6: Decision Intelligence** — Sonnet 4 proposal generation and weighted confidence scoring
 - [ ] **Phase 7: Output + API** — Proposal builder, action gateway with all executors, notifications, feedback loop, FastAPI routes
-- [x] **Phase 8: Dashboard** — React SPA with proposal feed, accept/reject flow, confidence display, audit log (completed 2026-03-14)
+- [x] **Phase 8: Dashboard** — React SPA with proposal feed, accept/reject flow, confidence display, audit log
+ (completed 2026-03-14)
 - [ ] **Phase 9: Tests and Demo** — Unit tests, integration tests, fixtures, demo script, retrieval validation
 
 ---
@@ -36,7 +37,7 @@
 | 6. Decision Intelligence | 0/2 | Not started | - |
 | 7. Output + API | 0/4 | Not started | - |
 | 8. Dashboard | 2/2 | Complete   | 2026-03-14 |
-| 9. Tests and Demo | 0/1 | Not started | - |
+| 9. Tests and Demo | 0/3 | In progress | - |
 
 ---
 
@@ -193,7 +194,11 @@ Plans:
   3. Running run_demo.py triggers the complete window-substitution scenario and prints a step-by-step trace showing: event captured → normalized → enriched → signals fired → proposal generated (86% confidence) → ready for PM decision.
   4. The retrieval quality script tests 20+ queries against the seeded knowledge folder and reports recall scores; at least 18/20 queries return the expected top result.
   5. All tests pass in a clean environment using only the .env.example variables and a fresh PostgreSQL database seeded by the seed scripts.
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 09-01-PLAN.md � Demo fixtures (sample_transcript, sample_acc_event, expected_proposal) + unit test coverage to 80% gate (TEST-01, TEST-03)
+- [ ] 09-02-PLAN.md � Demo script run_demo.py (6-step trace) + retrieval quality validator test_retrieval_quality.py (TEST-04, TEST-05)
+- [ ] 09-03-PLAN.md � Real-connection integration tests: pipeline, ACC API, pgvector knowledge retrieval (TEST-02)
 
 ---
 
