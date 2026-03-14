@@ -1,0 +1,44 @@
+{
+  "proposal_id": "prop-demo-001",
+  "event_id": "evt-demo-001",
+  "alert": {
+    "title": "Material Substitution: Aluminum to Wood Windows — 3rd Floor",
+    "description": "12 window units (W-301 to W-312) require material substitution from aluminum to wood frames. Supplier: Premium Wood Co (Jane Doe). Procurement approval required.",
+    "severity": "medium"
+  },
+  "actions": [
+    {
+      "action_type": "email",
+      "action_data": {
+        "to": "jane@premiumwood.com",
+        "subject": "Wood Window Frame Order — 12 Units W-301 to W-312",
+        "body": "Please provide a quote for 12 wood window frames for units W-301 to W-312, 3rd floor."
+      }
+    },
+    {
+      "action_type": "task",
+      "action_data": {
+        "title": "Procurement Approval: Wood Window Frames x12",
+        "assignee": "mike@site.com",
+        "due_date": "2026-03-21"
+      }
+    },
+    {
+      "action_type": "calendar",
+      "action_data": {
+        "summary": "Material Review: Aluminum to Wood Window Substitution",
+        "start": "2026-03-18T10:00:00Z",
+        "duration_minutes": 60
+      }
+    },
+    {
+      "action_type": "drawing",
+      "action_data": {
+        "drawing_number": "A-301",
+        "annotation_text": "Material substitution: aluminum -> wood, 12 units W-301 to W-312"
+      }
+    }
+  ],
+  "confidence_score": 0.855,
+  "recommendation": "accept"
+}

@@ -146,7 +146,8 @@ markers = [
 filterwarnings = [
     "error",
     "ignore::DeprecationWarning",
-    "ignore::PendingDeprecationWarning"
+    "ignore::PendingDeprecationWarning",
+    "ignore::coverage.exceptions.CoverageWarning"
 ]
 
 [tool.coverage.run]

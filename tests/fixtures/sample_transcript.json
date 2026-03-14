@@ -1,0 +1,14 @@
+{
+  "meetingId": "meeting-demo-001",
+  "id": "transcript-demo-001",
+  "meeting": {
+    "title": "Construction Site Coordination — 3rd Floor Windows",
+    "date": "2026-03-14T09:00:00Z"
+  },
+  "transcript": "We need to change the third-floor windows from aluminum to wood, 12 units W-301 to W-312. Jane from Premium Wood Co can supply at $320 per unit. Mike needs to approve procurement.",
+  "attendees": [
+    {"name": "John Smith", "role": "Project Manager"},
+    {"name": "Jane Doe", "role": "Supplier Contact — Premium Wood Co"},
+    {"name": "Mike Chen", "role": "Procurement Lead"}
+  ]
+}
