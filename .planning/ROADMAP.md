@@ -18,7 +18,7 @@
 - [x] **Phase 5: Domain Processing** — Config-driven time analysis, policy evaluation, and typed signal generation (completed 2026-03-13)
 - [ ] **Phase 6: Decision Intelligence** — Sonnet 4 proposal generation and weighted confidence scoring
 - [ ] **Phase 7: Output + API** — Proposal builder, action gateway with all executors, notifications, feedback loop, FastAPI routes
-- [ ] **Phase 8: Dashboard** — React SPA with proposal feed, accept/reject flow, confidence display, audit log
+- [x] **Phase 8: Dashboard** — React SPA with proposal feed, accept/reject flow, confidence display, audit log (completed 2026-03-14)
 - [ ] **Phase 9: Tests and Demo** — Unit tests, integration tests, fixtures, demo script, retrieval validation
 
 ---
@@ -35,7 +35,7 @@
 | 5. Domain Processing | 4/4 | Complete   | 2026-03-13 |
 | 6. Decision Intelligence | 0/2 | Not started | - |
 | 7. Output + API | 0/4 | Not started | - |
-| 8. Dashboard | 1/2 | In Progress|  |
+| 8. Dashboard | 2/2 | Complete   | 2026-03-14 |
 | 9. Tests and Demo | 0/1 | Not started | - |
 
 ---

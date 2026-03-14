@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-14T08:11:02.679Z"
+last_updated: "2026-03-14T08:17:26.051Z"
 progress:
   total_phases: 10
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 27
-  completed_plans: 22
+  completed_plans: 23
 ---
 
 # STATE.md — GigAI
@@ -29,10 +29,10 @@ progress:
 | Field | Value |
 |-------|-------|
 | Current Phase | Phase 8: Dashboard |
-| Current Plan | 08-01 complete |
-| Status | Phase 8 in progress (plan 1/4 complete) |
+| Current Plan | 08-02 complete (Task 3 checkpoint:human-verify pending) |
+| Status | Phase 8 in progress (plan 2/4 complete) |
 | Last Updated | 2026-03-14 |
-| Stopped At | Completed 08-dashboard 08-01-PLAN.md |
+| Stopped At | Completed 08-dashboard 08-02-PLAN.md — Task 3 checkpoint awaiting browser visual verification |
 
 ### Progress Bar
 
@@ -45,7 +45,7 @@ Phase 4  [######    ] 67% (2/3 plans complete)
 Phase 5  [###       ] 43% (3/7 plans complete)
 Phase 6  [##########] 100% (2/2 plans complete)
 Phase 7  [##########] 100% (4/4 plans complete)
-Phase 8  [##        ] 25% (1/4 plans complete)
+Phase 8  [####      ] 50% (2/4 plans complete)
 Phase 9  [          ] 0%
 
 Overall: 7/10 phases complete (22/27 total plans)
@@ -66,6 +66,7 @@ Overall: 7/10 phases complete (22/27 total plans)
 | Phase 05-domain-processing P03 | 4 min | 2 tasks | 2 files |
 | Phase 05-domain-processing P04 | 3 | 2 tasks | 4 files |
 | Phase 08-dashboard P01 | 3min | 2 tasks | 10 files |
+| Phase 08-dashboard P02 | 4 | 2 tasks | 14 files |
 
 ## Execution Metrics
 
@@ -155,6 +156,9 @@ Overall: 7/10 phases complete (22/27 total plans)
 - **Test retry uses __wrapped__ + wait_none()**: Retry tests access generate_proposal.__wrapped__ and re-wrap with wait_none() to avoid 2-10s exponential wait delays in unit tests.
 - **Dashboard api.js BASE_URL pattern**: api.js uses single BASE_URL constant (http://localhost:8000) — all dashboard URLs derived from it, no magic strings in components. vi.stubGlobal mocks fetch and EventSource in Vitest.
 - **Dashboard type=module required**: Vite 5 dashboard requires "type": "module" in package.json to eliminate ES module CJS build warning when loading postcss.config.js.
+- **ProposalCard props-down pattern**: ProposalCard receives submitDecision + decisionStateEntry as props from ProposalFeed parent (not calling useActions internally) — enables deterministic unit tests without hook mocking.
+- **AuditLog client-side sort**: AuditLog sorts decisions by timestamp descending client-side — no backend sort dependency needed.
+- **getAllByText disambiguation**: When badge and button both render same text (e.g. "Accept"), use getAllByText + tagName assertion to target the specific element type.
 
 ### Architecture Principles
 
