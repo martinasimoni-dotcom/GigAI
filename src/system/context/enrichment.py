@@ -43,22 +43,11 @@ def _get_acc_floor_plan(project_id: str, location: str | None) -> dict:
 
 def enrich_event(event: NormalizedEvent, project_id: str | None = None) -> "EnrichedEvent":
     """
-    Enrich a NormalizedEvent with ACC floor plan data and knowledge folder context.
-
-    Args:
-        event:      The normalized event to enrich.
-        project_id: ACC project ID. Falls back to ACC_PROJECT_ID env var.
-
-    Raises:
-        RuntimeError if ACC_PROJECT_ID, ACC_CLIENT_ID, or ACC_CLIENT_SECRET
-        are not configured in .env.
+    Enrich a NormalizedEvent with pgvector knowledge retrieval and optionally
+    ACC floor plan data (skipped gracefully if ACC credentials are not set).
     """
     if project_id is None:
         project_id = os.getenv("ACC_PROJECT_ID")
-        if not project_id:
-            raise RuntimeError(
-                "ACC_PROJECT_ID must be set in .env (or pass project_id explicitly)"
-            )
 
     material_new = event.material_new or ""
     location = event.location or ""
@@ -99,8 +88,15 @@ def enrich_event(event: NormalizedEvent, project_id: str | None = None) -> "Enri
     # Extract relevant rule texts (top 3 from rules query)
     relevant_rules = [r["content"] for r in rules_results[:3]]
 
-    # ACC floor plan — real API call (raises RuntimeError if credentials not set)
-    acc_floor_plan = _get_acc_floor_plan(project_id, location)
+    # ACC floor plan — skipped gracefully if credentials not configured
+    acc_floor_plan: dict = {}
+    if project_id and os.getenv("ACC_CLIENT_ID") and os.getenv("ACC_CLIENT_SECRET"):
+        try:
+            acc_floor_plan = _get_acc_floor_plan(project_id, location)
+        except Exception as exc:
+            logger.warning("ACC floor plan unavailable (skipping): %s", exc)
+    else:
+        logger.info("ACC credentials not set — skipping floor plan fetch")
 
     # Historical matches
     historical_matches = retrieve_historical(event, top_k=5)

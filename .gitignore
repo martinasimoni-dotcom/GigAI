@@ -417,3 +417,6 @@ NOTES.md.local
 # CUSTOM RULES
 # ============================================
 # Add project-specific ignore rules below this line
+credentials.json
+token_output.json
+token.json

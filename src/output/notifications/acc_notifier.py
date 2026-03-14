@@ -12,9 +12,8 @@ def notify_acc(proposal: Proposal) -> None:
     account_id = os.getenv("ACC_ACCOUNT_ID")
     project_id = os.getenv("ACC_PROJECT_ID")
     if not account_id or not project_id:
-        raise RuntimeError(
-            "ACC_ACCOUNT_ID and ACC_PROJECT_ID must be set in .env to send ACC notifications"
-        )
+        logger.info("ACC credentials not set — skipping ACC notification")
+        return
     score_pct = round(proposal.confidence_score * 100)
     subject = proposal.alert.get("title", "GigAI Material Change Alert")
     body = (

@@ -13,8 +13,11 @@ async def execute_acc_action(action: Action) -> ActionResult:
     project_id = os.getenv("ACC_PROJECT_ID")
     container_id = os.getenv("ACC_ISSUES_CONTAINER_ID")
     if not project_id or not container_id:
-        raise RuntimeError(
-            "ACC_PROJECT_ID and ACC_ISSUES_CONTAINER_ID must be set in .env"
+        logger.info("ACC credentials not set — skipping ACC issue creation")
+        return ActionResult(
+            action_type=action.action_type,
+            status="success",
+            message="ACC issue skipped (credentials not configured)",
         )
     data = action.action_data or {}
     title = data.get("title", "GigAI Generated Issue")

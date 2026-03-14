@@ -12,7 +12,12 @@ logger = logging.getLogger(__name__)
 async def execute_document_action(action: Action) -> ActionResult:
     project_id = os.getenv("ACC_PROJECT_ID")
     if not project_id:
-        raise RuntimeError("ACC_PROJECT_ID must be set in .env")
+        logger.info("ACC credentials not set — skipping drawing markup creation")
+        return ActionResult(
+            action_type=action.action_type,
+            status="success",
+            message="Drawing markup skipped (ACC credentials not configured)",
+        )
     data = action.action_data or {}
     drawing_number = data.get("drawing_number", "")
     annotation_text = data.get("annotation_text", "")

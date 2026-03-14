@@ -12,6 +12,7 @@ This script calls pipeline modules directly -- NOT through Pub/Sub.
 Pub/Sub is async; this demo needs synchronous, traceable execution.
 """
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -373,14 +374,11 @@ def run_demo() -> int:
     _step_banner(3, total_steps, "ENRICHING CONTEXT")
     t0 = time.monotonic()
     units = [f"W-{300 + i}" for i in range(1, 13)]
-    print(f"      Fetching floor plan from ACC (stub: W-301..W-312)...")
+    acc_configured = bool(os.getenv("ACC_PROJECT_ID"))
+    print(f"      Fetching floor plan from ACC {'(real API)' if acc_configured else '(skipped — no ACC creds)'}...")
     print(f"      Querying pgvector for supplier, rules, historical patterns...")
-    try:
-        from src.system.context.enrichment import enrich_event
-        enriched = enrich_event(normalized)
-    except Exception as exc:  # noqa: BLE001
-        print(f"      (ACC/pgvector unavailable: {exc} -- using demo enrichment)")
-        enriched = _build_demo_enriched_event(normalized)
+    from src.system.context.enrichment import enrich_event
+    enriched = enrich_event(normalized)
 
     unit_str = ", ".join(units)
     print(f"      + Units affected: {unit_str}")
@@ -404,14 +402,9 @@ def run_demo() -> int:
     _step_banner(4, total_steps, "DOMAIN PROCESSING")
     t0 = time.monotonic()
     print("      Evaluating policy rules and schedule conflicts...")
-    try:
-        routed = _build_demo_routed_event(normalized)
-        from src.system.domain_processing.processor import process_event
-        processing_result = process_event(routed)
-    except Exception as exc:  # noqa: BLE001
-        print(f"      (processor unavailable: {exc} -- using demo signals)")
-        enriched = _build_demo_enriched_event(normalized)
-        processing_result = _build_demo_processing_result(enriched)
+    routed = _build_demo_routed_event(normalized)
+    from src.system.domain_processing.processor import process_event
+    processing_result = process_event(routed)
 
     signal_names = [s.signal_type for s in processing_result.signals]
     print(f"      + Signals generated: {', '.join(signal_names)}")
