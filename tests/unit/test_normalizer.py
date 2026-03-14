@@ -114,3 +114,31 @@ def test_normalization_prompt_file_exists():
     assert "quantity" in content
     assert "summary" in content
     assert "confidence" in content
+
+
+@pytest.mark.unit
+def test_normalized_event_empty_summary_raises_validation_error():
+    """NormalizedEvent with empty summary must raise a ValidationError."""
+    from pydantic import ValidationError
+    from src.shared.models.events import NormalizedEvent
+
+    with pytest.raises(ValidationError):
+        NormalizedEvent(
+            event_id="e-bad-01",
+            source="fireflies",
+            event_type="material_change",
+            summary="",   # empty summary — should fail min_length validation
+        )
+
+
+@pytest.mark.unit
+def test_normalize_event_returns_material_fields():
+    """normalize_event() returns NormalizedEvent with material_original and material_new."""
+    from src.system.data_processing import normalizer
+    raw = _make_raw_event()
+    with patch.object(normalizer, "call_haiku", return_value=_HAIKU_VALID):
+        result = normalizer.normalize_event(raw)
+    assert result.material_original == "aluminum"
+    assert result.material_new == "wood"
+    assert result.event_id == "e-test-01"
+    assert result.source == "fireflies"

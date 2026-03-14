@@ -325,3 +325,295 @@ def test_evaluate_policies_returns_policy_result_type(rules_yaml_path: Path):
     result = evaluate_policies(event, config)
 
     assert isinstance(result, PolicyResult)
+
+
+def test_evaluate_policies_missing_rules_file_returns_empty(tmp_path: Path):
+    """evaluate_policies() returns empty PolicyResult when rules file is missing."""
+    from src.system.domain_processing.policy_engine import PolicyResult, evaluate_policies
+
+    missing_path = tmp_path / "nonexistent.yaml"
+    config = _make_event_type_config(missing_path)
+    event = _make_enriched_event(quantity=5)
+    result = evaluate_policies(event, config)
+
+    assert isinstance(result, PolicyResult)
+    assert result.triggered_rules == []
+    assert result.escalate is False
+
+
+def test_eval_sub_in_operator_with_list_strings(tmp_path: Path):
+    """IN operator correctly matches a string field against a list of strings."""
+    from src.system.domain_processing.policy_engine import evaluate_policies
+
+    # RULE-011 uses: change_type IN ['material_substitution', 'scope_change', 'rfi_resolution']
+    in_rules = {
+        "rules": [
+            {
+                "rule_id": "RULE-IN-STR",
+                "description": "change_type IN list test",
+                "condition": "change_type IN ['material_substitution', 'scope_change']",
+                "action": "Test action",
+                "stakeholders": [],
+                "priority": "normal",
+            }
+        ]
+    }
+    rules_file = tmp_path / "in_test.yaml"
+    rules_file.write_text(yaml.dump(in_rules))
+    config = _make_event_type_config(rules_file)
+
+    event = _make_enriched_event(change_type="material_substitution")
+    result = evaluate_policies(event, config)
+    assert "RULE-IN-STR" in result.triggered_rules
+
+
+def test_eval_sub_in_operator_non_list_returns_false(tmp_path: Path):
+    """IN operator with a non-list value expression returns False, not raises."""
+    from src.system.domain_processing.policy_engine import evaluate_policies
+
+    non_list_rules = {
+        "rules": [
+            {
+                "rule_id": "RULE-NON-LIST",
+                "description": "IN with non-list value",
+                "condition": "change_type IN active_construction_zones",
+                "action": "Test action",
+                "stakeholders": [],
+                "priority": "normal",
+            }
+        ]
+    }
+    rules_file = tmp_path / "non_list.yaml"
+    rules_file.write_text(yaml.dump(non_list_rules))
+    config = _make_event_type_config(rules_file)
+
+    event = _make_enriched_event(change_type="material_substitution")
+    result = evaluate_policies(event, config)
+    assert "RULE-NON-LIST" not in result.triggered_rules
+
+
+def test_eval_sub_numeric_lt_operator(tmp_path: Path):
+    """< operator fires when field value is less than threshold."""
+    from src.system.domain_processing.policy_engine import evaluate_policies
+
+    lt_rules = {
+        "rules": [
+            {
+                "rule_id": "RULE-LT",
+                "description": "quantity < 5 test",
+                "condition": "quantity < 5",
+                "action": "Small order",
+                "stakeholders": [],
+                "priority": "low",
+            }
+        ]
+    }
+    rules_file = tmp_path / "lt_test.yaml"
+    rules_file.write_text(yaml.dump(lt_rules))
+    config = _make_event_type_config(rules_file)
+
+    event = _make_enriched_event(quantity=3)
+    result = evaluate_policies(event, config)
+    assert "RULE-LT" in result.triggered_rules
+
+
+def test_eval_sub_numeric_lte_operator(tmp_path: Path):
+    """<= operator fires when field value equals threshold."""
+    from src.system.domain_processing.policy_engine import evaluate_policies
+
+    lte_rules = {
+        "rules": [
+            {
+                "rule_id": "RULE-LTE",
+                "description": "quantity <= 10 test",
+                "condition": "quantity <= 10",
+                "action": "Small order",
+                "stakeholders": [],
+                "priority": "low",
+            }
+        ]
+    }
+    rules_file = tmp_path / "lte_test.yaml"
+    rules_file.write_text(yaml.dump(lte_rules))
+    config = _make_event_type_config(rules_file)
+
+    event = _make_enriched_event(quantity=10)
+    result = evaluate_policies(event, config)
+    assert "RULE-LTE" in result.triggered_rules
+
+
+def test_eval_sub_numeric_ne_operator(tmp_path: Path):
+    """!= operator fires when field value differs."""
+    from src.system.domain_processing.policy_engine import evaluate_policies
+
+    ne_rules = {
+        "rules": [
+            {
+                "rule_id": "RULE-NE",
+                "description": "quantity != 5 test",
+                "condition": "quantity != 5",
+                "action": "Not 5",
+                "stakeholders": [],
+                "priority": "low",
+            }
+        ]
+    }
+    rules_file = tmp_path / "ne_test.yaml"
+    rules_file.write_text(yaml.dump(ne_rules))
+    config = _make_event_type_config(rules_file)
+
+    event = _make_enriched_event(quantity=12)
+    result = evaluate_policies(event, config)
+    assert "RULE-NE" in result.triggered_rules
+
+
+def test_eval_sub_boolean_true_condition(tmp_path: Path):
+    """Boolean == true condition fires correctly when field is True."""
+    from src.system.domain_processing.policy_engine import evaluate_policies
+
+    bool_rules = {
+        "rules": [
+            {
+                "rule_id": "RULE-BOOL-FALSE",
+                "description": "po_issued == false test",
+                "condition": "po_issued == false",
+                "action": "Request quote",
+                "stakeholders": [],
+                "priority": "normal",
+            }
+        ]
+    }
+    rules_file = tmp_path / "bool_test.yaml"
+    rules_file.write_text(yaml.dump(bool_rules))
+    config = _make_event_type_config(rules_file)
+
+    # po_issued is hardcoded False in _build_event_fields
+    event = _make_enriched_event(quantity=5, change_type="material_substitution")
+    result = evaluate_policies(event, config)
+    assert "RULE-BOOL-FALSE" in result.triggered_rules
+
+
+def test_evaluate_policies_rule_with_no_condition_is_skipped(tmp_path: Path):
+    """Rules with no condition field must be skipped, not raise."""
+    from src.system.domain_processing.policy_engine import evaluate_policies
+
+    no_cond_rules = {
+        "rules": [
+            {
+                "rule_id": "RULE-NO-COND",
+                "description": "Missing condition",
+                "action": "Do nothing",
+                "stakeholders": [],
+                "priority": "low",
+            }
+        ]
+    }
+    rules_file = tmp_path / "no_cond.yaml"
+    rules_file.write_text(yaml.dump(no_cond_rules))
+    config = _make_event_type_config(rules_file)
+
+    event = _make_enriched_event(quantity=5)
+    result = evaluate_policies(event, config)
+    assert result.triggered_rules == []
+
+
+def test_eval_sub_in_operator_unknown_field_returns_false(tmp_path: Path):
+    """IN operator with an unknown field name returns False without raising."""
+    from src.system.domain_processing.policy_engine import evaluate_policies
+
+    unknown_in_rules = {
+        "rules": [
+            {
+                "rule_id": "RULE-UNKNOWN-IN",
+                "description": "Unknown field IN list",
+                "condition": "nonexistent_field IN ['a', 'b']",
+                "action": "Test",
+                "stakeholders": [],
+                "priority": "normal",
+            }
+        ]
+    }
+    rules_file = tmp_path / "unknown_in.yaml"
+    rules_file.write_text(yaml.dump(unknown_in_rules))
+    config = _make_event_type_config(rules_file)
+
+    event = _make_enriched_event(quantity=5)
+    result = evaluate_policies(event, config)
+    assert "RULE-UNKNOWN-IN" not in result.triggered_rules
+
+
+def test_eval_sub_string_ne_operator(tmp_path: Path):
+    """!= string comparison fires correctly."""
+    from src.system.domain_processing.policy_engine import evaluate_policies
+
+    str_ne_rules = {
+        "rules": [
+            {
+                "rule_id": "RULE-STR-NE",
+                "description": "material_new != aluminum",
+                "condition": "material_new != 'aluminum'",
+                "action": "Different material",
+                "stakeholders": [],
+                "priority": "normal",
+            }
+        ]
+    }
+    rules_file = tmp_path / "str_ne.yaml"
+    rules_file.write_text(yaml.dump(str_ne_rules))
+    config = _make_event_type_config(rules_file)
+
+    # material_new is "wood" which != "aluminum" — rule should fire
+    event = _make_enriched_event(material_new="wood")
+    result = evaluate_policies(event, config)
+    assert "RULE-STR-NE" in result.triggered_rules
+
+
+def test_eval_sub_no_operator_returns_false(tmp_path: Path):
+    """Sub-condition with no recognized operator returns False without raising."""
+    from src.system.domain_processing.policy_engine import evaluate_policies
+
+    no_op_rules = {
+        "rules": [
+            {
+                "rule_id": "RULE-NO-OP",
+                "description": "Malformed condition with no operator",
+                "condition": "quantity_without_operator",
+                "action": "Test",
+                "stakeholders": [],
+                "priority": "normal",
+            }
+        ]
+    }
+    rules_file = tmp_path / "no_op.yaml"
+    rules_file.write_text(yaml.dump(no_op_rules))
+    config = _make_event_type_config(rules_file)
+
+    event = _make_enriched_event(quantity=12)
+    result = evaluate_policies(event, config)
+    assert "RULE-NO-OP" not in result.triggered_rules
+
+
+def test_eval_sub_string_gt_unsupported_returns_false(tmp_path: Path):
+    """String > comparison (unsupported) returns False without raising."""
+    from src.system.domain_processing.policy_engine import evaluate_policies
+
+    str_gt_rules = {
+        "rules": [
+            {
+                "rule_id": "RULE-STR-GT",
+                "description": "String > operator (unsupported)",
+                "condition": "material_new > 'aluminum'",
+                "action": "Test",
+                "stakeholders": [],
+                "priority": "normal",
+            }
+        ]
+    }
+    rules_file = tmp_path / "str_gt.yaml"
+    rules_file.write_text(yaml.dump(str_gt_rules))
+    config = _make_event_type_config(rules_file)
+
+    event = _make_enriched_event(material_new="wood")
+    result = evaluate_policies(event, config)
+    # > on strings is unsupported — must return False, not raise
+    assert "RULE-STR-GT" not in result.triggered_rules

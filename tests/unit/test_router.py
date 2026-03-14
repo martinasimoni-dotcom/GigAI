@@ -116,3 +116,55 @@ def test_routing_prompt_file_exists():
     content = prompt_path.read_text()
     for event_type in ["material_change", "schedule_update", "rfi_request", "other"]:
         assert event_type in content, f"'{event_type}' not found in routing.txt"
+
+
+@pytest.mark.unit
+def test_route_event_falls_back_when_yaml_config_missing(tmp_path):
+    """route_event() falls back to other.yaml when the primary config YAML is missing."""
+    import shutil
+    from src.system.data_processing import router
+
+    # Create a minimal config_dir with only other.yaml — no material_change.yaml
+    config_dir = tmp_path / "event_types"
+    config_dir.mkdir()
+
+    # Copy real other.yaml from the project config
+    real_config_dir = (
+        Path(__file__).parent.parent.parent / "config" / "event_types"
+    )
+    shutil.copy(real_config_dir / "other.yaml", config_dir / "other.yaml")
+    # Do NOT copy material_change.yaml — trigger the fallback
+
+    mock_publisher = MagicMock()
+    mock_publisher.topic_path.return_value = "projects/test/topics/normalized-events"
+    mock_future = MagicMock()
+    mock_future.result.return_value = "msg-id-fallback"
+    mock_publisher.publish.return_value = mock_future
+
+    # Haiku returns material_change but the YAML file is missing — router must fall back
+    with patch.object(router, "call_haiku", return_value=_ROUTING_MATERIAL), \
+         patch("google.cloud.pubsub_v1.PublisherClient", return_value=mock_publisher):
+        result = router.route_event(_make_event(), config_dir=config_dir)
+
+    assert result.event_type == "other"
+    assert result.config.event_type == "other"
+
+
+@pytest.mark.unit
+def test_route_event_with_material_change_config_loads_enrichment_queries():
+    """route_event() with material_change classification loads EventTypeConfig with queries."""
+    from src.system.data_processing import router
+
+    mock_publisher = MagicMock()
+    mock_publisher.topic_path.return_value = "projects/test/topics/normalized-events"
+    mock_future = MagicMock()
+    mock_future.result.return_value = "msg-id-4"
+    mock_publisher.publish.return_value = mock_future
+
+    with patch.object(router, "call_haiku", return_value=_ROUTING_MATERIAL), \
+         patch("google.cloud.pubsub_v1.PublisherClient", return_value=mock_publisher):
+        result = router.route_event(_make_event())
+
+    assert result.event_type == "material_change"
+    assert isinstance(result.config.enrichment_queries, list)
+    assert len(result.config.enrichment_queries) > 0
