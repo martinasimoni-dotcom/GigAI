@@ -194,5 +194,5 @@ All requirements below are in scope for the current build (10-phase implementati
 | TEST-01 | Phase 9 | Complete |
 | TEST-02 | Phase 9 | Complete |
 | TEST-03 | Phase 9 | Complete |
-| TEST-04 | Phase 9 | Pending |
-| TEST-05 | Phase 9 | Pending |
+| TEST-04 | Phase 9 | Complete |
+| TEST-05 | Phase 9 | Complete |

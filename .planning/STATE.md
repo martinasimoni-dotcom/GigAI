@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-14T09:37:08.874Z"
+last_updated: "2026-03-14T09:39:56.854Z"
 progress:
   total_phases: 10
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 30
-  completed_plans: 25
+  completed_plans: 26
 ---
 
 # STATE.md — GigAI
@@ -32,7 +32,7 @@ progress:
 | Current Plan | 09-04 |
 | Status | Phase 9 in progress (plan 3/3 complete — 09-01, 09-02, 09-03 fully complete) |
 | Last Updated | 2026-03-14 |
-| Stopped At | Completed 09-tests-and-demo 09-03-PLAN.md — 10 integration tests across 3 files, all collectable with credential skip guards |
+| Stopped At | Completed 09-tests-and-demo 09-02-PLAN.md — run_demo.py (6-step trace) and test_retrieval_quality.py (20 queries) implemented |
 
 ### Progress Bar
 
@@ -70,6 +70,7 @@ Overall: 9/10 phases complete (25/30 total plans)
 | Phase 08-dashboard P02 | 15min | 3 tasks | 14 files |
 | Phase 09-tests-and-demo P01 | 25 | 2 tasks | 9 files |
 | Phase 09-tests-and-demo P03 | 12min | 2 tasks | 3 files |
+| Phase 09-tests-and-demo P02 | 5 | 2 tasks | 4 files |
 
 ## Execution Metrics
 
@@ -168,6 +169,8 @@ Overall: 9/10 phases complete (25/30 total plans)
 - **Coverage gate scope expansion pattern**: When adding tests to reach a coverage gate, check actual per-module coverage first; modules with zero tests (processor.py, acc.py) drain the total more than modules in the plan spec (normalizer, router) that were already above 80%.
 - **Integration test create_issue() signature**: acc.py create_issue() requires container_id as 2nd positional parameter — integration test uses ACC_CONTAINER_ID env var with skip guard rather than constructing an invalid 3-arg call.
 - **Integration test module-level skip pattern**: test_knowledge_retrieval.py uses pytestmark reassignment with pytest.mark.skip when knowledge_chunks table is empty — avoids config.settings singleton at collection time (consistent with IMPL_AVAILABLE guard pattern).
+- **sys.path.insert in standalone scripts**: All scripts/ tools require `sys.path.insert(0, str(Path(__file__).parent.parent))` before load_dotenv() — project not installed as editable package, so repo root must be on sys.path for src.* imports.
+- **Lazy src.* import for --dry-run in retrieval scripts**: test_retrieval_quality.py imports vector_store inside run_validation() body to allow --dry-run to exit 0 without DB credentials; load_dotenv() still at module level ensures env vars ready when real path executes.
 
 ### Architecture Principles
 

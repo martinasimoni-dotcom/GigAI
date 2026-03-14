@@ -19,7 +19,7 @@
 - [x] **Phase 6: Decision Intelligence** — Sonnet 4 proposal generation and weighted confidence scoring (completed 2026-03-13)
 - [x] **Phase 7: Output + API** — Proposal builder, action gateway with all executors, notifications, feedback loop, FastAPI routes (completed 2026-03-14)
 - [x] **Phase 8: Dashboard** — React SPA with proposal feed, accept/reject flow, confidence display, audit log (completed 2026-03-14)
-- [ ] **Phase 9: Tests and Demo** — Unit tests, integration tests, fixtures, demo script, retrieval validation
+- [x] **Phase 9: Tests and Demo** — Unit tests, integration tests, fixtures, demo script, retrieval validation (completed 2026-03-14)
 
 ---
 
@@ -36,7 +36,7 @@
 | 6. Decision Intelligence | 2/2 | Complete    | 2026-03-13 |
 | 7. Output + API | 4/4 | Complete    | 2026-03-14 |
 | 8. Dashboard | 2/2 | Complete   | 2026-03-14 |
-| 9. Tests and Demo | 2/3 | In Progress|  |
+| 9. Tests and Demo | 3/3 | Complete   | 2026-03-14 |
 
 ---
 
