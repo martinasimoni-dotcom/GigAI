@@ -31,7 +31,7 @@ def test_get_connection_calls_register_vector(mock_db_conn):
     mock_pool.getconn.return_value = mock_db_conn
 
     with patch.object(postgres, "get_pool", return_value=mock_pool), \
-         patch("src.shared.db.postgres.register_vector") as mock_reg:
+         patch.object(postgres, "register_vector") as mock_reg:
         conn = postgres.get_connection()
         mock_reg.assert_called_once_with(conn)
 

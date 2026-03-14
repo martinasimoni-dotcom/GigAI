@@ -31,7 +31,7 @@ def test_embed_and_store_calls_embed_batch(mock_db_conn):
     with patch.object(vector_store, "embed_batch") as mock_embed, \
          patch.object(vector_store, "get_connection", return_value=mock_db_conn), \
          patch.object(vector_store, "release_connection"), \
-         patch("src.shared.db.vector_store.execute_values"):
+         patch.object(vector_store, "execute_values"):
         mock_embed.return_value = [[0.1] * 1024]
 
         vector_store.embed_and_store(["text chunk"], "test_source")
