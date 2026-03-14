@@ -192,7 +192,7 @@ All requirements below are in scope for the current build (10-phase implementati
 | DASH-04 | Phase 8 | Complete |
 | DASH-05 | Phase 8 | Complete |
 | TEST-01 | Phase 9 | Complete |
-| TEST-02 | Phase 9 | Pending |
+| TEST-02 | Phase 9 | Complete |
 | TEST-03 | Phase 9 | Complete |
 | TEST-04 | Phase 9 | Pending |
 | TEST-05 | Phase 9 | Pending |

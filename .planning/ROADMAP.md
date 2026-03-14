@@ -36,7 +36,7 @@
 | 6. Decision Intelligence | 2/2 | Complete    | 2026-03-13 |
 | 7. Output + API | 4/4 | Complete    | 2026-03-14 |
 | 8. Dashboard | 2/2 | Complete   | 2026-03-14 |
-| 9. Tests and Demo | 1/3 | In Progress|  |
+| 9. Tests and Demo | 2/3 | In Progress|  |
 
 ---
 

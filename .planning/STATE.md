@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-14T09:30:31.891Z"
+last_updated: "2026-03-14T09:37:08.874Z"
 progress:
   total_phases: 10
   completed_phases: 8
   total_plans: 30
-  completed_plans: 24
+  completed_plans: 25
 ---
 
 # STATE.md — GigAI
@@ -29,10 +29,10 @@ progress:
 | Field | Value |
 |-------|-------|
 | Current Phase | Phase 9: Tests and Demo |
-| Current Plan | 09-02 |
-| Status | Phase 9 in progress (plan 1/3 complete — 09-01 fully complete) |
+| Current Plan | 09-04 |
+| Status | Phase 9 in progress (plan 3/3 complete — 09-01, 09-02, 09-03 fully complete) |
 | Last Updated | 2026-03-14 |
-| Stopped At | Completed 09-tests-and-demo 09-01-PLAN.md — fixtures created, coverage gate 80.97% |
+| Stopped At | Completed 09-tests-and-demo 09-03-PLAN.md — 10 integration tests across 3 files, all collectable with credential skip guards |
 
 ### Progress Bar
 
@@ -46,9 +46,9 @@ Phase 5  [###       ] 43% (3/7 plans complete)
 Phase 6  [##########] 100% (2/2 plans complete)
 Phase 7  [##########] 100% (4/4 plans complete)
 Phase 8  [####      ] 50% (2/4 plans complete)
-Phase 9  [###       ] 33% (1/3 plans complete)
+Phase 9  [##########] 100% (3/3 plans complete)
 
-Overall: 8/10 phases complete (24/30 total plans)
+Overall: 9/10 phases complete (25/30 total plans)
 ```
 
 ---
@@ -69,6 +69,7 @@ Overall: 8/10 phases complete (24/30 total plans)
 | Phase 08-dashboard P02 | 4 | 2 tasks | 14 files |
 | Phase 08-dashboard P02 | 15min | 3 tasks | 14 files |
 | Phase 09-tests-and-demo P01 | 25 | 2 tasks | 9 files |
+| Phase 09-tests-and-demo P03 | 12min | 2 tasks | 3 files |
 
 ## Execution Metrics
 
@@ -93,6 +94,7 @@ Overall: 8/10 phases complete (24/30 total plans)
 | Phase 06-decision-intelligence P01 | 3 min | 2 tasks | 3 files |
 | Phase 06-decision-intelligence P02 | 3 min | 2 tasks | 3 files |
 | Phase 09-tests-and-demo P01 | 25 min | 2 tasks | 9 files |
+| Phase 09-tests-and-demo P03 | 12 min | 2 tasks | 3 files |
 | Phase 08-dashboard P01 | 3 min | 2 tasks | 10 files |
 
 ## Accumulated Context
@@ -164,6 +166,8 @@ Overall: 8/10 phases complete (24/30 total plans)
 - **getAllByText disambiguation**: When badge and button both render same text (e.g. "Accept"), use getAllByText + tagName assertion to target the specific element type.
 - **pytest-cov CoverageWarning on Python 3.13**: coverage.py without C extension emits CoverageWarning which pytest `filterwarnings = ["error"]` treats as error — must add `"ignore::coverage.exceptions.CoverageWarning"` to pyproject.toml filterwarnings list.
 - **Coverage gate scope expansion pattern**: When adding tests to reach a coverage gate, check actual per-module coverage first; modules with zero tests (processor.py, acc.py) drain the total more than modules in the plan spec (normalizer, router) that were already above 80%.
+- **Integration test create_issue() signature**: acc.py create_issue() requires container_id as 2nd positional parameter — integration test uses ACC_CONTAINER_ID env var with skip guard rather than constructing an invalid 3-arg call.
+- **Integration test module-level skip pattern**: test_knowledge_retrieval.py uses pytestmark reassignment with pytest.mark.skip when knowledge_chunks table is empty — avoids config.settings singleton at collection time (consistent with IMPL_AVAILABLE guard pattern).
 
 ### Architecture Principles
 
