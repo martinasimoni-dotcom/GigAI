@@ -16,6 +16,9 @@ import sys
 import time
 from pathlib import Path
 
+# Ensure repo root is on sys.path for src.* imports when run as standalone script
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 # MUST load env before any src.* imports -- config.settings singleton triggers at import time
 from dotenv import load_dotenv
 load_dotenv()
