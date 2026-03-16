@@ -1,21 +1,33 @@
 export function DecisionPanel({ actionResults, decision }) {
-  const STATUS_ICON = { success: '✓', failed: '✗' }
+  const isAccepted = decision === 'accept'
+
   return (
-    <div className="mt-3 border-t pt-3">
-      <p className="text-sm font-semibold text-gray-700 mb-1">
-        {decision === 'accept' ? 'Execution Status' : 'Rejected'}
-      </p>
-      {actionResults && (
-        <ul className="space-y-1">
+    <div className="decision-result">
+      <div className={`result-header ${isAccepted ? 'accepted' : 'rejected'}`}>
+        {isAccepted ? (
+          <>
+            <span>●</span>
+            EXECUTION STATUS
+          </>
+        ) : (
+          <>
+            <span>✕</span>
+            PROPOSAL REJECTED
+          </>
+        )}
+      </div>
+
+      {actionResults && actionResults.length > 0 && (
+        <div className="result-items">
           {actionResults.map((r, i) => (
-            <li key={i} className={`flex items-center gap-2 text-sm ${r.status === 'success' ? 'text-green-700' : 'text-red-700'}`}>
-              <span>{STATUS_ICON[r.status]}</span>
-              <span className="capitalize">{r.action_type}</span>
-              <span className="text-gray-600">— {r.message}</span>
-              {r.error && <span className="text-red-500">({r.error})</span>}
-            </li>
+            <div key={i} className="result-item">
+              <span className={`result-dot ${r.status}`} />
+              <span className="result-type">{r.action_type}</span>
+              <span className="result-msg">{r.message}</span>
+              {r.error && <span className="result-err">({r.error})</span>}
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   )

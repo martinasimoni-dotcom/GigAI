@@ -1,31 +1,74 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ProposalFeed } from './components/ProposalFeed.jsx'
 import { AuditLog } from './components/AuditLog.jsx'
 
 export default function App() {
   const [decisions, setDecisions] = useState([])
+  const [time, setTime] = useState(new Date())
 
-  function handleDecided(decisionRecord) {
-    setDecisions((prev) => [decisionRecord, ...prev])
+  useEffect(() => {
+    const t = setInterval(() => setTime(new Date()), 1000)
+    return () => clearInterval(t)
+  }, [])
+
+  function handleDecided(record) {
+    setDecisions((prev) => [record, ...prev])
   }
 
+  const accepted = decisions.filter((d) => d.decision === 'accept').length
+  const rejected = decisions.filter((d) => d.decision === 'reject').length
+
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow-sm px-4 py-3">
-        <h1 className="text-lg font-bold text-gray-900">GigAI — Proposal Dashboard</h1>
-      </header>
-      <main className="max-w-5xl mx-auto px-4 py-6">
-        <div className="flex flex-col sm:flex-row gap-6">
-          <section className="flex-1 min-w-0">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Active Proposals</h2>
-            <ProposalFeed onDecided={handleDecided} />
-          </section>
-          <aside className="w-full sm:w-80 flex-shrink-0">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Audit Log</h2>
-            <AuditLog decisions={decisions} />
-          </aside>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {/* ── Topbar ─────────────────────────────────────────────────────── */}
+      <header className="topbar">
+        <div className="logo-wrap">
+          <div className="logo">
+            <span className="logo-gig">GIG</span>
+            <span className="logo-ai">AI</span>
+          </div>
+          <div className="logo-sub">Construction Intelligence Platform</div>
         </div>
-      </main>
+
+        <div className="topbar-stats">
+          <div className="stat-pill">
+            <div className="stat-item">
+              <span className="stat-value accept">{accepted}</span>
+              <span className="stat-label">Accepted</span>
+            </div>
+            <div className="stat-divider" />
+            <div className="stat-item">
+              <span className="stat-value reject">{rejected}</span>
+              <span className="stat-label">Rejected</span>
+            </div>
+            <div className="stat-divider" />
+            <div className="stat-item">
+              <span className="stat-value">{accepted + rejected}</span>
+              <span className="stat-label">Total</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="topbar-right">
+          <div className="live-badge">
+            <span className="live-dot" />
+            <span className="live-text">LIVE</span>
+          </div>
+          <div className="clock">
+            {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+          </div>
+        </div>
+      </header>
+
+      {/* ── Main Layout ─────────────────────────────────────────────────── */}
+      <div className="layout" style={{ flex: 1, minHeight: 0 }}>
+        <main className="feed-panel">
+          <ProposalFeed onDecided={handleDecided} />
+        </main>
+        <aside className="audit-panel">
+          <AuditLog decisions={decisions} />
+        </aside>
+      </div>
     </div>
   )
 }

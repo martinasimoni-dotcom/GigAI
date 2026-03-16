@@ -1,34 +1,47 @@
 export function AuditLog({ decisions }) {
   const sorted = [...decisions].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
 
-  if (sorted.length === 0) {
-    return (
-      <div className="bg-white rounded-lg shadow p-4">
-        <h2 className="text-base font-semibold text-gray-900 mb-2">Decision History</h2>
-        <p className="text-sm text-gray-500">No decisions yet.</p>
-      </div>
-    )
-  }
-
   return (
-    <div className="bg-white rounded-lg shadow p-4">
-      <h2 className="text-base font-semibold text-gray-900 mb-3">Decision History</h2>
-      <ul className="space-y-3">
-        {sorted.map((d, i) => (
-          <li key={i} className="border-b pb-2 last:border-b-0">
-            <div className="flex items-start justify-between gap-2 flex-wrap">
-              <span className="text-sm font-medium text-gray-900 flex-1">{d.title}</span>
-              <span className={`text-xs px-2 py-0.5 rounded font-medium flex-shrink-0 ${d.decision === 'accept' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                {d.decision === 'accept' ? 'Accepted' : 'Rejected'}
-              </span>
+    <>
+      <div className="audit-title-row">
+        <span className="audit-heading">Decision History</span>
+        {sorted.length > 0 && (
+          <span className="audit-count">{sorted.length}</span>
+        )}
+      </div>
+
+      {sorted.length === 0 ? (
+        <div className="audit-empty">
+          <div className="audit-empty-icon">◷</div>
+          <div className="audit-empty-text">
+            No decisions yet.<br />
+            Accepted and rejected proposals will appear here.
+          </div>
+        </div>
+      ) : (
+        <div className="audit-timeline">
+          {sorted.map((d, i) => (
+            <div key={i} className="audit-item">
+              <div className={`audit-dot ${d.decision}`} />
+              <div className="audit-content">
+                <div className="audit-item-title">{d.title}</div>
+                <div className="audit-meta-row">
+                  <span className={`audit-badge ${d.decision}`}>
+                    {d.decision === 'accept' ? 'Accepted' : 'Rejected'}
+                  </span>
+                  <span className="audit-score">{d.confidence_score}%</span>
+                  <span className="audit-time">
+                    {new Date(d.timestamp).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-3 mt-0.5">
-              <span className="text-xs text-gray-500">{d.confidence_score}%</span>
-              <span className="text-xs text-gray-400">{new Date(d.timestamp).toLocaleString()}</span>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </div>
+          ))}
+        </div>
+      )}
+    </>
   )
 }
