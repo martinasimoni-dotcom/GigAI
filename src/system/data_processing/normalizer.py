@@ -60,11 +60,14 @@ def _load_prompt() -> str:
 @retry(
     stop=stop_after_attempt(3),
     wait=wait_exponential(multiplier=1, min=2, max=10),
-    retry=retry_if_exception_type((ValidationError, ValueError, json.JSONDecodeError)),
+    # Only retry on JSON decode errors (transient malformed output from LLM).
+    # ValidationError and ValueError are NOT retried — they indicate a structural
+    # schema mismatch that won't be fixed by repeating the same call.
+    retry=retry_if_exception_type(json.JSONDecodeError),
     reraise=True,
 )
 def _extract_with_retry(prompt: str, raw_event: RawEvent) -> NormalizedEvent:
-    """Call Haiku and validate; retried up to 3 times on validation failure."""
+    """Call Haiku and validate; retried up to 3 times on JSON decode errors."""
     raw_json = call_haiku(prompt=prompt, system=_SYSTEM, output_schema=_NORMALIZATION_SCHEMA)
     data = json.loads(raw_json)
     # Inject authoritative metadata from RawEvent (Haiku may hallucinate these)

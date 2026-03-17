@@ -20,6 +20,11 @@ def _get_publisher() -> tuple[pubsub_v1.PublisherClient, str]:
     """Lazy init: construct PublisherClient and topic path on first call."""
     global _publisher, _topic_path
     if _publisher is None:
+        if not settings.google_cloud_project:
+            raise RuntimeError(
+                "GOOGLE_CLOUD_PROJECT is not set in .env. "
+                "This is required for Pub/Sub event publishing."
+            )
         _publisher = pubsub_v1.PublisherClient()
         _topic_path = _publisher.topic_path(
             settings.google_cloud_project,

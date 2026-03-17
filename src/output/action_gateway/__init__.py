@@ -5,7 +5,7 @@ from typing import Literal
 
 class ActionResult(BaseModel):
     action_type: str
-    status: Literal["success", "failed"]
+    status: Literal["success", "failed", "skipped"]
     message: str
     error: str | None = None
 

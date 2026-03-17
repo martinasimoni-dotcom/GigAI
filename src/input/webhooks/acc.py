@@ -25,7 +25,8 @@ async def receive_acc(request: Request) -> dict:
     """
     try:
         body = await request.json()
-    except Exception:
+    except Exception as exc:
+        logger.warning("Failed to parse ACC webhook JSON: %s", exc)
         raise HTTPException(status_code=400, detail="Invalid JSON body")
 
     if not body or not isinstance(body, dict):

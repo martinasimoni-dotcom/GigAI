@@ -23,6 +23,22 @@ INSERT INTO decisions (proposal_id, event_id, decision, reason)
 VALUES (%s, %s, %s, %s)
 """
 
+_schema_initialized = False
+
+
+def ensure_schema() -> None:
+    """Create the decisions table if it doesn't exist. Safe to call multiple times."""
+    global _schema_initialized
+    if _schema_initialized:
+        return
+    conn = postgres.get_connection()
+    try:
+        postgres.execute(conn, _DDL)
+        _schema_initialized = True
+        logger.info("decisions table schema verified")
+    finally:
+        postgres.release_connection(conn)
+
 
 def record_decision(
     proposal_id: str,
@@ -30,9 +46,9 @@ def record_decision(
     reason: str | None,
     proposal: Proposal,
 ) -> None:
+    ensure_schema()
     conn = postgres.get_connection()
     try:
-        postgres.execute(conn, _DDL)
         postgres.execute(conn, _INSERT, (proposal_id, proposal.event_id, decision, reason))
     finally:
         postgres.release_connection(conn)

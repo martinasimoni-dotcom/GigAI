@@ -15,6 +15,7 @@ Token is cached in-process until expiry.
 import json
 import logging
 import os
+import threading
 import time
 import urllib.error
 import urllib.parse
@@ -24,14 +25,16 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# In-process token cache
+# In-process token cache (thread-safe)
 # ---------------------------------------------------------------------------
 _token_cache: dict[str, Any] = {}   # {"access_token": str, "expires_at": float}
+_token_lock = threading.Lock()
 
 
 def _get_acc_token() -> str:
     """
     Acquire (or return cached) 2-legged OAuth token for ACC.
+    Thread-safe: uses a lock to prevent concurrent token refresh race.
 
     Requires:
         ACC_CLIENT_ID     — Autodesk app client ID
@@ -42,37 +45,44 @@ def _get_acc_token() -> str:
         urllib.error.HTTPError on auth failure.
     """
     now = time.time()
+    # Fast path: return cached token without acquiring lock
     if _token_cache.get("access_token") and _token_cache.get("expires_at", 0) > now + 60:
         return _token_cache["access_token"]
 
-    client_id = os.getenv("ACC_CLIENT_ID")
-    client_secret = os.getenv("ACC_CLIENT_SECRET")
-    if not client_id or not client_secret:
-        raise RuntimeError(
-            "ACC_CLIENT_ID and ACC_CLIENT_SECRET must be set in .env to use ACC API"
+    with _token_lock:
+        # Re-check under lock — another thread may have refreshed while we waited
+        now = time.time()
+        if _token_cache.get("access_token") and _token_cache.get("expires_at", 0) > now + 60:
+            return _token_cache["access_token"]
+
+        client_id = os.getenv("ACC_CLIENT_ID")
+        client_secret = os.getenv("ACC_CLIENT_SECRET")
+        if not client_id or not client_secret:
+            raise RuntimeError(
+                "ACC_CLIENT_ID and ACC_CLIENT_SECRET must be set in .env to use ACC API"
+            )
+
+        import base64
+        creds = base64.b64encode(f"{client_id}:{client_secret}".encode()).decode()
+        body = urllib.parse.urlencode({
+            "grant_type": "client_credentials",
+            "scope": "data:read data:write account:read account:write",
+        }).encode()
+        req = urllib.request.Request(
+            "https://developer.api.autodesk.com/authentication/v2/token",
+            data=body,
+            headers={
+                "Authorization": f"Basic {creds}",
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
         )
+        with urllib.request.urlopen(req) as resp:
+            data = json.loads(resp.read())
 
-    import base64
-    creds = base64.b64encode(f"{client_id}:{client_secret}".encode()).decode()
-    body = urllib.parse.urlencode({
-        "grant_type": "client_credentials",
-        "scope": "data:read data:write account:read account:write",
-    }).encode()
-    req = urllib.request.Request(
-        "https://developer.api.autodesk.com/authentication/v2/token",
-        data=body,
-        headers={
-            "Authorization": f"Basic {creds}",
-            "Content-Type": "application/x-www-form-urlencoded",
-        },
-    )
-    with urllib.request.urlopen(req) as resp:
-        data = json.loads(resp.read())
-
-    _token_cache["access_token"] = data["access_token"]
-    _token_cache["expires_at"] = now + data.get("expires_in", 3600)
-    logger.info("ACC OAuth token acquired, expires in %ds", data.get("expires_in", 3600))
-    return _token_cache["access_token"]
+        _token_cache["access_token"] = data["access_token"]
+        _token_cache["expires_at"] = now + data.get("expires_in", 3600)
+        logger.info("ACC OAuth token acquired, expires in %ds", data.get("expires_in", 3600))
+        return _token_cache["access_token"]
 
 
 def _acc_get(path: str, base: str = "https://developer.api.autodesk.com") -> Any:

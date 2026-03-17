@@ -2,7 +2,7 @@
 Pydantic v2 models for signals, actions, and proposals.
 FOUND-07
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Literal, Optional
 from uuid import uuid4
 
@@ -15,7 +15,7 @@ class Signal(BaseModel):
     signal_type: str
     priority: int = 1
     payload: dict = Field(default_factory=dict)
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class Action(BaseModel):
@@ -38,4 +38,4 @@ class Proposal(BaseModel):
     confidence_score: float = Field(ge=0.0, le=1.0)
     recommendation: Literal["accept", "review", "reject"]
     status: Literal["pending", "accepted", "rejected"] = "pending"
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

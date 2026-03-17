@@ -36,6 +36,9 @@ tenacity>=8.2.3
 # Vector math
 numpy>=1.26.3
 
+# Utilities (used by helper scripts)
+requests>=2.31
+
 # Testing
 pytest>=7.4
 pytest-asyncio>=0.23

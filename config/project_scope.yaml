@@ -1,0 +1,27 @@
+# project_scope.yaml — Defines in-scope locations and project identity for the scope filter.
+# Events whose location does not match any entry in `locations` will be rejected before processing.
+# Add location strings exactly as they appear in meeting transcripts and ACC events.
+project_id: "gigai-demo"
+locations:
+  - "3rd floor"
+  - "third floor"
+  - "floor 3"
+  - "level 3"
+  - "unit 301"
+  - "unit 302"
+  - "unit 303"
+  - "unit 304"
+  - "unit 305"
+  - "unit 306"
+  - "unit 307"
+  - "unit 308"
+  - "unit 309"
+  - "unit 310"
+  - "unit 311"
+  - "unit 312"
+  - "north elevation"
+  - "south elevation"
+  - "east elevation"
+  - "west elevation"
+  - "exterior"
+  - "facade"

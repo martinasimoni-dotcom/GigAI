@@ -10,10 +10,19 @@ def build_proposal_response(proposal: Proposal) -> dict:
     """Build a dashboard-ready dict from a Proposal."""
     actions_formatted = []
     for action in proposal.actions:
+        data = action.action_data or {}
+        # Try multiple candidate keys before falling back to empty string
+        description = (
+            data.get("description")
+            or data.get("subject")       # email subject is meaningful as description
+            or data.get("summary")       # calendar event summary
+            or data.get("title")         # ACC issue title
+            or data.get("body", "")[:120]  # truncated email body as last resort
+        ) or ""
         actions_formatted.append({
             "action_type": action.action_type,
-            "description": action.action_data.get("description", ""),
-            "action_data": action.action_data,
+            "description": description,
+            "action_data": data,
         })
 
     return {

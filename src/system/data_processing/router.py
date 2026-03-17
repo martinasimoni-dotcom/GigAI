@@ -64,6 +64,12 @@ def _load_routing_prompt() -> str:
 
 def _publish_normalized_event(event: NormalizedEvent) -> str:
     """Publish NormalizedEvent to the normalized-events Pub/Sub topic."""
+    if not settings.google_cloud_project:
+        logger.warning(
+            "GOOGLE_CLOUD_PROJECT not set — skipping normalized-event publish for event_id=%s",
+            event.event_id,
+        )
+        return "skipped"
     publisher = pubsub_v1.PublisherClient()
     topic_path = publisher.topic_path(
         settings.google_cloud_project,

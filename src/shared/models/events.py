@@ -2,7 +2,7 @@
 Pydantic v2 models for raw and normalized pipeline events.
 FOUND-06
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -14,7 +14,7 @@ class RawEvent(BaseModel):
     event_id: str
     source: Literal["fireflies", "acc", "gmail", "calendar"]
     raw_payload: dict
-    received_at: datetime = Field(default_factory=datetime.utcnow)
+    received_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class NormalizedEvent(BaseModel):
@@ -30,7 +30,7 @@ class NormalizedEvent(BaseModel):
     people: list[dict] = Field(default_factory=list)   # [{name: str, role: str}]
     deadlines: list[datetime] = Field(default_factory=list)
     summary: str
-    extracted_at: datetime = Field(default_factory=datetime.utcnow)
+    extracted_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     review_required: bool = False
     confidence: int = Field(ge=0, le=100, default=50)
     estimated_cost: Optional[float] = None

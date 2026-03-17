@@ -42,26 +42,92 @@ class PolicyResult(BaseModel):
 # ---------------------------------------------------------------------------
 
 
+def _parse_floor_number(location: str) -> int:
+    """
+    Extract floor number from location string.
+    Handles: '3rd floor', 'third floor', 'floor 3', 'level 3', 'unit 3XX'.
+    Returns 0 if not determinable.
+    """
+    import re
+    location_lower = location.lower()
+    # Match "3rd floor", "4th floor", "2nd floor", "1st floor"
+    m = re.search(r"(\d+)(?:st|nd|rd|th)\s+floor", location_lower)
+    if m:
+        return int(m.group(1))
+    # Match "floor 3", "level 3"
+    m = re.search(r"(?:floor|level)\s+(\d+)", location_lower)
+    if m:
+        return int(m.group(1))
+    # Match ordinal words
+    ordinals = {"first": 1, "second": 2, "third": 3, "fourth": 4, "fifth": 5,
+                "sixth": 6, "seventh": 7, "eighth": 8, "ninth": 9, "tenth": 10}
+    for word, num in ordinals.items():
+        if word in location_lower and "floor" in location_lower:
+            return num
+    # Match "unit 3XX" — use hundreds digit as floor
+    m = re.search(r"unit\s+(\d{3})", location_lower)
+    if m:
+        return int(m.group(1)[0])
+    return 0
+
+
+def _infer_element_type(event: "EnrichedEvent") -> str:
+    """
+    Infer element type from event summary and location.
+    Checks for common construction element keywords.
+    """
+    text = (
+        (event.event.summary or "") + " " +
+        (event.event.location or "") + " " +
+        (event.event.material_new or "") + " " +
+        (event.event.material_original or "")
+    ).lower()
+    element_keywords = {
+        "window": ["window", "glazing", "fenestration"],
+        "door": ["door", "doorway", "entrance"],
+        "wall": ["wall", "partition", "cladding", "facade"],
+        "floor": ["flooring", "screed", "slab"],
+        "ceiling": ["ceiling", "soffit"],
+        "roof": ["roof", "roofing"],
+        "column": ["column", "pillar", "post"],
+        "beam": ["beam", "joist", "lintel"],
+        "balcony": ["balcony", "terrace"],
+        "stair": ["stair", "staircase", "step"],
+    }
+    for element, keywords in element_keywords.items():
+        if any(kw in text for kw in keywords):
+            return element
+    return "unknown"
+
+
 def _build_event_fields(event: "EnrichedEvent") -> dict[str, Any]:
     """
     Flatten EnrichedEvent into a plain dict that condition sub-expressions can
-    reference by field name. Defaults cover all fields used in demo_project.yaml.
+    reference by field name. All values are derived from actual event data.
     """
     ne = event.event  # NormalizedEvent
     material_new_lower = (ne.material_new or "").lower()
+    location_str = (ne.location or "").lower()
 
     return {
         "quantity": ne.quantity if ne.quantity is not None else 0,
         "estimated_cost": ne.estimated_cost if ne.estimated_cost is not None else 0,
         "material_original": (ne.material_original or "").lower(),
         "material_new": material_new_lower,
-        # change_type is sourced from event_type (NormalizedEvent does not store change_type
-        # separately; callers set event_type to the granular type, e.g. "material_substitution")
+        # change_type is sourced from event_type
         "change_type": (ne.event_type or "").lower(),
-        "location": (ne.location or "").lower(),
-        # Derived / demo-hardcoded fields
-        "element_type": "window",           # inferred for demo; future: from event
-        "material_category": "wood" if "wood" in material_new_lower else "other",
+        "location": location_str,
+        # Derived from actual event data
+        "element_type": _infer_element_type(event),
+        "material_category": "wood" if "wood" in material_new_lower else (
+            "metal" if any(m in material_new_lower for m in ("aluminum", "steel", "iron")) else "other"
+        ),
+        "floor_number": _parse_floor_number(location_str),
+        "location_type": "exterior" if any(
+            kw in location_str for kw in ("exterior", "facade", "elevation", "outside")
+        ) else "interior",
+        # Fields that require explicit project data — default to safe values
+        # These can be enriched by the knowledge retrieval or ACC API in future
         "affects_load_bearing": False,
         "material_in_spec": True,
         "po_issued": False,
@@ -69,8 +135,6 @@ def _build_event_fields(event: "EnrichedEvent") -> dict[str, Any]:
         "units_occupied": False,
         "on_critical_path": False,
         "schedule_impact_days": 0,
-        "floor_number": 3,                  # inferred from "3rd floor" for demo
-        "location_type": "exterior",
         "change_affects_unit_interior": False,
     }
 

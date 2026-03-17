@@ -1,4 +1,5 @@
 """Gmail Executor (OUT-04): sends email via Gmail API v1 with OAuth2 refresh token."""
+import asyncio
 import base64
 import logging
 import os
@@ -19,8 +20,11 @@ async def execute_gmail_action(action: Action) -> ActionResult:
     client_secret = os.getenv("GMAIL_CLIENT_SECRET")
     refresh_token = os.getenv("GMAIL_REFRESH_TOKEN")
     if not client_id or not client_secret or not refresh_token:
-        raise RuntimeError(
-            "GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, and GMAIL_REFRESH_TOKEN must be set in .env"
+        logger.info("Gmail credentials not configured — skipping email action")
+        return ActionResult(
+            action_type=action.action_type,
+            status="skipped",
+            message="Email skipped: GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, and GMAIL_REFRESH_TOKEN not set in .env",
         )
     data = action.action_data or {}
     to = data.get("to", "")
@@ -34,15 +38,19 @@ async def execute_gmail_action(action: Action) -> ActionResult:
         client_id=client_id,
         client_secret=client_secret,
     )
-    creds.refresh(google.auth.transport.requests.Request())
-    service = googleapiclient.discovery.build("gmail", "v1", credentials=creds)
 
-    msg = MIMEText(body, "plain")
-    msg["To"] = to
-    msg["Subject"] = subject
-    raw = base64.urlsafe_b64encode(msg.as_bytes()).decode()
-    result = service.users().messages().send(userId="me", body={"raw": raw}).execute()
-    message_id = result.get("id", "unknown")
+    def _send_email() -> str:
+        """Blocking Gmail API call — runs in thread pool to avoid blocking the event loop."""
+        creds.refresh(google.auth.transport.requests.Request())
+        service = googleapiclient.discovery.build("gmail", "v1", credentials=creds)
+        msg = MIMEText(body, "plain")
+        msg["To"] = to
+        msg["Subject"] = subject
+        raw = base64.urlsafe_b64encode(msg.as_bytes()).decode()
+        result = service.users().messages().send(userId="me", body={"raw": raw}).execute()
+        return result.get("id", "unknown")
+
+    message_id = await asyncio.to_thread(_send_email)
     logger.info("Gmail message sent: %s", message_id)
     return ActionResult(
         action_type=action.action_type,
