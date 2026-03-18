@@ -1,0 +1,46 @@
+GigAI QUICK START
+=================
+
+Backend
+-------
+
+powershell -ExecutionPolicy Bypass -File .\start-api.ps1 -App dashboard -Reload
+
+Frontend
+--------
+
+cd frontend
+npm run dev
+
+URLs
+----
+
+- Dashboard: http://localhost:3000
+- API docs: http://localhost:8000/docs
+- API health: http://localhost:8000/health
+
+Verify
+------
+
+curl http://127.0.0.1:8000/health
+curl http://127.0.0.1:8000/api/revisions
+curl http://127.0.0.1:8000/api/dashboard/architects
+
+Tests
+-----
+
+.\.venv\Scripts\python.exe -m pytest tests/test_dashboard_api_contracts.py tests/test_api_contracts.py
+
+Canonical docs
+--------------
+
+- README.md
+- docs/operations.md
+- docs/workspace-guide.md
+- docs/clean-structure.md
+
+Cleaned material
+----------------
+
+- Historical docs and reference artifacts were moved to trash/.
+- Restore references from trash/manifest.json if needed.

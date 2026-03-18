@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<RevitAddIns>
+  <AddIn Type="Application">
+    <Name>GigAI Revit Addin</Name>
+    <Assembly>__ASSEMBLY_PATH__</Assembly>
+    <AddInId>53B9F1CD-8BA2-4A8F-B7B8-0D905D91A2E5</AddInId>
+    <FullClassName>GigAi.RevitAddin.App</FullClassName>
+    <VendorId>GIGA</VendorId>
+    <VendorDescription>GigAI voice focus integration</VendorDescription>
+  </AddIn>
+</RevitAddIns>

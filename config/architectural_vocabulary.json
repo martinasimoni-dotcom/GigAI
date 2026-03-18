@@ -1,0 +1,267 @@
+{
+  "description": "Architectural vocabulary for design change detection",
+  "version": "1.0",
+
+  "actions": [
+    {
+      "action": "resize",
+      "aliases": [
+        "increase", "expand", "widen", "enlarge", "decrease", "shrink", "narrow",
+        "make bigger", "make smaller", "change size", "adjust size", "modify dimensions"
+      ],
+      "description": "Change dimensions of an element"
+    },
+    {
+      "action": "move",
+      "aliases": [
+        "shift", "relocate", "reposition", "adjust position", "change location",
+        "push", "pull", "slide", "offset"
+      ],
+      "description": "Change position or location of an element"
+    },
+    {
+      "action": "add",
+      "aliases": [
+        "create", "new", "insert", "install", "place", "put", "add in",
+        "build", "construct"
+      ],
+      "description": "Add a new element"
+    },
+    {
+      "action": "remove",
+      "aliases": [
+        "delete", "eliminate", "take out", "remove", "erase", "get rid of",
+        "demolish", "knock down"
+      ],
+      "description": "Remove or delete an element"
+    },
+    {
+      "action": "modify",
+      "aliases": [
+        "change", "update", "alter", "adjust", "revise", "tweak",
+        "refine", "fine-tune"
+      ],
+      "description": "Modify properties of an element"
+    },
+    {
+      "action": "change_material",
+      "aliases": [
+        "use", "apply", "switch to", "replace with", "change to", "use instead",
+        "use different", "specify", "install"
+      ],
+      "description": "Change material, finish, or color"
+    },
+    {
+      "action": "align",
+      "aliases": [
+        "line up", "align with", "flush with", "match", "coordinate",
+        "is level with", "same as"
+      ],
+      "description": "Align element with something else"
+    }
+  ],
+
+  "elements": [
+    {
+      "element": "window",
+      "aliases": [
+        "glass", "glazing", "fenestration", "opening", "light",
+        "window pane", "glass wall", "view", "vista"
+      ],
+      "plural": "windows"
+    },
+    {
+      "element": "door",
+      "aliases": [
+        "entrance", "exit", "opening", "access", "entry", "passage",
+        "portal", "doorway", "threshold"
+      ],
+      "plural": "doors"
+    },
+    {
+      "element": "wall",
+      "aliases": [
+        "partition", "facade", "exterior", "boundary", "barrier",
+        "surface", "panel", "cladding", "envelope"
+      ],
+      "plural": "walls"
+    },
+    {
+      "element": "stair",
+      "aliases": [
+        "stairs", "staircase", "steps", "riser", "stairwell",
+        "flight", "stairway", "step"
+      ],
+      "plural": "stairs"
+    },
+    {
+      "element": "column",
+      "aliases": [
+        "post", "pillar", "support", "structural", "pier",
+        "vertical element", "beam", "bracing"
+      ],
+      "plural": "columns"
+    },
+    {
+      "element": "floor",
+      "aliases": [
+        "slab", "surface", "level", "flooring", "base",
+        "deck", "platform", "story"
+      ],
+      "plural": "floors"
+    },
+    {
+      "element": "ceiling",
+      "aliases": [
+        "soffit", "overhead", "top", "intrados", "overhead surface",
+        "drop ceiling", "suspended ceiling"
+      ],
+      "plural": "ceilings"
+    },
+    {
+      "element": "room",
+      "aliases": [
+        "space", "unit", "area", "zone", "chamber",
+        "apartment", "studio", "suite", "room"
+      ],
+      "plural": "rooms"
+    },
+    {
+      "element": "facade",
+      "aliases": [
+        "front", "exterior wall", "building skin", "elevation",
+        "exterior", "outside", "face", "curtain wall"
+      ],
+      "plural": "facades"
+    },
+    {
+      "element": "railing",
+      "aliases": [
+        "rail", "balustrade", "guardrail", "fence",
+        "barrier", "handrail", "safety rail"
+      ],
+      "plural": "railings"
+    },
+    {
+      "element": "fixture",
+      "aliases": [
+        "fitting", "furnishing", "installed item", "equipment",
+        "light", "outlet", "switch", "grab bar"
+      ],
+      "plural": "fixtures"
+    },
+    {
+      "element": "room_divider",
+      "aliases": [
+        "divider", "screen", "partition", "separator",
+        "sliding wall", "movable wall", "flexible wall"
+      ],
+      "plural": "room_dividers"
+    }
+  ],
+
+  "properties": [
+    {
+      "property": "width",
+      "aliases": [
+        "w", "dimension", "span", "breadth", "size", "length"
+      ],
+      "units": ["mm", "cm", "m", "feet", "ft", "'"]
+    },
+    {
+      "property": "height",
+      "aliases": [
+        "h", "vertical", "tall", "elevation", "rise", "headroom"
+      ],
+      "units": ["mm", "cm", "m", "feet", "ft", "'"]
+    },
+    {
+      "property": "depth",
+      "aliases": [
+        "d", "thickness", "deep", "length", "extent", "offset"
+      ],
+      "units": ["mm", "cm", "m", "feet", "ft", "'"]
+    },
+    {
+      "property": "material",
+      "aliases": [
+        "finish", "surface", "type", "build", "construction",
+        "what it's made of", "substance"
+      ]
+    },
+    {
+      "property": "color",
+      "aliases": [
+        "colour", "shade", "tone", "hue", "paint", "colored", "stain"
+      ]
+    },
+    {
+      "property": "location",
+      "aliases": [
+        "position", "place", "where", "situated", "located",
+        "coordinate", "distance from"
+      ]
+    },
+    {
+      "property": "angle",
+      "aliases": [
+        "slope", "pitch", "rotation", "degree", "slant",
+        "degrees", "rotation angle"
+      ],
+      "units": ["degrees", "°"]
+    },
+    {
+      "property": "number",
+      "aliases": [
+        "quantity", "count", "how many", "amount", "total",
+        "multiple", "several"
+      ]
+    }
+  ],
+
+  "spaces": [
+    {
+      "type": "residential",
+      "examples": [
+        "studio", "one-bedroom", "two-bedroom", "penthouse",
+        "unit", "apartment", "flat", "suite"
+      ]
+    },
+    {
+      "type": "commercial",
+      "examples": [
+        "office", "meeting room", "conference room", "breakroom",
+        "lobby", "reception", "workspace"
+      ]
+    },
+    {
+      "type": "circulation",
+      "examples": [
+        "corridor", "hallway", "foyer", "vestibule", "entrance",
+        "exit", "stairwell", "elevator lobby", "passage"
+      ]
+    },
+    {
+      "type": "service",
+      "examples": [
+        "mechanical room", "electrical room", "storage", "basement",
+        "utility", "pantry", "laundry"
+      ]
+    }
+  ],
+
+  "materials": [
+    "aluminum", "glass", "brick", "concrete", "timber", "wood",
+    "steel", "granite", "marble", "limestone", "sandstone",
+    "gypsum", "plaster", "drywall", "plywood", "mdf",
+    "vinyl", "linoleum", "carpet", "tile", "ceramic",
+    "paint", "stucco", "stone", "copper", "bronze"
+  ],
+
+  "colors": [
+    "white", "black", "gray", "grey", "red", "blue", "green",
+    "yellow", "orange", "purple", "brown", "beige", "tan",
+    "navy", "natural", "clear", "transparent", "opaque",
+    "matte", "glossy", "metallic", "bronze", "silver", "gold"
+  ]
+}

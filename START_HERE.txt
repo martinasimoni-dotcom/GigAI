@@ -1,0 +1,67 @@
+GigAI START HERE
+================
+
+This is the canonical entry document for the current workspace.
+
+Run the current app
+-------------------
+
+1. Run one main launcher file from workspace root:
+   .\.venv\Scripts\python.exe .\RUN_GIGAI.py --mode all --reload --stop-existing
+
+   Or (if Python is on PATH):
+   python .\RUN_GIGAI.py --mode all --reload --stop-existing
+
+   Or double-click:
+   RUN_GIGAI.bat
+
+2. Open:
+   http://localhost:3000
+
+3. Optional single-service modes:
+   python .\RUN_GIGAI.py --mode backend --reload --stop-existing
+   python .\RUN_GIGAI.py --mode frontend
+
+Current source of truth
+-----------------------
+
+1. README.md
+   High-level product and architecture overview.
+
+2. docs/operations.md
+   Startup commands, health checks, and test commands.
+
+3. docs/workspace-guide.md
+   Active code paths versus legacy/reference material.
+
+4. docs/clean-structure.md
+   Cleaned workspace tree.
+
+Current backend layout
+----------------------
+
+- src/gigai/dashboard/dashboard_api.py
+  Thin FastAPI app factory.
+
+- src/gigai/dashboard/routers/
+  Endpoint modules split by responsibility.
+
+- src/gigai/dashboard/mock_data.py
+  Mock payload builders used by the dashboard API.
+
+- frontend/
+  Next.js dashboard UI.
+
+Important notes
+---------------
+
+- Historical docs and legacy artifacts have been moved to trash/.
+- See trash/manifest.json if you need to restore something that was cleaned from the root.
+
+Fast checks
+-----------
+
+- API health: http://localhost:8000/health
+- API docs: http://localhost:8000/docs
+- Revisions endpoint: http://localhost:8000/api/revisions
+- Team workload endpoint: http://localhost:8000/api/dashboard/architects

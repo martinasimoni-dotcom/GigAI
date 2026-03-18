@@ -1,240 +1,273 @@
-Material Change Coordinator
-An intelligent, event-driven workflow automation system for construction material change coordination. This system automatically processes material change events from meetings, project management tools, and calendars, then generates coordinated actions with AI-powered decision intelligence.
-🎯 Project Overview
-The Material Change Coordinator automates the complex workflow of tracking, approving, and executing material changes in construction projects. When a material change is mentioned (e.g., "Change 3rd floor windows from aluminum to wood frames"), the system:
+# GigAI Decision Intelligence Platform
 
-Captures the event from multiple sources (Fireflies transcripts, ACC, Google Calendar)
-Processes and normalizes the data into structured format
-Enriches with context (floor plans, suppliers, team contacts, historical data)
-Analyzes impact and generates intelligent actions (emails, tasks, calendar events, drawing markups)
-Presents a proposal to the PM with confidence scoring
-Executes approved actions automatically
-Learns from decisions to improve future recommendations
+This repository is the implementation baseline for the architecture in your diagram.
 
-🏗️ Architecture
-┌─────────────────────────────────────────────────────────────┐
-│                         INPUT LAYER                          │
-│  Fireflies • ACC • Google Calendar → Event Bus (Pub/Sub)    │
-└─────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│                        SYSTEM LAYER                          │
-│                                                              │
-│  Event Normalization → Context Enrichment →                 │
-│  Domain Processing → Decision Intelligence                  │
-│                                                              │
-│  (PostgreSQL for historical data & learning)                │
-└─────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│                        OUTPUT LAYER                          │
-│  Proposal Builder → PM Decision → Action Gateway            │
-│  → Feedback & Learning Layer                                │
-└─────────────────────────────────────────────────────────────┘
-✨ Key Features
+## Canonical Docs
+1. `README.md` for the product and architecture overview.
+2. `docs/operations.md` for startup, health-check, and test commands.
+3. `docs/workspace-guide.md` for active code paths versus legacy/reference material.
+4. `docs/clean-structure.md` for the cleaned workspace tree.
 
-Multi-Source Event Capture: Integrates with Fireflies (meeting transcripts), Autodesk Construction Cloud (ACC), and Google Calendar
-Intelligent Context Enrichment: Combines API data with markup files (floor plans, team contacts, supplier database)
-AI-Powered Action Generation: Uses Claude API to generate contextual emails, tasks, calendar events, and drawing markups
-Confidence Scoring: Machine learning-based confidence scoring (>80% = auto-approve eligible)
-Continuous Learning: Feedback loop improves decision accuracy over time
-Event-Driven Architecture: Scalable, loosely-coupled design using Google Cloud Pub/Sub
+## Target Outcome
+Build an AI-assisted BIM 360 decision system that:
+1. Ingests project activity from BIM 360 and collaboration channels.
+2. Routes events through policy + orchestration.
+3. Uses RAG and specialized agents to generate decisions.
+4. Applies authority thresholds to auto-act or request PM approval.
+5. Writes outcomes back to BIM 360, dashboard, and team notifications.
 
-📋 Example Scenario
-Input: Meeting transcript
+## System Blocks Mapped From Diagram
+1. Connectors Layer
+- BIM 360 connectors: auth, webhook, API polling, normalization, writeback queue.
+- Collaboration connectors: Gmail/calendar/notetaker/profiles.
 
-"We need to change the third floor windows from aluminum frames to wood frames. That's 12 units total."
+2. Policy Gate
+- Event classification (LLM or rules).
+- Context enrichment.
+- Security checks.
+- Priority scoring (0-100).
 
-Processing:
+3. Supervisor
+- Maintains project state DB and team knowledge graph.
+- Coordinates agent fan-out and context packaging.
+- Resolves cross-agent conflicts before decision synthesis.
 
-Extracts: Material change (Aluminum → Wood), Location (3rd floor), Quantity (12 units)
-Enriches: Adds floor plan (units W-301 to W-312), supplier info (Premium Wood Co., 3-4 week lead time, $450/unit), team contacts
-Analyzes: Identifies procurement need, schedule impact, stakeholder notifications
-Generates: Email to supplier, task for procurement officer, calendar follow-up, drawing markup
+4. Search Foundation (RAG)
+- Indexer: periodic BIM 360 + communication refresh.
+- Retriever: semantic/hybrid search.
+- Vector store + metadata filters.
 
-Output:
-Proposal with 86% confidence showing:
+5. Agent Layer
+- Understanding agents: RFIs, issues, schedule, email/meeting.
+- Forecasting agents: schedule and risk projections.
 
-Alert: "Windows change alert - 3rd floor"
-Actions: 4 coordinated actions ready to execute
-Cost: $5,400 estimated
-PM Decision: Accept → All actions execute automatically
+6. Decision Intelligence
+- Aggregates agent outputs.
+- Applies BIM 360 constraints and conflict resolution.
+- Produces confidence-calibrated decision packages.
 
-🚀 Quick Start
-Prerequisites
+7. Communication Intelligence
+- Formats outputs for dashboard, BIM 360 comments/updates, and email.
+- Handles concurrent-write merge logic.
 
-Node.js 18+ (for application runtime)
-PostgreSQL 14+ (for historical data storage)
-Google Cloud Platform account (for Pub/Sub event bus)
-API Keys:
+8. Action Gateway (Authority Boundary)
+- If confidence >= threshold and no blockers: auto-execute.
+- Else route to PM approval workflow.
+- Every action is logged with evidence.
 
-Fireflies API key
-Autodesk Construction Cloud (ACC) API key
-Google Calendar API credentials
-Anthropic Claude API key
+9. Output Layer
+- GigAI dashboard entries.
+- BIM 360 update/comment.
+- Team notifications.
 
+## Delivery Artifacts
+- [Implementation plan](docs/implementation-plan.md)
+- [System contracts](docs/system-contracts.md)
+- [MVP code scaffold](src/gigai/main.py)
 
+## Recommended MVP Sequence
+1. End-to-end path for one event type (`issue.updated`).
+2. RAG retrieval + two agents (`IssueAgent`, `RiskAgent`).
+3. Confidence gate + manual approval path.
+4. BIM 360 writeback + dashboard log + email notice.
 
-Installation
-bash# Clone the repository
-git clone <your-repo-url>
-cd material-change-coordinator
+## Definition of Done (MVP)
+1. An incoming BIM 360 event produces a decision package with evidence.
+2. System can auto-apply low-risk actions and defer medium/high-risk to PM.
+3. Action and rationale are traceable in dashboard logs.
+4. Retry-safe, idempotent writeback and notification flows.
 
-# Install dependencies
-npm install
+## Quick Start
+1. Create environment and install dependencies:
+`pip install -e .[dev]`
 
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your API keys and configuration
+For Fireflies transcript integration:
+`pip install -e .[dev,fireflies]`
 
-# Set up database
-npm run db:setup
+2. Run API:
+`python -m gigai`
 
-# Run migrations
-npm run db:migrate
+Alternative:
+`gigai-api`
 
-# Seed initial data
-npm run db:seed
+No-install local launcher:
+`.\start-api.ps1 -App dashboard -Reload`
 
-# Start the application
-npm run dev
-Development
-bash# Run in development mode with hot reload
-npm run dev
+Current dashboard backend layout:
+`src/gigai/dashboard/dashboard_api.py`
+`src/gigai/dashboard/routers/`
+`src/gigai/dashboard/mock_data.py`
 
-# Run tests
-npm test
+3. Run tests:
+`pytest`
 
-# Run end-to-end tests
-npm run test:e2e
+## Meeting Focus Shortcut
+If someone says a space name in a meeting, send:
 
-# Build for production
-npm run build
-
-# Start production server
-npm start
-📁 Project Structure
-material-change-coordinator/
-├── src/
-│   ├── input/              # Connectors (Fireflies, ACC, Google Calendar)
-│   ├── system/             # Core processing logic
-│   │   ├── data-processing/
-│   │   ├── context/
-│   │   ├── domain-processing/
-│   │   └── decision-intelligence/
-│   ├── output/             # Proposal building and action execution
-│   └── shared/             # Models, utils, middleware
-├── database/               # SQL migrations and seeds
-├── config/                 # Configuration files
-├── docs/                   # Detailed documentation
-└── tests/                  # Test suites
-🔧 Configuration
-Event Sources
-Configure your event sources in config/connectors.yml:
-yamlconnectors:
-  fireflies:
-    type: webhook
-    endpoint: /webhooks/fireflies
-  acc:
-    type: api_pull
-    polling_interval: 300
-  google_calendar:
-    type: api_pull
-Confidence Thresholds
-Adjust confidence thresholds in config/system/decision-intelligence/threshold-config.json:
-json{
-  "auto_approve_threshold": 80,
-  "requires_review_threshold": 50
+```json
+{
+  "projectId": "project_alpha",
+  "type": "meeting.focus",
+  "meeting_utterance": "Please focus on East Lobby and check the issue",
+  "available_spaces": ["East Lobby", "West Lobby", "Roof"]
 }
-📚 Documentation
+```
 
-Product Requirements Document (PRD) - Detailed requirements and user stories
-Architecture Documentation - System design and data flow
-Event Schemas - Data structure specifications
-API Documentation - REST API reference
-Deployment Guide - Production deployment instructions
+to `POST /meetings/focus`.
+The pipeline auto-detects `East Lobby` and scopes decisioning to that space.
 
-🧪 Testing
-bash# Run all tests
-npm test
+## Voice Command Shortcut
+Send spoken text transcript to `POST /voice/command`:
 
-# Run unit tests only
-npm run test:unit
+```json
+{
+  "projectId": "project_alpha",
+  "transcript": "GigAI focus on East Lobby and check the issue",
+  "available_spaces": ["East Lobby", "West Lobby", "Roof"]
+}
+```
 
-# Run integration tests
-npm run test:integration
+If `available_spaces` is omitted, the API extracts a space candidate from phrases like
+`focus on <space>` and scopes the decision flow to that space.
 
-# Run with coverage
-npm run test:coverage
-Example Test Scenario
-The end-to-end test simulates the complete workflow:
-javascript// Test: Window material change (Aluminum → Wood, 12 units, 3rd floor)
-// Expected: Proposal created with >80% confidence
-// Expected: 4 actions generated (email, task, calendar, drawing)
-// Expected: Actions execute successfully on PM approval
-🔐 Security
+### Fireflies Transcript Input
+You can also source transcript text from a local Fireflies helper checkout if you restore one from `trash/` or point to an external folder.
+Set env vars:
+`GIGAI_FIREFLIES_ENABLED=true`
+`FIREFLIES_API_KEY=...`
+Optional:
+`GIGAI_FIREFLIES_REPO_PATH=fireflies-raycast-main`
 
-All API keys stored in environment variables (never committed)
-Event data encrypted in transit (HTTPS/TLS)
-Database credentials rotated regularly
-Scope filtering prevents out-of-scope changes
-PM approval required for high-impact changes
+Then call `POST /voice/command` without `transcript`:
 
-📊 Monitoring & Logging
-The system logs:
+```json
+{
+  "projectId": "project_alpha",
+  "fireflies_latest": true,
+  "available_spaces": ["East Lobby", "West Lobby"]
+}
+```
 
-All incoming events
-Processing steps and transformations
-Confidence scores and decision outcomes
-Action execution results
-PM decisions and feedback
+or by specific Fireflies transcript id:
 
-Logs are structured for easy parsing and analysis.
-🤝 Contributing
+```json
+{
+  "projectId": "project_alpha",
+  "fireflies_transcript_id": "your_transcript_id",
+  "available_spaces": ["East Lobby", "West Lobby"]
+}
+```
 
-Fork the repository
-Create a feature branch (git checkout -b feature/amazing-feature)
-Commit your changes (git commit -m 'Add amazing feature')
-Push to the branch (git push origin feature/amazing-feature)
-Open a Pull Request
+### Architecture Reference Correction
+Voice transcripts are corrected using an architecture reference dictionary before focus extraction.
+Default reference path:
+`config/architecture_reference.json`
+Optional env override:
+`GIGAI_ARCH_REFERENCE_PATH=...`
 
-📝 License
-This project is licensed under the MIT License - see the LICENSE file for details.
-🙋 Support
-For questions, issues, or feature requests:
+If you want to regenerate a larger architecture dataset and refresh the reference file:
+restore `generate_massive_dataset.py` from `trash/` and run:
+`python generate_massive_dataset.py --reference-only`
 
-Open an issue on GitHub
-Contact the development team
-Check the documentation
+### LLM Layer
+Space understanding now goes through a dedicated layer:
+`src/gigai/llm.py`
 
-🗺️ Roadmap
-Phase 1 (Current)
+This layer takes:
+1. transcript
+2. available spaces from Revit
+3. drawing context (view name/type/scale)
 
-✅ Core event processing pipeline
-✅ Claude API integration for action generation
-✅ Basic PM decision interface
-✅ PostgreSQL historical data storage
+and returns the best focus space with confidence/reason.
 
-Phase 2 (Planned)
+### Rafik LLM Bridge (Claude)
+You can enable a Rafik-style Claude inference pass for voice-to-space mapping before the local matcher:
+`src/gigai/rafik_llm.py`
 
-🔲 Advanced ML-based confidence scoring
-🔲 Multi-project support
-🔲 Mobile app for PM decisions
-🔲 Real-time dashboard
+Set env vars:
+`GIGAI_RAFIK_LLM_ENABLED=true`
+`ANTHROPIC_API_KEY=...`
+Optional:
+`GIGAI_RAFIK_LLM_MODEL=claude-haiku-4-5-20251001`
 
-Phase 3 (Future)
+Behavior:
+1. If enabled and credentials are available, backend asks Claude to choose one space from `available_spaces`.
+2. If Claude is unavailable or returns no safe match, GigAI falls back to the existing local inference layer.
+3. Revit marking flow continues unchanged; it just gets stronger focus-space detection.
 
-🔲 Predictive analytics (anticipate material changes)
-🔲 Cost optimization recommendations
-🔲 Supplier performance tracking
-🔲 Regulatory compliance checking
+### Project Glossary
+You can customize architectural vocabulary without code changes using:
+`config/project_glossary.json`
 
-🏆 Success Metrics
+Supports:
+1. `term_normalization`: speech/firm term normalization.
+2. `space_aliases`: per-space alias phrases.
 
-PM Time Saved: Target 80% reduction in manual coordination
-Confidence Accuracy: Target >90% accuracy on high-confidence proposals
-Response Time: Target <5 minutes from event to proposal
-Adoption Rate: Track PM acceptance rate of proposals
+Set custom path if needed:
+`$env:GIGAI_PROJECT_GLOSSARY=\"C:\\path\\to\\project_glossary.json\"`
 
+## Revit Add-in
+Revit integration scaffold is available at:
+`revit-addon/`
 
-Built with ❤️ for construction project managers who deserve better tools.
+Setup/build/install steps:
+`revit-addon/README.md`
+
+The Revit dialog includes:
+1. `Start Mic` / `Stop Mic` for laptop microphone dictation.
+2. `Test API` to validate local API connectivity before sending.
+
+## BIM 360 / ACC Live Writeback
+By default, the API runs in local fallback mode and returns mocked BIM 360 statuses.
+To enable real BIM 360/ACC writeback from the action gateway:
+
+1. Create an APS app and copy `Client ID` + `Client Secret`.
+2. Find your BIM 360 Issues `container id` (project container for issue endpoints).
+3. Set env vars (see `.env.example`):
+`GIGAI_BIM360_ENABLED=true`
+`GIGAI_BIM360_CLIENT_ID=...`
+`GIGAI_BIM360_CLIENT_SECRET=...`
+`GIGAI_BIM360_CONTAINER_ID=...`
+Optional per-project mapping:
+`GIGAI_BIM360_PROJECT_MAP_PATH=config/bim360_project_map.json`
+4. Restart API:
+`.\start-api.ps1 -Reload`
+
+When enabled:
+1. `create_issue_note` proposals call BIM 360 issue creation.
+2. Other auto-executed proposals attempt comment writeback on the linked issue (`artifactId` / `issue_id`).
+3. If BIM 360 call fails, pipeline still completes and action output includes `bim360=writeback_failed`.
+
+Container ID resolution order:
+1. Event payload (`container_id`, `containerId`, or `bim360_container_id`).
+2. Project map file (`config/bim360_project_map.json`).
+3. Default env container (`GIGAI_BIM360_CONTAINER_ID`).
+
+## Google Calendar + Gmail Integration
+Google email and calendar execution is now implemented in a dedicated folder:
+`src/gigai/google_integrations/`
+
+Main action flow (`src/gigai/action_gateway.py`) now attempts:
+1. Gmail notification send via Google API.
+2. Google Calendar event creation via Google API.
+
+Required env vars:
+`GIGAI_GOOGLE_INTEGRATION_ENABLED=true`
+`GMAIL_CLIENT_ID=...`
+`GMAIL_CLIENT_SECRET=...`
+`GMAIL_REFRESH_TOKEN=...`
+`GOOGLE_CALENDAR_ID=primary`
+
+Optional default recipients:
+`GIGAI_NOTIFICATION_EMAILS=pm@example.com,team@example.com`
+
+Behavior when credentials are missing:
+1. Pipeline still completes.
+2. Outputs mark Google email/calendar as `skipped`.
+
+### Deployed API Endpoint (Revit)
+The Revit add-in can default to your deployed API endpoint via env vars:
+`GIGAI_API_URL=https://your-deployed-api.example.com/voice/command`
+`GIGAI_PROJECT_ID=your_project_id`
+
+If these are set on the machine, the Revit voice dialog pre-fills them automatically.

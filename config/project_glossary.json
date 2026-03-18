@@ -1,0 +1,21 @@
+{
+  "term_normalization": {
+    "loby": "lobby",
+    "coridor": "corridor",
+    "lift": "elevator",
+    "wc": "restroom",
+    "foyer": "lobby",
+    "apt": "unit"
+  },
+  "space_aliases": {
+    "East Elevator Lobby": [
+      "east lift lobby",
+      "elevator lobby east",
+      "el lobby east"
+    ],
+    "Main Corridor": [
+      "main hall",
+      "primary corridor"
+    ]
+  }
+}

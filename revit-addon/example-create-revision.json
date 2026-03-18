@@ -1,0 +1,14 @@
+{
+  "action": "create_revision",
+  "request_id": "meeting-2026-03-18-001",
+  "source": "gigai",
+  "description": "Door size updated after coordination meeting",
+  "view_name": "Level 1",
+  "issued": false,
+  "coordinates": [
+    [0.0, 0.0, 0.0],
+    [10.0, 0.0, 0.0],
+    [10.0, 10.0, 0.0],
+    [0.0, 10.0, 0.0]
+  ]
+}

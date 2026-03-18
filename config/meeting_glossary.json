@@ -1,0 +1,282 @@
+{
+  "description": "Project team structure and responsibility mapping for task assignment",
+  "version": "1.0",
+
+  "projects": {
+    "Residential Tower A": {
+      "project_id": "proj_tower_a",
+      "bim360_project_id": "bim360_tower_a",
+      "revit_file": "Tower_A_Architecture.rvt",
+      "company": "Architecture Firm ABC",
+      "location": "City, Country",
+      "start_date": "2025-01-01",
+      "phases": [
+        "Schematic Design",
+        "Design Development",
+        "Construction Documents",
+        "Bidding",
+        "Construction Administration"
+      ],
+
+      "team_leads": {
+        "project_manager": {
+          "name": "John Smith",
+          "email": "john.smith@company.com",
+          "phone": "+1-555-0100"
+        },
+        "architect_principal": {
+          "name": "Sarah Johnson",
+          "email": "sarah.johnson@company.com",
+          "phone": "+1-555-0101"
+        },
+        "lead_designer": {
+          "name": "Michael Chen",
+          "email": "michael.chen@company.com",
+          "phone": "+1-555-0102"
+        }
+      },
+
+      "disciplines": {
+        "architecture": {
+          "discipline_lead": "michael.chen@company.com",
+          "team_members": [
+            {
+              "name": "Alice Johnson",
+              "email": "alice.johnson@company.com",
+              "role": "Unit Designer",
+              "responsibilities": [
+                "Unit layouts",
+                "Interior walls",
+                "Doors and windows",
+                "Finishes"
+              ]
+            },
+            {
+              "name": "Bob Wilson",
+              "email": "bob.wilson@company.com",
+              "role": "Unit Designer",
+              "responsibilities": [
+                "Unit layouts",
+                "Accessibility",
+                "Life safety"
+              ]
+            },
+            {
+              "name": "Carol Martinez",
+              "email": "carol.martinez@company.com",
+              "role": "Facade Designer",
+              "responsibilities": [
+                "Exterior walls",
+                "Facade system",
+                "Curtain walls",
+                "Roofing"
+              ]
+            },
+            {
+              "name": "David Lee",
+              "email": "david.lee@company.com",
+              "role": "Common Areas Designer",
+              "responsibilities": [
+                "Corridors",
+                "Lobbies",
+                "Stairs",
+                "Circulation"
+              ]
+            }
+          ]
+        },
+
+        "mechanical": {
+          "discipline_lead": "charlie.brown@company.com",
+          "team_members": [
+            {
+              "name": "Charlie Brown",
+              "email": "charlie.brown@company.com",
+              "role": "M&E Lead",
+              "responsibilities": [
+                "HVAC systems",
+                "Ductwork",
+                "Equipment placement"
+              ]
+            }
+          ]
+        },
+
+        "structural": {
+          "discipline_lead": "diana.smith@company.com",
+          "team_members": [
+            {
+              "name": "Diana Smith",
+              "email": "diana.smith@company.com",
+              "role": "Structural Lead",
+              "responsibilities": [
+                "Structural system",
+                "Columns",
+                "Beams",
+                "Load paths"
+              ]
+            }
+          ]
+        }
+      },
+
+      "spaces": {
+        "Studio 504": {
+          "responsible_role": "Unit Designer",
+          "responsible_email": "alice.johnson@company.com",
+          "unit_type": "studio",
+          "level": "Level 05",
+          "area_sqm": 35,
+          "priority_elements": [
+            "windows",
+            "doors",
+            "interior walls",
+            "finishes"
+          ]
+        },
+        "Studio 505": {
+          "responsible_role": "Unit Designer",
+          "responsible_email": "bob.wilson@company.com",
+          "unit_type": "studio",
+          "level": "Level 05",
+          "area_sqm": 38,
+          "priority_elements": [
+            "windows",
+            "doors",
+            "interior walls"
+          ]
+        },
+        "One Bedroom 506": {
+          "responsible_role": "Unit Designer",
+          "responsible_email": "alice.johnson@company.com",
+          "unit_type": "one-bedroom",
+          "level": "Level 05",
+          "area_sqm": 55,
+          "priority_elements": [
+            "windows",
+            "doors",
+            "interior walls",
+            "kitchen finishes",
+            "bathroom finishes"
+          ]
+        },
+        "Corridor B": {
+          "responsible_role": "Common Areas Designer",
+          "responsible_email": "david.lee@company.com",
+          "space_type": "circulation",
+          "level": "Level 05",
+          "area_sqm": 120,
+          "priority_elements": [
+            "walls",
+            "doors",
+            "flooring",
+            "ceilings",
+            "accessibility features"
+          ]
+        },
+        "Lobby": {
+          "responsible_role": "Common Areas Designer",
+          "responsible_email": "david.lee@company.com",
+          "space_type": "lobby",
+          "level": "Level 00",
+          "area_sqm": 200,
+          "priority_elements": [
+            "facade",
+            "doors",
+            "windows",
+            "flooring",
+            "ceilings",
+            "walls"
+          ]
+        },
+        "Facade Zone A": {
+          "responsible_role": "Facade Designer",
+          "responsible_email": "carol.martinez@company.com",
+          "element_type": "facade",
+          "levels": "Level 01 - Level 10",
+          "priority_elements": [
+            "curtain wall",
+            "windows",
+            "panels",
+            "connections"
+          ]
+        }
+      },
+
+      "task_priorities": {
+        "LOW": {
+          "deadline_days": 14,
+          "notify_on_complete": false,
+          "requires_approval": false
+        },
+        "MEDIUM": {
+          "deadline_days": 7,
+          "notify_on_complete": false,
+          "requires_approval": false
+        },
+        "HIGH": {
+          "deadline_days": 3,
+          "notify_on_complete": true,
+          "requires_approval": true
+        }
+      },
+
+      "approval_rules": {
+        "high_risk": {
+          "requires": ["discipline_lead", "project_manager"],
+          "must_approve_within_hours": 24
+        },
+        "cost_impact": {
+          "requires": ["project_manager", "architect_principal"],
+          "must_approve_within_hours": 48
+        },
+        "schedule_impact": {
+          "requires": ["project_manager"],
+          "must_approve_within_hours": 24
+        }
+      }
+    },
+
+    "Office Tower B": {
+      "project_id": "proj_tower_b",
+      "bim360_project_id": "bim360_tower_b",
+      "revit_file": "Tower_B_Architecture.rvt",
+      "company": "Architecture Firm XYZ",
+      "location": "City, Country",
+      "status": "active",
+
+      "team_leads": {
+        "project_manager": {
+          "name": "Robert Davis",
+          "email": "robert.davis@company.com"
+        },
+        "lead_designer": {
+          "name": "Emma Wilson",
+          "email": "emma.wilson@company.com"
+        }
+      },
+
+      "disciplines": {
+        "architecture": {
+          "discipline_lead": "emma.wilson@company.com",
+          "team_members": [
+            {
+              "name": "Frank Thomas",
+              "email": "frank.thomas@company.com",
+              "role": "Office Designer"
+            }
+          ]
+        }
+      }
+    }
+  },
+
+  "default_settings": {
+    "task_deadline_days": 7,
+    "approval_required_risk_level": "HIGH",
+    "notify_on_task_assign": true,
+    "notify_on_task_complete": false,
+    "meeting_default_project": "Residential Tower A",
+    "confidence_threshold_for_auto_assign": 0.75
+  }
+}
