@@ -44,8 +44,10 @@ async def post_decision(proposal_id: str, request: DecisionRequest):
 
     stored_proposal = _proposal_objects.get(proposal_id)
 
+    action_results = []
     if request.decision == "accept" and stored_proposal:
-        await execute_actions(stored_proposal)
+        execution = await execute_actions(stored_proposal)
+        action_results = [r.model_dump() for r in execution.results]
 
     if stored_proposal:
         record_decision(
@@ -55,7 +57,12 @@ async def post_decision(proposal_id: str, request: DecisionRequest):
             proposal=stored_proposal,
         )
 
-    return {"status": "recorded", "proposal_id": proposal_id, "decision": request.decision}
+    return {
+        "status": "recorded",
+        "proposal_id": proposal_id,
+        "decision": request.decision,
+        "results": action_results,
+    }
 
 
 @router.get("/events")

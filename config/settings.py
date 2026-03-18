@@ -22,6 +22,11 @@ class Settings(BaseSettings):
     voyage_api_key: str
     database_url: str
 
+    # --- Demo mode ---
+    # When True, Pub/Sub is bypassed and events are processed synchronously.
+    # Set DEMO_MODE=true in .env to run the pipeline locally without GCP.
+    demo_mode: bool = False
+
     # --- Google Cloud ---
     google_cloud_project: str = ""
     pubsub_topic_raw_events: str = "raw-events"

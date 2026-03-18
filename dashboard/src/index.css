@@ -718,9 +718,168 @@ body {
   line-height: 1.6;
 }
 
+/* ─── Confidence Breakdown ───────────────────────────────────────────────── */
+.breakdown-wrap {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: var(--surface-1);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-md);
+}
+.breakdown-title {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  margin-bottom: 10px;
+}
+.breakdown-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.breakdown-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-1);
+  min-width: 130px;
+}
+.breakdown-weight {
+  color: var(--text-2);
+  font-size: 10px;
+}
+.breakdown-bar-track {
+  flex: 1;
+  height: 5px;
+  background: var(--border-0);
+  border-radius: 99px;
+  overflow: hidden;
+  min-width: 80px;
+}
+.breakdown-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width .6s ease;
+}
+.breakdown-value {
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  min-width: 30px;
+  text-align: right;
+}
+
+/* ─── Stakeholder List ───────────────────────────────────────────────────── */
+.stakeholder-wrap {
+  margin-top: 12px;
+}
+.stakeholder-title {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  margin-bottom: 6px;
+}
+.stakeholder-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.stakeholder-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px 3px 7px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-1);
+  border-radius: 99px;
+  font-size: 11px;
+  color: var(--text-1);
+}
+.stakeholder-icon {
+  color: var(--accent);
+  font-size: 10px;
+}
+
+/* ─── Triggered Rules ────────────────────────────────────────────────────── */
+.rules-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 12px;
+}
+.rule-tag {
+  padding: 2px 8px;
+  background: var(--purple-dim);
+  border: 1px solid rgba(139,92,246,.25);
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--purple);
+}
+
+/* ─── Time Saved Banner ──────────────────────────────────────────────────── */
+.time-saved-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: var(--success-dim);
+  border: 1px solid rgba(16,185,129,.25);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  color: var(--success);
+}
+.time-saved-icon {
+  font-size: 16px;
+}
+
 /* ─── Divider line for card sections ────────────────────────────────────── */
 .card-section-divider {
   height: 1px;
   background: var(--border-0);
   margin: 14px 0;
+}
+
+/* ─── Audit Log Upgrades ─────────────────────────────────────────────────── */
+.audit-time-saved {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  background: var(--success-dim);
+  border: 1px solid rgba(16,185,129,.2);
+  border-radius: var(--radius-md);
+}
+.audit-time-saved-num {
+  font-size: 22px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  color: var(--success);
+}
+.audit-time-saved-label {
+  font-size: 11px;
+  color: var(--success);
+  opacity: .8;
+}
+.audit-time-chip {
+  font-size: 10px;
+  color: var(--success);
+  background: var(--success-dim);
+  border: 1px solid rgba(16,185,129,.2);
+  border-radius: 99px;
+  padding: 1px 7px;
+}
+.audit-pipeline-ms {
+  font-size: 10px;
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  margin-top: 2px;
 }

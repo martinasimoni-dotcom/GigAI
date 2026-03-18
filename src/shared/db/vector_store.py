@@ -5,6 +5,7 @@ FOUND-03
 Storage uses input_type="document" (Voyage-3 asymmetric embedding).
 Search uses input_type="query" (different embedding space for better recall).
 """
+import json
 import logging
 from typing import Any
 
@@ -40,7 +41,7 @@ def embed_and_store(
     conn = get_connection()
     try:
         rows = [
-            (text, embedding, source, metadata)
+            (text, embedding, source, json.dumps(metadata))
             for text, embedding in zip(texts, embeddings)
         ]
         with conn.cursor() as cur:

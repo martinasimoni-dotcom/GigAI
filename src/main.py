@@ -8,6 +8,7 @@ from fastapi import FastAPI
 
 from src.input.webhooks import fireflies, acc
 from src.api.routes import router as output_router
+from src.api.demo import router as demo_router
 from src.api.middleware import add_middleware
 
 logger = logging.getLogger(__name__)
@@ -61,6 +62,9 @@ app.include_router(acc.router)
 
 # Register output API router
 app.include_router(output_router)
+
+# Register demo trigger router
+app.include_router(demo_router)
 
 # Apply middleware (CORS, API key auth, global error handler)
 add_middleware(app)

@@ -35,6 +35,7 @@ _VALID_EVENT_TYPES = {"material_change", "schedule_update", "rfi_request", "othe
 
 _ROUTING_SCHEMA = {
     "type": "object",
+    "additionalProperties": False,
     "properties": {
         "event_type": {"type": "string"},
         "confidence": {"type": "integer"},

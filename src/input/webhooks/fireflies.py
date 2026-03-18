@@ -1,6 +1,8 @@
 """
 Fireflies webhook endpoint.
-Receives POST /webhooks/fireflies, validates payload, publishes RawEvent to Pub/Sub.
+Receives POST /webhooks/fireflies, validates payload, then either:
+  - DEMO_MODE=true  → runs the full pipeline synchronously (no GCP needed)
+  - DEMO_MODE=false → publishes RawEvent to Pub/Sub (production path)
 INPUT-01
 """
 import logging
@@ -8,14 +10,12 @@ import uuid
 
 from fastapi import APIRouter, HTTPException, Request
 
-from src.input.pubsub import publish_event
 from src.shared.models.events import RawEvent
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 # Keys that indicate a valid Fireflies webhook payload.
-# Validation is permissive in Phase 1 — full HMAC signature check added in Phase 7.
 _REQUIRED_KEYS = {"transcript", "meeting", "meetingId", "id"}
 
 
@@ -23,8 +23,8 @@ _REQUIRED_KEYS = {"transcript", "meeting", "meetingId", "id"}
 async def receive_fireflies(request: Request) -> dict:
     """
     Receive a Fireflies meeting transcript webhook.
-    Validates the payload has transcript or meeting data, then publishes to Pub/Sub.
-    Returns 200 + message_id on success, 400 on validation failure.
+    In DEMO_MODE runs the pipeline synchronously and returns the proposal.
+    In production publishes to Pub/Sub and returns the message_id.
     """
     try:
         body = await request.json()
@@ -46,6 +46,17 @@ async def receive_fireflies(request: Request) -> dict:
         source="fireflies",
         raw_payload=body,
     )
+
+    from config.settings import settings
+    if settings.demo_mode:
+        import asyncio
+        from src.demo.pipeline import run_pipeline
+        loop = asyncio.get_event_loop()
+        proposal_response = await loop.run_in_executor(None, run_pipeline, raw_event)
+        logger.info("DEMO fireflies webhook processed — proposal_id=%s", proposal_response.get("id"))
+        return {"status": "ok", "mode": "demo", "proposal": proposal_response}
+
+    from src.input.pubsub import publish_event
     message_id = publish_event(raw_event)
     logger.info({"event": "fireflies_webhook_received", "message_id": message_id})
     return {"status": "ok", "message_id": message_id}

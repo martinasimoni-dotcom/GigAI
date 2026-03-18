@@ -21,8 +21,16 @@ logger = logging.getLogger(__name__)
 SONNET_MODEL = "claude-sonnet-4-20250514"
 HAIKU_MODEL = "claude-haiku-4-5-20251001"
 
-# Module-level client — reads ANTHROPIC_API_KEY from environment at import time
-_client = anthropic.Anthropic()
+# Lazy client — instantiated on first call so .env is loaded before key is read
+_client: anthropic.Anthropic | None = None
+
+
+def _get_client() -> anthropic.Anthropic:
+    global _client
+    if _client is None:
+        from config.settings import settings
+        _client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+    return _client
 
 
 @retry(
@@ -62,7 +70,7 @@ def call_sonnet(
                 "schema": output_schema,
             }
         }
-    response = _client.messages.create(**kwargs)
+    response = _get_client().messages.create(**kwargs)
     return response.content[0].text
 
 
@@ -106,5 +114,5 @@ def call_haiku(
                 "schema": output_schema,
             }
         }
-    response = _client.messages.create(**kwargs)
+    response = _get_client().messages.create(**kwargs)
     return response.content[0].text

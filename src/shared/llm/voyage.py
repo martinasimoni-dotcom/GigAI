@@ -36,7 +36,8 @@ def _get_client() -> Any:
     global _client
     if _client is None:
         import voyageai  # lazy import — avoids spacy/thinc/numpy binary incompatibility at module load
-        _client = voyageai.Client()
+        from config.settings import settings
+        _client = voyageai.Client(api_key=settings.voyage_api_key)
     return _client
 
 

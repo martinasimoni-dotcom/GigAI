@@ -28,6 +28,7 @@ _PROMPT_PATH = (
 
 _NORMALIZATION_SCHEMA = {
     "type": "object",
+    "additionalProperties": False,
     "properties": {
         "event_id": {"type": "string"},
         "source": {"type": "string"},
@@ -36,7 +37,18 @@ _NORMALIZATION_SCHEMA = {
         "material_new": {"type": ["string", "null"]},
         "location": {"type": ["string", "null"]},
         "quantity": {"type": ["integer", "null"]},
-        "people": {"type": "array", "items": {"type": "object"}},
+        "people": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "name": {"type": "string"},
+                    "role": {"type": "string"},
+                },
+                "required": ["name", "role"],
+            },
+        },
         "deadlines": {"type": "array", "items": {"type": "string"}},
         "change_type": {"type": ["string", "null"]},
         "summary": {"type": "string"},
