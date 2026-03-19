@@ -1,5 +1,6 @@
 Material Change Coordinator
 An intelligent, event-driven workflow automation system for construction material change coordination. This system automatically processes material change events from meetings, project management tools, and calendars, then generates coordinated actions with AI-powered decision intelligence.
+
 🎯 Project Overview
 The Material Change Coordinator automates the complex workflow of tracking, approving, and executing material changes in construction projects. When a material change is mentioned (e.g., "Change 3rd floor windows from aluminum to wood frames"), the system:
 
@@ -12,6 +13,7 @@ Executes approved actions automatically
 Learns from decisions to improve future recommendations
 
 🏗️ Architecture
+```
 ┌─────────────────────────────────────────────────────────────┐
 │                         INPUT LAYER                          │
 │  Fireflies • ACC • Google Calendar → Event Bus (Pub/Sub)    │
@@ -23,7 +25,7 @@ Learns from decisions to improve future recommendations
 │  Event Normalization → Context Enrichment →                 │
 │  Domain Processing → Decision Intelligence                  │
 │                                                              │
-│  (PostgreSQL for historical data & learning)                │
+│  (PostgreSQL + pgvector for historical data & learning)     │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -31,210 +33,145 @@ Learns from decisions to improve future recommendations
 │  Proposal Builder → PM Decision → Action Gateway            │
 │  → Feedback & Learning Layer                                │
 └─────────────────────────────────────────────────────────────┘
+```
+
 ✨ Key Features
 
-Multi-Source Event Capture: Integrates with Fireflies (meeting transcripts), Autodesk Construction Cloud (ACC), and Google Calendar
-Intelligent Context Enrichment: Combines API data with markup files (floor plans, team contacts, supplier database)
-AI-Powered Action Generation: Uses Claude API to generate contextual emails, tasks, calendar events, and drawing markups
-Confidence Scoring: Machine learning-based confidence scoring (>80% = auto-approve eligible)
-Continuous Learning: Feedback loop improves decision accuracy over time
-Event-Driven Architecture: Scalable, loosely-coupled design using Google Cloud Pub/Sub
-
-📋 Example Scenario
-Input: Meeting transcript
-
-"We need to change the third floor windows from aluminum frames to wood frames. That's 12 units total."
-
-Processing:
-
-Extracts: Material change (Aluminum → Wood), Location (3rd floor), Quantity (12 units)
-Enriches: Adds floor plan (units W-301 to W-312), supplier info (Premium Wood Co., 3-4 week lead time, $450/unit), team contacts
-Analyzes: Identifies procurement need, schedule impact, stakeholder notifications
-Generates: Email to supplier, task for procurement officer, calendar follow-up, drawing markup
-
-Output:
-Proposal with 86% confidence showing:
-
-Alert: "Windows change alert - 3rd floor"
-Actions: 4 coordinated actions ready to execute
-Cost: $5,400 estimated
-PM Decision: Accept → All actions execute automatically
+- Multi-Source Event Capture: Integrates with Fireflies (meeting transcripts), Autodesk Construction Cloud (ACC), and Google Calendar
+- Intelligent Context Enrichment: Combines API data with pgvector semantic search (floor plans, team contacts, supplier database)
+- AI-Powered Action Generation: Uses Claude Haiku (normalization/routing) + Claude Sonnet (proposal generation)
+- Confidence Scoring: 4-factor weighted scoring (data clarity, historical match, cost acceptability, no red flags)
+- Real-time Dashboard: SSE-powered React dashboard with accept/reject decision flow
+- Event-Driven Architecture: Scalable, loosely-coupled design using Google Cloud Pub/Sub
 
 🚀 Quick Start
-Prerequisites
 
-Node.js 18+ (for application runtime)
-PostgreSQL 14+ (for historical data storage)
-Google Cloud Platform account (for Pub/Sub event bus)
-API Keys:
+### Prerequisites
 
-Fireflies API key
-Autodesk Construction Cloud (ACC) API key
-Google Calendar API credentials
-Anthropic Claude API key
+- Python 3.11+
+- Node.js 18+
+- Docker Desktop
 
+### 1. Clone and install
 
-
-Installation
-bash# Clone the repository
+```bash
 git clone <your-repo-url>
-cd material-change-coordinator
+cd Research-studio_GigAI
 
-# Install dependencies
+python -m venv .venv
+
+# Windows:
+.venv\Scripts\Activate.ps1
+# Mac/Linux:
+source .venv/bin/activate
+
+pip install -r requirements.txt
+```
+
+### 2. Environment variables
+
+Create a `.env` file in the project root with the following:
+
+```
+ANTHROPIC_API_KEY=your_key_here        # console.anthropic.com
+VOYAGE_API_KEY=your_key_here           # dash.voyageai.com
+DATABASE_URL=postgresql://gigai:gigai@localhost:5433/gigai
+DEMO_MODE=true
+```
+
+### 3. Database setup (Docker)
+
+```bash
+# Start PostgreSQL with pgvector
+docker run -d --name gigai-pg \
+  -e POSTGRES_USER=gigai \
+  -e POSTGRES_PASSWORD=gigai \
+  -e POSTGRES_DB=gigai \
+  -p 5433:5432 \
+  pgvector/pgvector:pg16
+
+# Enable the vector extension
+docker exec -it gigai-pg psql -U gigai -d gigai -c "CREATE EXTENSION vector;"
+
+# Create the knowledge table
+docker exec -it gigai-pg psql -U gigai -d gigai -c "
+CREATE TABLE IF NOT EXISTS knowledge_chunks (
+  id SERIAL PRIMARY KEY,
+  content TEXT NOT NULL,
+  embedding vector(1024),
+  source TEXT,
+  metadata JSONB,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);"
+
+# Seed demo knowledge data (optional but recommended)
+python -m scripts.seed_demo
+```
+
+### 4. Start the backend
+
+```bash
+uvicorn src.main:app --reload
+```
+
+- API: http://localhost:8000
+- Swagger docs: http://localhost:8000/docs
+
+### 5. Start the dashboard
+
+```bash
+cd dashboard
 npm install
-
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your API keys and configuration
-
-# Set up database
-npm run db:setup
-
-# Run migrations
-npm run db:migrate
-
-# Seed initial data
-npm run db:seed
-
-# Start the application
 npm run dev
-Development
-bash# Run in development mode with hot reload
-npm run dev
+```
 
-# Run tests
-npm test
+- Dashboard: http://localhost:5173
 
-# Run end-to-end tests
-npm run test:e2e
+### 6. Run the demo
 
-# Build for production
-npm run build
+Trigger the pipeline from Swagger at `http://localhost:8000/docs` → `POST /demo/trigger`
 
-# Start production server
-npm start
+This simulates a Fireflies meeting transcript with a material change event (aluminum → wood windows, 3rd floor, Barcelona Tower) and pushes a live ranked proposal to the dashboard.
+
+📋 Example Scenario
+
+**Input:** Meeting transcript
+
+> "We need to change the third floor windows from aluminum frames to wood frames. That's 12 units total."
+
+**Processing:**
+
+- Extracts: Material change (Aluminum → Wood), Location (3rd floor), Quantity (12 units)
+- Enriches: Adds floor plan data, supplier info (Premium Wood Co., FSC-certified), historical precedents
+- Analyzes: Identifies procurement need, schedule impact, stakeholder notifications
+- Generates: Ranked proposal with 4 coordinated actions ready to execute
+
+**Output:** Proposal with ~85% confidence showing accept/reject decision for the PM.
+
 📁 Project Structure
-material-change-coordinator/
-├── src/
-│   ├── input/              # Connectors (Fireflies, ACC, Google Calendar)
-│   ├── system/             # Core processing logic
-│   │   ├── data-processing/
-│   │   ├── context/
-│   │   ├── domain-processing/
-│   │   └── decision-intelligence/
-│   ├── output/             # Proposal building and action execution
-│   └── shared/             # Models, utils, middleware
-├── database/               # SQL migrations and seeds
-├── config/                 # Configuration files
-├── docs/                   # Detailed documentation
-└── tests/                  # Test suites
-🔧 Configuration
-Event Sources
-Configure your event sources in config/connectors.yml:
-yamlconnectors:
-  fireflies:
-    type: webhook
-    endpoint: /webhooks/fireflies
-  acc:
-    type: api_pull
-    polling_interval: 300
-  google_calendar:
-    type: api_pull
-Confidence Thresholds
-Adjust confidence thresholds in config/system/decision-intelligence/threshold-config.json:
-json{
-  "auto_approve_threshold": 80,
-  "requires_review_threshold": 50
-}
-📚 Documentation
 
-Product Requirements Document (PRD) - Detailed requirements and user stories
-Architecture Documentation - System design and data flow
-Event Schemas - Data structure specifications
-API Documentation - REST API reference
-Deployment Guide - Production deployment instructions
+```
+src/
+├── input/              # Connectors (Fireflies webhook, ACC, Google Calendar)
+├── system/             # Core processing pipeline
+│   ├── data_processing/    # Normalization + routing (Claude Haiku)
+│   ├── context/            # Enrichment (pgvector search, ACC floor plans)
+│   ├── domain_processing/  # Policy engine + signal generation
+│   └── decision_intelligence/  # Proposal generation (Claude Sonnet)
+├── output/             # Action execution (Gmail, ACC, Calendar)
+├── api/                # FastAPI routes + SSE
+├── demo/               # Demo pipeline runner
+└── shared/             # Models, DB, LLM clients
+config/
+├── prompts/            # LLM prompt templates
+├── event_types/        # YAML configs per event type
+└── rules/              # Policy rules (YAML)
+dashboard/              # React + Vite frontend
+scripts/                # seed_demo.py
+```
 
-🧪 Testing
-bash# Run all tests
-npm test
-
-# Run unit tests only
-npm run test:unit
-
-# Run integration tests
-npm run test:integration
-
-# Run with coverage
-npm run test:coverage
-Example Test Scenario
-The end-to-end test simulates the complete workflow:
-javascript// Test: Window material change (Aluminum → Wood, 12 units, 3rd floor)
-// Expected: Proposal created with >80% confidence
-// Expected: 4 actions generated (email, task, calendar, drawing)
-// Expected: Actions execute successfully on PM approval
 🔐 Security
 
-All API keys stored in environment variables (never committed)
-Event data encrypted in transit (HTTPS/TLS)
-Database credentials rotated regularly
-Scope filtering prevents out-of-scope changes
-PM approval required for high-impact changes
-
-📊 Monitoring & Logging
-The system logs:
-
-All incoming events
-Processing steps and transformations
-Confidence scores and decision outcomes
-Action execution results
-PM decisions and feedback
-
-Logs are structured for easy parsing and analysis.
-🤝 Contributing
-
-Fork the repository
-Create a feature branch (git checkout -b feature/amazing-feature)
-Commit your changes (git commit -m 'Add amazing feature')
-Push to the branch (git push origin feature/amazing-feature)
-Open a Pull Request
-
-📝 License
-This project is licensed under the MIT License - see the LICENSE file for details.
-🙋 Support
-For questions, issues, or feature requests:
-
-Open an issue on GitHub
-Contact the development team
-Check the documentation
-
-🗺️ Roadmap
-Phase 1 (Current)
-
-✅ Core event processing pipeline
-✅ Claude API integration for action generation
-✅ Basic PM decision interface
-✅ PostgreSQL historical data storage
-
-Phase 2 (Planned)
-
-🔲 Advanced ML-based confidence scoring
-🔲 Multi-project support
-🔲 Mobile app for PM decisions
-🔲 Real-time dashboard
-
-Phase 3 (Future)
-
-🔲 Predictive analytics (anticipate material changes)
-🔲 Cost optimization recommendations
-🔲 Supplier performance tracking
-🔲 Regulatory compliance checking
-
-🏆 Success Metrics
-
-PM Time Saved: Target 80% reduction in manual coordination
-Confidence Accuracy: Target >90% accuracy on high-confidence proposals
-Response Time: Target <5 minutes from event to proposal
-Adoption Rate: Track PM acceptance rate of proposals
-
-
-Built with ❤️ for construction project managers who deserve better tools.
+- All API keys stored in environment variables (never committed to git)
+- `.env` is gitignored — share keys out-of-band with teammates
+- PM approval required for all proposals before actions execute
