@@ -111,7 +111,8 @@ def normalize_event(raw_event: RawEvent) -> NormalizedEvent:
 
     event = _extract_with_retry(full_prompt, raw_event)
 
-    if event.confidence < 70:
+    from config.settings import settings
+    if event.confidence < settings.normalization_review_threshold:
         event = event.model_copy(update={"review_required": True})
         logger.warning({
             "event": "low_confidence_extraction",

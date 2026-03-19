@@ -16,7 +16,9 @@ from src.shared.models.events import NormalizedEvent
 
 logger = logging.getLogger(__name__)
 
-_COST_ESCALATION_THRESHOLD = 50_000.0
+def _cost_escalation_threshold() -> float:
+    from config.settings import settings
+    return settings.cost_escalation_threshold
 
 
 class FilterResult(BaseModel):
@@ -46,25 +48,26 @@ def filter_event(event: NormalizedEvent, project_scope: dict) -> FilterResult:
     event_location = (event.location or "").lower().strip()
 
     # --- Scope check ---
-    location_in_scope = event_location in known_locations
-
-    if not location_in_scope:
-        logger.warning({
-            "event": "out_of_scope",
-            "event_id": event.event_id,
-            "location": event.location,
-            "project_id": project_scope.get("project_id"),
-        })
-        return FilterResult(
-            passed=False,
-            reason=f"Location '{event.location}' is not in project scope.",
-            escalate_immediately=False,
-            alert_pm=True,
-        )
+    # If no locations are configured, pass all events (no restriction)
+    if known_locations:
+        location_in_scope = event_location in known_locations
+        if not location_in_scope:
+            logger.warning({
+                "event": "out_of_scope",
+                "event_id": event.event_id,
+                "location": event.location,
+                "project_id": project_scope.get("project_id"),
+            })
+            return FilterResult(
+                passed=False,
+                reason=f"Location '{event.location}' is not in project scope.",
+                escalate_immediately=False,
+                alert_pm=True,
+            )
 
     # --- Cost escalation check (only for in-scope events) ---
     escalate = False
-    if event.estimated_cost is not None and event.estimated_cost > _COST_ESCALATION_THRESHOLD:
+    if event.estimated_cost is not None and event.estimated_cost > _cost_escalation_threshold():
         escalate = True
         logger.warning({
             "event": "cost_escalation",

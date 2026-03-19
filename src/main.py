@@ -14,7 +14,6 @@ from src.api.middleware import add_middleware
 
 logger = logging.getLogger(__name__)
 
-POLL_INTERVAL = 60  # seconds between each Fireflies + Gmail poll
 
 
 def _ensure_db_tables() -> None:
@@ -55,7 +54,8 @@ async def _polling_loop() -> None:
     """Background task: poll Fireflies and Gmail every POLL_INTERVAL seconds."""
     from src.input.pollers import fireflies_poller, gmail_poller
 
-    logger.info("Polling loop started — interval=%ds", POLL_INTERVAL)
+    from config.settings import settings
+    logger.info("Polling loop started — interval=%ds", settings.poll_interval_seconds)
     while True:
         try:
             ff_count = fireflies_poller.poll_once()
@@ -71,7 +71,7 @@ async def _polling_loop() -> None:
         except Exception as exc:
             logger.error("Gmail poller error: %s", exc)
 
-        await asyncio.sleep(POLL_INTERVAL)
+        await asyncio.sleep(settings.poll_interval_seconds)
 
 
 def _validate_startup() -> None:

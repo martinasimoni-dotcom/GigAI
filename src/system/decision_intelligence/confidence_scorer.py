@@ -76,8 +76,9 @@ def score_proposal(
     historical_match_contribution = avg_similarity * 25.0
 
     # Factor 3: cost_acceptable (weight 0.25)
+    from config.settings import settings
     estimated_cost = processing_result.event.event.estimated_cost
-    if estimated_cost is not None and estimated_cost > 50_000:
+    if estimated_cost is not None and estimated_cost > settings.cost_escalation_threshold:
         cost_acceptable_factor = 0.0
     else:
         cost_acceptable_factor = 1.0
@@ -99,9 +100,9 @@ def score_proposal(
     )
 
     # Recommendation thresholds
-    if score > 80.0:
+    if score > settings.confidence_accept_threshold:
         recommendation: Literal["accept", "review", "reject"] = "accept"
-    elif score < 50.0:
+    elif score < settings.confidence_reject_threshold:
         recommendation = "reject"
     else:
         recommendation = "review"

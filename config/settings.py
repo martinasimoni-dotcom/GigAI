@@ -27,6 +27,18 @@ class Settings(BaseSettings):
     # Set DEMO_MODE=true in .env to run the pipeline locally without GCP.
     demo_mode: bool = False
 
+    # --- Pipeline thresholds ---
+    # Confidence score (0-100) above which a proposal is auto-recommended "accept"
+    confidence_accept_threshold: float = 80.0
+    # Confidence score below which a proposal is recommended "reject"
+    confidence_reject_threshold: float = 50.0
+    # Confidence score (0-100) from Haiku normalizer below which review_required=True
+    normalization_review_threshold: int = 70
+    # Estimated cost above which the cost_acceptable factor scores 0 (flags for review)
+    cost_escalation_threshold: float = 50_000.0
+    # Polling interval in seconds for Fireflies and Gmail
+    poll_interval_seconds: int = 60
+
     # --- Google Cloud ---
     google_cloud_project: str = ""
     pubsub_topic_raw_events: str = "raw-events"
