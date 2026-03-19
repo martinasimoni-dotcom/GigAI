@@ -2,6 +2,7 @@
 GigAI FastAPI application entry point.
 Registers all input-layer webhook routers and exposes the ASGI app.
 """
+import asyncio
 import logging
 
 from fastapi import FastAPI
@@ -12,6 +13,65 @@ from src.api.demo import router as demo_router
 from src.api.middleware import add_middleware
 
 logger = logging.getLogger(__name__)
+
+POLL_INTERVAL = 60  # seconds between each Fireflies + Gmail poll
+
+
+def _ensure_db_tables() -> None:
+    """Create tables required by the pollers if they don't exist yet."""
+    from src.shared.db.postgres import get_connection, release_connection
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS processed_events (
+                    id SERIAL PRIMARY KEY,
+                    source TEXT NOT NULL,
+                    source_id TEXT NOT NULL,
+                    created_at TIMESTAMPTZ DEFAULT NOW(),
+                    UNIQUE (source, source_id)
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS knowledge_chunks (
+                    id SERIAL PRIMARY KEY,
+                    content TEXT NOT NULL,
+                    embedding vector(1024),
+                    source TEXT,
+                    metadata JSONB,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                )
+            """)
+        conn.commit()
+        logger.info("DB tables verified/created.")
+    except Exception as exc:
+        logger.warning("DB table creation skipped (vector extension may not be ready): %s", exc)
+        conn.rollback()
+    finally:
+        release_connection(conn)
+
+
+async def _polling_loop() -> None:
+    """Background task: poll Fireflies and Gmail every POLL_INTERVAL seconds."""
+    from src.input.pollers import fireflies_poller, gmail_poller
+
+    logger.info("Polling loop started — interval=%ds", POLL_INTERVAL)
+    while True:
+        try:
+            ff_count = fireflies_poller.poll_once()
+            if ff_count:
+                logger.info("Fireflies: %d new transcript(s) processed", ff_count)
+        except Exception as exc:
+            logger.error("Fireflies poller error: %s", exc)
+
+        try:
+            gm_count = gmail_poller.poll_once()
+            if gm_count:
+                logger.info("Gmail: %d new email(s) processed", gm_count)
+        except Exception as exc:
+            logger.error("Gmail poller error: %s", exc)
+
+        await asyncio.sleep(POLL_INTERVAL)
 
 
 def _validate_startup() -> None:
@@ -72,8 +132,10 @@ add_middleware(app)
 
 @app.on_event("startup")
 async def on_startup() -> None:
-    """Run startup validation when the app boots."""
+    """Run startup validation, create DB tables, and start background pollers."""
     _validate_startup()
+    _ensure_db_tables()
+    asyncio.create_task(_polling_loop())
 
 
 @app.get("/health")
