@@ -1,54 +1,103 @@
 # Revit Integration (GigAI Voice Focus + Revision Sync)
 
-This add-in provides two production-oriented workflows:
-1. `Voice Focus`: sends transcript text to GigAI `/voice/command` and focuses model spaces.
+This add-in now supports a Whisper-backed microphone workflow:
+1. `Voice Focus`: records microphone audio in Revit, sends it to GigAI `/voice/command/audio`, resolves the target space, and creates the Revit revision mark locally.
 2. `GigAI Sync`: ingests external JSON revision events and automatically creates `Revision` + `RevisionCloud` in Revit.
 
-The revision sync pipeline is file-event driven:
+The revision sync pipeline is still file and webhook driven:
 
-External AI System (GigAI) → JSON inbox file or local webhook → Revit listener → ExternalEvent → Transactional Revit update
+External AI System (GigAI) -> JSON inbox file or local webhook -> Revit listener -> ExternalEvent -> Transactional Revit update
 
 ## 1. Prerequisites
 
-1. Revit installed (default project target: Revit 2024 API).
-2. GigAI API running locally:
-`powershell -ExecutionPolicy Bypass -File ..\start-api.ps1 -Reload`
+1. Revit installed. Default target is Revit 2024 API.
+2. Python virtual environment available in the repo root at `.venv`.
 3. .NET Framework 4.8 targeting pack and build tools.
+4. Whisper dependencies installed for the backend if you want microphone transcription from Revit.
 
-## 2. Build
+## 2. Fast Test Commands
 
-From repo root:
+From repo root, run these commands in order.
+
+Install backend dependencies:
+
+```powershell
+.venv\Scripts\python.exe -m pip install -e ".[whisper-stt]"
+```
+
+Start the GigAI orchestrator API on port `8011`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\start-api.ps1 -App orchestrator -Port 8011
+```
+
+Build the Revit add-in:
 
 ```powershell
 dotnet build .\revit-addon\GigAi.RevitAddin\GigAi.RevitAddin.csproj -c Debug
 ```
 
-If your Revit API DLLs are in a different folder, pass:
+Install the add-in and preconfigure the local API values used by the dialog:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\revit-addon\install-addin.ps1 `
+  -RevitVersion 2024 `
+  -Configuration Debug `
+  -TargetFramework net48 `
+  -ConfigureUserEnvironment `
+  -ApiUrl http://127.0.0.1:8011 `
+  -ProjectId project_alpha
+```
+
+If your Revit API DLLs are in a different folder, build with:
 
 ```powershell
 dotnet build .\revit-addon\GigAi.RevitAddin\GigAi.RevitAddin.csproj -c Debug -p:RevitInstallDir="C:\Program Files\Autodesk\Revit 2025"
 ```
 
-## 3. Install
+## 3. What To Do In Revit
 
-Close Revit before installing/updating the add-in DLL.
+1. Restart Revit after install.
+2. Open any project with rooms or areas.
+3. Open the `GigAI` ribbon tab.
+4. Click `Voice Focus`.
+5. Speak while the dialog shows `Mic: recording`.
+6. Click `Stop Mic`.
+7. Click `Send`.
+8. The add-in sends the recorded WAV audio to the local GigAI API, receives the Whisper transcript and decision response, then creates the revision cloud and note in Revit.
+
+If you do not want to use audio, you can still type directly in the transcript box and send a text command.
+
+## 4. Expected Local Endpoints
+
+The add-in uses these backend routes:
+
+1. `POST http://127.0.0.1:8011/voice/command/audio` for recorded microphone audio.
+2. `POST http://127.0.0.1:8011/voice/command` for typed transcript fallback.
+3. `POST http://127.0.0.1:8011/revit/revision-marked` after the Revit mark is created.
+4. `GET http://127.0.0.1:8011/health` for connection checks.
+
+## 5. Installer Behavior
+
+Installer script:
+
+`revit-addon/install-addin.ps1`
+
+What it does:
+1. Copies the built DLL into `%APPDATA%\Autodesk\Revit\Addins\<version>`.
+2. Updates the `.addin` manifest to point at the installed DLL.
+3. If `-ConfigureUserEnvironment` is passed, it also writes:
+   `GIGAI_API_URL`
+   `GIGAI_PROJECT_ID`
+   `GIGAI_PROJECT_ROOT`
+
+Example:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\revit-addon\install-addin.ps1 -RevitVersion 2024 -Configuration Debug -TargetFramework net48
+powershell -ExecutionPolicy Bypass -File .\revit-addon\install-addin.ps1 -ConfigureUserEnvironment
 ```
 
-This writes:
-1. `%APPDATA%\Autodesk\Revit\Addins\2024\GigAi.RevitAddin.dll`
-2. `%APPDATA%\Autodesk\Revit\Addins\2024\GigAi.RevitAddin.addin`
-
-## 4. Use in Revit
-
-1. Restart Revit.
-2. Open the `GigAI` ribbon tab.
-3. For speech workflow, click `Voice Focus` and follow the dialog.
-4. For revision workflow, click `GigAI Sync` to process any pending JSON files from the GigAI inbox.
-
-## 5. Revision Sync Inputs
+## 6. Revision Sync Inputs
 
 Default inbox folder:
 
@@ -58,28 +107,22 @@ Override with environment variable:
 
 `GIGAI_REVIT_INBOX=C:\custom\gigai\inbox`
 
-Sample payload (`revit-addon/example-create-revision.json`):
+Sample payload:
+
+`revit-addon/example-create-revision.json`
 
 ```json
 {
-	"action": "create_revision",
-	"description": "Door size updated after coordination meeting",
-	"view_name": "Level 1",
-	"coordinates": [[0,0,0],[10,0,0],[10,10,0],[0,10,0]]
+  "action": "create_revision",
+  "description": "Door size updated after coordination meeting",
+  "view_name": "Level 1",
+  "coordinates": [[0, 0, 0], [10, 0, 0], [10, 10, 0], [0, 10, 0]]
 }
 ```
 
-Processing behavior:
-1. Add-in validates payload.
-2. Creates `Revision` with description + issued flag.
-3. Finds target view by exact name (case-insensitive).
-4. Creates `RevisionCloud` using curve geometry derived from coordinates.
-5. Links revision to cloud via `RevisionCloud.Create(document, view, revisionId, curves)`.
-6. Archives source files to sibling `processed` / `failed` folders.
+## 7. HTTP/Webhook Input For Sync
 
-## 6. HTTP/Webhook Input (Direct)
-
-Default local endpoint (enabled by default):
+Default local endpoint:
 
 `POST http://127.0.0.1:8765/gigai/revit/revisions`
 
@@ -95,43 +138,20 @@ $body = Get-Content -Raw .\revit-addon\example-create-revision.json
 Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:8765/gigai/revit/revisions" -ContentType "application/json" -Body $body
 ```
 
-Expected response:
-
-`{ "status": "accepted", "request_id": "..." }`
-
-## 7. Logging & Audit
+## 8. Logging
 
 Default log file:
 
 `%LOCALAPPDATA%\GigAI\revit\gigai-revit-addon.log`
 
-Override with environment variable:
+Override with:
 
 `GIGAI_REVIT_LOG=C:\logs\gigai-revit-addon.log`
 
-Each entry includes UTC timestamp, severity, action details, and exceptions.
+## 9. Notes
 
-## 8. Notes
-
-1. Revision clouds are created only in supported non-3D graphical views/sheets.
-2. Coordinates are treated as Revit internal units (feet).
-3. All model changes are wrapped in a Revit `Transaction` with rollback on failure.
-4. The listener is event-driven (`FileSystemWatcher`) and avoids polling.
-
-## 9. Use Deployed API Instead Of Localhost
-Set machine/user environment variables:
-
-```powershell
-[System.Environment]::SetEnvironmentVariable("GIGAI_API_URL", "https://your-api.example.com/voice/command", "User")
-[System.Environment]::SetEnvironmentVariable("GIGAI_PROJECT_ID", "your_project_id", "User")
-```
-
-Restart Revit. The voice dialog will pre-fill these values automatically.
-
-## 10. Extend for Approval Workflow
-
-The architecture is prepared for human-in-the-loop approval:
-1. Keep `GigAiRevisionEventHandler` as the Revit API execution boundary.
-2. Add a pre-enqueue policy gate for risk/confidence thresholds.
-3. Reuse runtime queueing (`Enqueue + ExternalEvent.Raise`) for thread-safe execution.
-4. Add approval gating before enqueue for human-in-the-loop workflows.
+1. Revision clouds are created only in supported non-3D graphical views or sheets.
+2. Coordinates in sync payloads are treated as Revit internal units, feet.
+3. All model changes are wrapped in a Revit `Transaction`.
+4. The add-in now depends on the GigAI backend for Whisper transcription when you use microphone recording.
+5. If the backend is not running, typed transcript entry still works through `/voice/command`.
