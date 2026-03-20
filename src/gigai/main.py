@@ -1,6 +1,12 @@
 from __future__ import annotations
 
+import base64
+import binascii
+from difflib import SequenceMatcher
+import os
 from pathlib import Path
+import time
+from uuid import uuid4
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException, status
 from fastapi.responses import RedirectResponse
@@ -33,20 +39,36 @@ else:
 
 from gigai.google_integrations import GoogleIntegrationConfig, GoogleWorkspaceClient
 from gigai.fireflies_stt import FirefliesIntegrationError, resolve_fireflies_transcript
+from gigai.meeting_intelligence.structured_engine import (
+    ArchitecturalMeetingIntelligenceEngine,
+    StructuredMeetingIntelligence,
+)
 from gigai.mom_email_generator import generate_meeting_completed_mom
 from gigai.coordination import (
     CoordinationDecisionUpdate,
+    LiveTranscriptViewResponse,
     CoordinationPlanResponse,
     CoordinationRequest,
     CoordinationService,
     RealTimeVoiceIngestService,
+    RealTimeSTTService,
     VoiceStreamChunkRequest,
     VoiceStreamFinalizeRequest,
     VoiceStreamFinalizeResponse,
     VoiceStreamSessionResponse,
     VoiceStreamStartRequest,
 )
-from gigai.models import ActionResult, ApprovalState, DecisionPackage, PipelineResponse, WebhookAccepted
+from gigai.models import (
+    ActionResult,
+    ApprovalState,
+    DecisionPackage,
+    PipelineResponse,
+    ReviewQueueItem,
+    ReviewQueueResponse,
+    STTHealthStatus,
+    STTMetric,
+    WebhookAccepted,
+)
 from gigai.orchestrator import (
     get_cached_pipeline,
     ingest_payload,
@@ -55,13 +77,24 @@ from gigai.orchestrator import (
     replay_event,
     resolve_approval_action,
 )
-from gigai.storage import list_bus_events
-from gigai.storage import publish_bus_event
+from gigai.storage import (
+    get_stt_shadow_metrics,
+    list_bus_events,
+    publish_bus_event,
+    save_review_item,
+    save_stt_shadow_metric,
+    get_review_item,
+    update_review_item,
+    list_review_queue,
+    save_stt_metric,
+    get_stt_metrics,
+)
 from gigai.voice import build_voice_focus_payload
 
 app = FastAPI(title="GigAI MVP", version="0.2.0")
 coordination_service = CoordinationService()
 voice_ingest_service = RealTimeVoiceIngestService(coordination_service)
+structured_intelligence_engine = ArchitecturalMeetingIntelligenceEngine()
 
 
 @app.get("/")
@@ -188,6 +221,212 @@ def voice_command(payload: dict) -> PipelineResponse:
 
     normalized_payload = build_voice_focus_payload(normalized_input)
     return process_webhook(normalized_payload)
+
+
+@app.post("/voice/command/audio")
+def voice_command_audio(payload: dict) -> dict:
+    audio_base64 = str(payload.get("audio_base64") or "").strip()
+    if not audio_base64:
+        raise HTTPException(status_code=400, detail="audio_base64 is required.")
+
+    try:
+        audio_bytes = base64.b64decode(audio_base64, validate=True)
+    except (binascii.Error, ValueError) as ex:
+        raise HTTPException(status_code=400, detail="Invalid audio_base64 payload.") from ex
+
+    language = str(payload.get("language") or "en").strip() or "en"
+    stt_service = voice_ingest_service._stt
+    started_at = time.perf_counter()
+    metric_error: str | None = None
+    transcript_original = ""
+
+    try:
+        transcript_original = stt_service.transcribe(audio_bytes, language=language)
+    except Exception as ex:
+        metric_error = str(ex)
+
+    reference_spaces = payload.get("visible_spaces")
+    if not isinstance(reference_spaces, list) or not reference_spaces:
+        reference_spaces = payload.get("available_spaces")
+    if not isinstance(reference_spaces, list):
+        reference_spaces = []
+
+    transcript = stt_service.normalize_transcript(transcript_original, reference_spaces=reference_spaces)
+    latency_ms = (time.perf_counter() - started_at) * 1000.0
+    save_stt_metric(
+        transcript_id=f"aud_{uuid4().hex[:12]}",
+        provider=stt_service._provider,
+        model=stt_service._model_name,
+        latency_ms=latency_ms,
+        transcript_length=len(transcript),
+        error=metric_error,
+        metadata={
+            "language": language,
+            "source": "voice.command.audio",
+            "audio_size_bytes": len(audio_bytes),
+            "mark_in_revit": bool(payload.get("mark_in_revit")),
+        },
+    )
+
+    if not transcript:
+        raise HTTPException(
+            status_code=400,
+            detail="No transcript detected from audio. Check STT provider configuration or audio quality.",
+        )
+
+    normalized_input = dict(payload)
+    normalized_input["transcript"] = transcript
+    normalized_payload = build_voice_focus_payload(normalized_input)
+    pipeline = process_webhook(normalized_payload)
+
+    revision_result = None
+    if bool(payload.get("mark_in_revit")):
+        notification_emails = payload.get("notification_emails")
+        if not isinstance(notification_emails, list):
+            notification_emails = []
+
+        revision_result = revit_revision_marked(
+            {
+                "revision_id": str(payload.get("revision_id") or f"rev_{pipeline.event.event_id[-8:]}").strip(),
+                "meeting_id": str(payload.get("meeting_id") or "meet_voice_audio").strip() or "meet_voice_audio",
+                "project_id": str(
+                    payload.get("project_id")
+                    or payload.get("projectId")
+                    or normalized_payload.get("projectId")
+                    or "project_alpha"
+                ).strip()
+                or "project_alpha",
+                "space_name": str(
+                    pipeline.event.focus_space
+                    or normalized_payload.get("space_name")
+                    or "Unknown Space"
+                ).strip()
+                or "Unknown Space",
+                "element_type": str(
+                    payload.get("element_type")
+                    or normalized_payload.get("building_element")
+                    or "architectural_element"
+                ).strip()
+                or "architectural_element",
+                "action": str(payload.get("revit_action") or "REVISION_MARKED").strip() or "REVISION_MARKED",
+                "comment_text": str(payload.get("comment_text") or pipeline.decision.proposal).strip(),
+                "applied_by": str(payload.get("applied_by") or "GigAI Audio").strip() or "GigAI Audio",
+                "notification_emails": notification_emails,
+            }
+        )
+
+    response = {
+        "status": "ok",
+        "transcript": transcript,
+        "pipeline": pipeline.model_dump(mode="json"),
+    }
+    if transcript_original and transcript_original != transcript:
+        response["transcript_original"] = transcript_original
+    if revision_result is not None:
+        response["revit_revision"] = revision_result
+    return response
+
+
+@app.post("/meeting/intelligence/structured", response_model=StructuredMeetingIntelligence)
+def meeting_intelligence_structured(payload: dict) -> StructuredMeetingIntelligence:
+    normalized_input = dict(payload)
+    fireflies_used = False
+    transcript = str(normalized_input.get("transcript") or normalized_input.get("voice_text") or "").strip()
+    if not transcript:
+        try:
+            fireflies_transcript, _ = resolve_fireflies_transcript(normalized_input)
+        except FirefliesIntegrationError as ex:
+            raise HTTPException(status_code=400, detail=str(ex)) from ex
+        if fireflies_transcript:
+            transcript = fireflies_transcript
+            fireflies_used = True
+
+    if not transcript:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "transcript is required. "
+                "Or send fireflies_latest=true / fireflies_transcript_id with Fireflies enabled."
+            ),
+        )
+
+    available_spaces = normalized_input.get("available_spaces")
+    if not isinstance(available_spaces, list):
+        available_spaces = []
+
+    past_summaries = normalized_input.get("past_meeting_summaries")
+    if not isinstance(past_summaries, list):
+        past_summaries = []
+
+    bim_references = normalized_input.get("bim_element_references")
+    if not isinstance(bim_references, list):
+        bim_references = []
+
+    project_glossary = normalized_input.get("project_glossary")
+    if not isinstance(project_glossary, dict):
+        project_glossary = None
+
+    project_id = str(normalized_input.get("project_id") or "project_unknown").strip() or "project_unknown"
+
+    result = structured_intelligence_engine.transform(
+        transcript,
+        available_spaces=available_spaces,
+        project_glossary=project_glossary,
+        past_meeting_summaries=past_summaries,
+        bim_element_references=bim_references,
+    )
+
+    # Auto-create review item if confidence is low
+    if result.confidence_score < 0.75:
+        review_id = f"rev_{uuid4().hex[:12]}"
+        save_review_item(
+            review_id,
+            structured_intelligence_id=f"si_{uuid4().hex[:12]}",
+            project_id=project_id,
+            confidence_score=result.confidence_score,
+            reason_for_review="Confidence score below 0.75: requires human review for accuracy",
+            entities=[e.dict() if hasattr(e, 'dict') else e for e in (result.entities or [])],
+            actions=[a.dict() if hasattr(a, 'dict') else a for a in (result.actions or [])],
+            metadata={
+                "decision_count": len(result.decisions or []),
+                "risk_count": len(result.risks or []),
+                "open_question_count": len(result.open_questions or []),
+            },
+        )
+        publish_bus_event(
+            "meeting_intelligence.low_confidence_review",
+            {
+                "review_id": review_id,
+                "project_id": project_id,
+                "confidence_score": result.confidence_score,
+                "created_at": time.time(),
+            },
+        )
+
+    shadow_mode_enabled = str(os.getenv("GIGAI_STT_SHADOW_MODE", "false")).strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    whisper_shadow_transcript = str(normalized_input.get("whisper_shadow_transcript") or "").strip()
+    if shadow_mode_enabled and fireflies_used and whisper_shadow_transcript:
+        similarity = SequenceMatcher(None, transcript, whisper_shadow_transcript).ratio()
+        save_stt_shadow_metric(
+            transcript_id=f"tr_{uuid4().hex[:12]}",
+            project_id=project_id,
+            fireflies_transcript=transcript,
+            whisper_transcript=whisper_shadow_transcript,
+            similarity_score=similarity,
+            metadata={
+                "source": "meeting.intelligence.structured",
+                "fireflies_used": fireflies_used,
+                "fireflies_len": len(transcript),
+                "whisper_len": len(whisper_shadow_transcript),
+            },
+        )
+
+    return result
 
 
 @app.post("/system/e2e/simulate")
@@ -384,6 +623,14 @@ def get_voice_stream(session_id: str) -> VoiceStreamSessionResponse:
     return session
 
 
+@app.get("/coordination/voice/stream/{session_id}/live", response_model=LiveTranscriptViewResponse)
+def get_voice_stream_live(session_id: str) -> LiveTranscriptViewResponse:
+    session = voice_ingest_service.get_live_view(session_id)
+    if session is None:
+        raise HTTPException(status_code=404, detail=f"Voice stream session '{session_id}' was not found.")
+    return session
+
+
 @app.post("/coordination/voice/stream/{session_id}/chunk", response_model=VoiceStreamSessionResponse)
 def append_voice_stream_chunk(session_id: str, payload: VoiceStreamChunkRequest) -> VoiceStreamSessionResponse:
     try:
@@ -412,5 +659,117 @@ def close_voice_stream(session_id: str) -> VoiceStreamSessionResponse:
         raise HTTPException(status_code=404, detail=str(ex)) from ex
 
 
+# Review Queue Endpoints
+@app.get("/review/queue", response_model=ReviewQueueResponse)
+def list_review_items(
+    project_id: str | None = None,
+    status: str | None = None,
+    limit: int = 50,
+) -> ReviewQueueResponse:
+    items_data = list_review_queue(project_id=project_id, status=status, limit=limit)
+    items = [ReviewQueueItem(**item) for item in items_data]
+    return ReviewQueueResponse(items=items, total=len(items))
+
+
+@app.get("/review/queue/{review_id}", response_model=ReviewQueueItem)
+def get_review_item_detail(review_id: str) -> ReviewQueueItem:
+    item_data = get_review_item(review_id)
+    if item_data is None:
+        raise HTTPException(status_code=404, detail="Review item not found")
+    return ReviewQueueItem(**item_data)
+
+
+@app.post("/review/queue/{review_id}/acknowledge")
+def acknowledge_review_item(
+    review_id: str,
+    payload: dict,
+) -> ReviewQueueItem:
+    assigned_to = str(payload.get("assigned_to") or "").strip() or None
+    update_review_item(review_id, status="in-review", assigned_to=assigned_to)
+    item_data = get_review_item(review_id)
+    if item_data is None:
+        raise HTTPException(status_code=404, detail="Review item not found")
+    return ReviewQueueItem(**item_data)
+
+
+@app.post("/review/queue/{review_id}/approve")
+def approve_review_item(
+    review_id: str,
+    payload: dict,
+) -> ReviewQueueItem:
+    reviewer_note = str(payload.get("note") or "").strip() or None
+    update_review_item(review_id, status="approved", reviewer_note=reviewer_note)
+    item_data = get_review_item(review_id)
+    if item_data is None:
+        raise HTTPException(status_code=404, detail="Review item not found")
+    publish_bus_event(
+        "review_queue.item_approved",
+        {"review_id": review_id, "timestamp": time.time()},
+    )
+    return ReviewQueueItem(**item_data)
+
+
+@app.post("/review/queue/{review_id}/reject")
+def reject_review_item(
+    review_id: str,
+    payload: dict,
+) -> ReviewQueueItem:
+    reviewer_note = str(payload.get("note") or "").strip() or None
+    update_review_item(review_id, status="rejected", reviewer_note=reviewer_note)
+    item_data = get_review_item(review_id)
+    if item_data is None:
+        raise HTTPException(status_code=404, detail="Review item not found")
+    publish_bus_event(
+        "review_queue.item_rejected",
+        {"review_id": review_id, "timestamp": time.time()},
+    )
+    return ReviewQueueItem(**item_data)
+
+
+# Health & Observability Endpoints
+@app.get("/health/stt", response_model=STTHealthStatus)
+def stt_health() -> STTHealthStatus:
+    stt_service = voice_ingest_service._stt
+    metrics = get_stt_metrics(limit=100)
+
+    total_transcribed = len(metrics)
+    error_count = len([m for m in metrics if m.get("error")])
+    error_rate = (error_count / total_transcribed) if total_transcribed > 0 else 0.0
+    last_latency = metrics[0].get("latency_ms") if metrics else None
+
+    return STTHealthStatus(
+        status="ok" if error_rate < 0.1 else "degraded",
+        provider=stt_service._provider,
+        model=stt_service._model_name,
+        device=stt_service._device,
+        compute_type=stt_service._compute_type,
+        available=True,
+        last_latency_ms=last_latency,
+        total_transcribed=total_transcribed,
+        error_count=error_count,
+        error_rate=round(error_rate, 4),
+    )
+
+
+@app.get("/metrics/stt", response_model=list[STTMetric])
+def stt_metrics(provider: str | None = None, limit: int = 100) -> list[STTMetric]:
+    metrics_data = get_stt_metrics(provider=provider, limit=limit)
+    return [STTMetric(**m) for m in metrics_data]
+
+
+@app.get("/metrics/stt/shadow")
+def stt_shadow_metrics(project_id: str | None = None, limit: int = 100) -> dict:
+    items = get_stt_shadow_metrics(project_id=project_id, limit=limit)
+    avg_similarity = 0.0
+    if items:
+        avg_similarity = round(sum(float(item.get("similarity_score") or 0.0) for item in items) / len(items), 4)
+    return {
+        "status": "ok",
+        "total": len(items),
+        "average_similarity": avg_similarity,
+        "items": items,
+    }
+
+
 def run() -> None:
-    uvicorn.run("gigai.main:app", host="127.0.0.1", port=8000, reload=False)
+    uvicorn.run("gigai.main:app", host="127.0.0.1", port=8011, reload=False)

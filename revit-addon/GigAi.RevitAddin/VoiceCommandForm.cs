@@ -1,19 +1,17 @@
 using System;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using System.Speech.Recognition;
 
 namespace GigAi.RevitAddin
 {
-    internal sealed class RecognizerDisplayOption
+    internal sealed class LanguageDisplayOption
     {
-        public string Name { get; set; } = string.Empty;
+        public string Code { get; set; } = "en";
         public string Display { get; set; } = string.Empty;
 
         public override string ToString()
         {
-            return string.IsNullOrWhiteSpace(Display) ? Name : Display;
+            return string.IsNullOrWhiteSpace(Display) ? Code : Display;
         }
     }
 
@@ -27,12 +25,16 @@ namespace GigAi.RevitAddin
         private readonly Button _startMicButton;
         private readonly Button _stopMicButton;
         private readonly Button _testApiButton;
-        private readonly VoiceDictationService _dictationService;
+        private readonly AudioCaptureService _audioCaptureService;
         private readonly string[] _speechHints;
+        private string _capturedAudioBase64 = string.Empty;
 
         public string ApiUrl => _apiUrlTextBox.Text.Trim();
         public string ProjectId => _projectIdTextBox.Text.Trim();
         public string Transcript => _transcriptTextBox.Text.Trim();
+        public string CapturedAudioBase64 => _capturedAudioBase64;
+        public bool HasCapturedAudio => !string.IsNullOrWhiteSpace(_capturedAudioBase64);
+        public string LanguageCode => (_languageComboBox.SelectedValue as string ?? "en").Trim();
 
         public VoiceCommandForm(
             string defaultApiUrl,
@@ -168,7 +170,7 @@ namespace GigAi.RevitAddin
 
             Label languageLabel = new Label
             {
-                Text = "Speech language:",
+                Text = "Audio language:",
                 Left = leftMargin,
                 Top = settingsRowTop + 6,
                 Width = labelWidth,
@@ -235,28 +237,23 @@ namespace GigAi.RevitAddin
             Controls.Add(okButton);
             Controls.Add(cancelButton);
 
-            _dictationService = new VoiceDictationService();
+            _audioCaptureService = new AudioCaptureService();
             _speechHints = speechHints ?? Array.Empty<string>();
-            _dictationService.TextRecognized += AppendRecognizedText;
-            _dictationService.ConfigurePhraseHints(_speechHints);
 
             PopulateLanguageList();
 
-            if (!_dictationService.IsAvailable)
+            if (!_audioCaptureService.IsAvailable)
             {
                 _startMicButton.Enabled = false;
-                _micStatusLabel.Text = $"Mic unavailable: {_dictationService.AvailabilityMessage}";
+                _micStatusLabel.Text = $"Mic unavailable: {_audioCaptureService.AvailabilityMessage}";
             }
             else
             {
-                int hintCount = speechHints
+                int hintCount = _speechHints
                     .Where(h => !string.IsNullOrWhiteSpace(h))
                     .Distinct(StringComparer.OrdinalIgnoreCase)
                     .Count();
-                string culture = string.IsNullOrWhiteSpace(_dictationService.RecognizerCulture)
-                    ? "default"
-                    : _dictationService.RecognizerCulture;
-                _micStatusLabel.Text = $"Mic: ready ({hintCount} hints, {culture})";
+                _micStatusLabel.Text = $"Mic: ready (Whisper backend, {hintCount} space hints)";
                 _startMicButton.Enabled = true;
                 _stopMicButton.Enabled = false;
             }
@@ -264,7 +261,7 @@ namespace GigAi.RevitAddin
             FormClosing += OnFormClosing;
             Shown += (_, _) =>
             {
-                if (_dictationService.IsAvailable)
+                if (_audioCaptureService.IsAvailable)
                 {
                     TryStartMicAutomatically();
                 }
@@ -277,15 +274,15 @@ namespace GigAi.RevitAddin
         {
             try
             {
-                _dictationService.Start();
+                _audioCaptureService.Start();
+                _capturedAudioBase64 = string.Empty;
                 _startMicButton.Enabled = false;
                 _stopMicButton.Enabled = true;
-                _micStatusLabel.Text = "Mic: listening...";
+                _micStatusLabel.Text = $"Mic: recording ({LanguageCode}, Whisper backend)...";
             }
             catch
             {
-                // Keep manual start available if auto-start fails.
-                _startMicButton.Enabled = _dictationService.IsAvailable;
+                _startMicButton.Enabled = _audioCaptureService.IsAvailable;
                 _stopMicButton.Enabled = false;
                 _micStatusLabel.Text = "Mic: ready (click Start Mic)";
             }
@@ -293,82 +290,40 @@ namespace GigAi.RevitAddin
 
         private void PopulateLanguageList()
         {
-            try
+            var languages = new[]
             {
-                var recognizers = SpeechRecognitionEngine.InstalledRecognizers()
-                    .OrderBy(r => r.Culture.Name)
-                    .Select(r => new RecognizerDisplayOption
-                    {
-                        Name = r.Culture.Name,
-                        Display = $"{r.Culture.Name} ({r.Culture.DisplayName})",
-                    })
-                    .GroupBy(r => r.Name, StringComparer.OrdinalIgnoreCase)
-                    .Select(g => g.First())
-                    .ToList();
+                new LanguageDisplayOption { Code = "en", Display = "en (English)" },
+                new LanguageDisplayOption { Code = "fr", Display = "fr (French)" },
+                new LanguageDisplayOption { Code = "ar", Display = "ar (Arabic)" },
+            };
 
-                _languageComboBox.DisplayMember = "Display";
-                _languageComboBox.ValueMember = "Name";
-                _languageComboBox.DataSource = recognizers;
-
-                string current = _dictationService.RecognizerCulture;
-                if (!string.IsNullOrWhiteSpace(current))
-                {
-                    int index = recognizers.FindIndex(r => string.Equals(r.Name, current, StringComparison.OrdinalIgnoreCase));
-                    if (index >= 0)
-                    {
-                        _languageComboBox.SelectedIndex = index;
-                    }
-                }
-            }
-            catch
-            {
-                // Ignore: if recognizers cannot be enumerated, leave the control empty.
-            }
+            _languageComboBox.DisplayMember = "Display";
+            _languageComboBox.ValueMember = "Code";
+            _languageComboBox.DataSource = languages;
+            _languageComboBox.SelectedIndex = 0;
         }
 
         private void OnLanguageChanged(object? sender, EventArgs e)
         {
-            if (_languageComboBox.SelectedItem == null)
+            if (_audioCaptureService.IsRecording)
             {
+                _micStatusLabel.Text = $"Mic: recording ({LanguageCode}, Whisper backend)...";
                 return;
             }
 
-            bool wasListening = _dictationService.IsListening;
-            if (wasListening)
-            {
-                _dictationService.StopAndWaitForFinalResult();
-            }
-
-            string selectedCulture = (string)_languageComboBox.SelectedValue;
-            _dictationService.SetPreferredCulture(selectedCulture);
-            _dictationService.ConfigurePhraseHints(_speechHints);
-
-            string culture = string.IsNullOrWhiteSpace(_dictationService.RecognizerCulture)
-                ? "default"
-                : _dictationService.RecognizerCulture;
-
-            if (wasListening && _dictationService.IsAvailable)
-            {
-                TryStartMicAutomatically();
-                _micStatusLabel.Text = $"Mic: listening ({culture})...";
-            }
-            else
-            {
-                _micStatusLabel.Text = $"Mic: ready ({culture})";
-            }
+            string audioState = HasCapturedAudio ? "audio captured" : "ready";
+            _micStatusLabel.Text = $"Mic: {audioState} ({LanguageCode}, Whisper backend)";
         }
 
         private void OnStartMicClicked(object? sender, EventArgs e)
         {
             try
             {
-                _dictationService.Start();
+                _audioCaptureService.Start();
+                _capturedAudioBase64 = string.Empty;
                 _startMicButton.Enabled = false;
                 _stopMicButton.Enabled = true;
-                string culture = string.IsNullOrWhiteSpace(_dictationService.RecognizerCulture)
-                    ? "default"
-                    : _dictationService.RecognizerCulture;
-                _micStatusLabel.Text = $"Mic: listening ({culture})...";
+                _micStatusLabel.Text = $"Mic: recording ({LanguageCode}, Whisper backend)...";
             }
             catch (Exception ex)
             {
@@ -383,15 +338,36 @@ namespace GigAi.RevitAddin
 
         private void OnStopMicClicked(object? sender, EventArgs e)
         {
-            _dictationService.StopAndWaitForFinalResult();
-            _startMicButton.Enabled = _dictationService.IsAvailable;
-            _stopMicButton.Enabled = false;
-            _micStatusLabel.Text = "Mic: stopped";
-
-            if (string.IsNullOrWhiteSpace(Transcript) &&
-                !string.IsNullOrWhiteSpace(_dictationService.LastHeardText))
+            try
             {
-                _transcriptTextBox.Text = _dictationService.LastHeardText;
+                byte[] audioBytes = _audioCaptureService.StopAndReadWav();
+                _capturedAudioBase64 = audioBytes.Length > 0
+                    ? Convert.ToBase64String(audioBytes)
+                    : string.Empty;
+                _startMicButton.Enabled = _audioCaptureService.IsAvailable;
+                _stopMicButton.Enabled = false;
+
+                if (audioBytes.Length > 0)
+                {
+                    double sizeKb = audioBytes.Length / 1024.0;
+                    _micStatusLabel.Text =
+                        $"Mic: audio captured ({sizeKb:0.0} KB). Whisper will transcribe on Send.";
+                }
+                else
+                {
+                    _micStatusLabel.Text = "Mic: stopped, but no audio was captured.";
+                }
+            }
+            catch (Exception ex)
+            {
+                _startMicButton.Enabled = _audioCaptureService.IsAvailable;
+                _stopMicButton.Enabled = false;
+                MessageBox.Show(
+                    ex.Message,
+                    "GigAI Microphone Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
             }
         }
 
@@ -418,42 +394,28 @@ namespace GigAi.RevitAddin
             }
         }
 
-        private void AppendRecognizedText(string text)
-        {
-            if (InvokeRequired)
-            {
-                BeginInvoke(new Action<string>(AppendRecognizedText), text);
-                return;
-            }
-
-            string currentText = _transcriptTextBox.Text.Trim();
-            if (IsDuplicateRecognition(currentText, text))
-            {
-                return;
-            }
-
-            if (ShouldReplaceTranscript(currentText, text))
-            {
-                _transcriptTextBox.Text = text;
-            }
-
-            _transcriptTextBox.SelectionStart = _transcriptTextBox.TextLength;
-            _transcriptTextBox.ScrollToCaret();
-        }
-
         private void OnFormClosing(object? sender, FormClosingEventArgs e)
         {
-            if (DialogResult == DialogResult.OK && _dictationService.IsListening)
+            if (DialogResult == DialogResult.OK && _audioCaptureService.IsRecording)
             {
-                // Flush pending recognition when user clicks Send while mic is active.
-                _dictationService.StopAndWaitForFinalResult();
-            }
-
-            if (DialogResult == DialogResult.OK &&
-                string.IsNullOrWhiteSpace(Transcript) &&
-                !string.IsNullOrWhiteSpace(_dictationService.LastHeardText))
-            {
-                _transcriptTextBox.Text = _dictationService.LastHeardText;
+                try
+                {
+                    byte[] audioBytes = _audioCaptureService.StopAndReadWav();
+                    _capturedAudioBase64 = audioBytes.Length > 0
+                        ? Convert.ToBase64String(audioBytes)
+                        : _capturedAudioBase64;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        ex.Message,
+                        "GigAI Microphone Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
+                    e.Cancel = true;
+                    return;
+                }
             }
 
             if (DialogResult == DialogResult.OK &&
@@ -470,11 +432,12 @@ namespace GigAi.RevitAddin
             }
 
             if (DialogResult == DialogResult.OK &&
-                string.IsNullOrWhiteSpace(Transcript))
+                string.IsNullOrWhiteSpace(Transcript) &&
+                !HasCapturedAudio)
             {
-                string guidance = _dictationService.IsAvailable
-                    ? "No voice command was captured.\nPlease speak while Mic is listening, then click Send."
-                    : $"No transcript was captured and microphone dictation is unavailable.\n{_dictationService.AvailabilityMessage}";
+                string guidance = _audioCaptureService.IsAvailable
+                    ? "No transcript or recorded audio was provided.\nSpeak while Mic is recording, or type a command before clicking Send."
+                    : $"No transcript was captured and microphone recording is unavailable.\n{_audioCaptureService.AvailabilityMessage}";
                 MessageBox.Show(
                     guidance,
                     "GigAI",
@@ -485,132 +448,7 @@ namespace GigAi.RevitAddin
                 return;
             }
 
-            _dictationService.Dispose();
-        }
-
-        private static bool IsDuplicateRecognition(string currentText, string incomingText)
-        {
-            string current = NormalizeTranscript(currentText);
-            string incoming = NormalizeTranscript(incomingText);
-            if (string.IsNullOrWhiteSpace(current) || string.IsNullOrWhiteSpace(incoming))
-            {
-                return false;
-            }
-
-            return current == incoming || current.EndsWith(incoming, StringComparison.Ordinal);
-        }
-
-        private static bool ShouldReplaceTranscript(string currentText, string incomingText)
-        {
-            string current = NormalizeTranscript(currentText);
-            string incoming = NormalizeTranscript(incomingText);
-            if (string.IsNullOrWhiteSpace(incoming))
-            {
-                return false;
-            }
-
-            if (string.IsNullOrWhiteSpace(current))
-            {
-                return true;
-            }
-
-            if (incoming.IndexOf(current, StringComparison.Ordinal) >= 0 && incoming.Length >= current.Length)
-            {
-                return true;
-            }
-
-            int currentScore = ScoreTranscriptCandidate(currentText);
-            int incomingScore = ScoreTranscriptCandidate(incomingText);
-            if (incomingScore != currentScore)
-            {
-                return incomingScore > currentScore;
-            }
-
-            return incoming.Length > current.Length + 2;
-        }
-
-        private static int ScoreTranscriptCandidate(string text)
-        {
-            string normalized = NormalizeTranscript(text);
-            if (string.IsNullOrWhiteSpace(normalized))
-            {
-                return int.MinValue;
-            }
-
-            int score = 0;
-            if (Regex.IsMatch(normalized, @"\b[a-z]?\d{2,4}[a-z]?\b", RegexOptions.IgnoreCase))
-            {
-                score += 6;
-            }
-
-            if (StartsWithCommandVerb(normalized))
-            {
-                score += 4;
-            }
-
-            if (LooksLikeSpaceCommand(normalized))
-            {
-                score += 3;
-            }
-
-            if (normalized.Contains("studio") && normalized.Contains("unit"))
-            {
-                score += 2;
-            }
-
-            int wordCount = normalized.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Length;
-            if (wordCount >= 2 && wordCount <= 6)
-            {
-                score += 2;
-            }
-            else if (wordCount > 8)
-            {
-                score -= 2;
-            }
-
-            if (!LooksLikeSpaceCommand(normalized) && wordCount > 4)
-            {
-                score -= 4;
-            }
-
-            return score;
-        }
-
-        private static bool StartsWithCommandVerb(string normalized)
-        {
-            string[] verbs = { "focus on", "go to", "select", "review", "check", "mark", "show", "find" };
-            return verbs.Any(verb =>
-                normalized.Equals(verb, StringComparison.OrdinalIgnoreCase) ||
-                normalized.StartsWith(verb + " ", StringComparison.OrdinalIgnoreCase));
-        }
-
-        private static bool LooksLikeSpaceCommand(string text)
-        {
-            if (string.IsNullOrWhiteSpace(text))
-            {
-                return false;
-            }
-
-            string normalized = NormalizeTranscript(text);
-            if (Regex.IsMatch(normalized, @"\b[a-z]?\d{2,4}[a-z]?\b", RegexOptions.IgnoreCase))
-            {
-                return true;
-            }
-
-            string[] cueWords = { "mark", "focus", "go", "select", "review", "check", "show", "find", "studio", "unit", "room", "space", "lobby", "corridor", "elevator", "stair" };
-            return cueWords.Any(word => normalized.Contains(word));
-        }
-
-        private static string NormalizeTranscript(string text)
-        {
-            if (string.IsNullOrWhiteSpace(text))
-            {
-                return string.Empty;
-            }
-
-            string lowered = text.ToLowerInvariant();
-            string alnum = Regex.Replace(lowered, @"[^a-z0-9\s]+", " ");
-            return Regex.Replace(alnum, @"\s+", " ").Trim();
+            _audioCaptureService.Dispose();
         }
     }
 }

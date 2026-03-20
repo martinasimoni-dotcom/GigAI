@@ -43,40 +43,78 @@ namespace GigAi.RevitAddin
             string apiUrl     = form.ApiUrl;
             string projectId  = form.ProjectId;
             string transcript = form.Transcript;
+            string audioBase64 = form.CapturedAudioBase64;
+            string languageCode = form.LanguageCode;
 
-            if (string.IsNullOrWhiteSpace(transcript))
+            if (string.IsNullOrWhiteSpace(transcript) && string.IsNullOrWhiteSpace(audioBase64))
             {
-                TaskDialog.Show("GigAI", "No transcript provided.");
+                TaskDialog.Show("GigAI", "No transcript or recorded audio was provided.");
                 return Result.Cancelled;
             }
 
-            VoiceCommandRequest request = new VoiceCommandRequest
+            VoiceCommandResponse response = new VoiceCommandResponse();
+
+            DrawingContext drawingContext = new DrawingContext
             {
-                ProjectId       = projectId,
-                Transcript      = transcript,
-                AvailableSpaces = availableSpaces,
-                VisibleSpaces   = visibleSpaces,
-                DrawingContext  = new DrawingContext
-                {
-                    ViewName  = activeView.Name,
-                    ViewType  = activeView.ViewType.ToString(),
-                    ViewScale = activeView.Scale,
-                }
+                ViewName  = activeView.Name,
+                ViewType  = activeView.ViewType.ToString(),
+                ViewScale = activeView.Scale,
             };
 
-            VoiceCommandResponse response;
-            try { response = GigAiApiClient.SendVoiceCommand(apiUrl, request); }
-            catch (Exception ex)
+            if (!string.IsNullOrWhiteSpace(audioBase64))
             {
-                TaskDialog.Show("GigAI API Error", ex.Message);
-                return Result.Failed;
+                VoiceCommandAudioRequest audioRequest = new VoiceCommandAudioRequest
+                {
+                    ProjectId = projectId,
+                    AudioBase64 = audioBase64,
+                    Language = languageCode,
+                    AvailableSpaces = availableSpaces,
+                    VisibleSpaces = visibleSpaces,
+                    DrawingContext = drawingContext,
+                };
+
+                try
+                {
+                    VoiceAudioCommandResponse audioResponse = GigAiApiClient.SendVoiceAudioCommand(apiUrl, audioRequest);
+                    response = audioResponse.Pipeline ?? new VoiceCommandResponse();
+                    if (string.IsNullOrWhiteSpace(transcript))
+                    {
+                        transcript = audioResponse.Transcript ?? string.Empty;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TaskDialog.Show("GigAI API Error", ex.Message);
+                    return Result.Failed;
+                }
+            }
+            else
+            {
+                VoiceCommandRequest request = new VoiceCommandRequest
+                {
+                    ProjectId = projectId,
+                    Transcript = transcript,
+                    AvailableSpaces = availableSpaces,
+                    VisibleSpaces = visibleSpaces,
+                    DrawingContext = drawingContext,
+                };
+
+                try
+                {
+                    response = GigAiApiClient.SendVoiceCommand(apiUrl, request);
+                }
+                catch (Exception ex)
+                {
+                    TaskDialog.Show("GigAI API Error", ex.Message);
+                    return Result.Failed;
+                }
             }
 
             string focusSpace = response?.Event?.FocusSpace ?? string.Empty;
             if (string.IsNullOrWhiteSpace(focusSpace))
                 focusSpace = InferFocusSpaceFromTranscript(transcript, availableSpaces);
 
-            string        noteText       = BuildChangeNote(response, request);
+            string        noteText       = BuildChangeNote(response);
             List<Element> allElements    = CollectAllSpaceElements(doc);
             Element       target         = FindBestMatch(allElements, focusSpace);
             RevitView     annotationView = FindBestAnnotationView(doc, activeView, target);
@@ -108,7 +146,7 @@ namespace GigAi.RevitAddin
                     try
                     {
                         string revisionId = bubbleId != ElementId.InvalidElementId
-                            ? bubbleId.IntegerValue.ToString()
+                            ? bubbleId.Value.ToString()
                             : $"rev_{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
 
                         var revisionPayload = new RevisionMarkedRequest
@@ -582,7 +620,7 @@ namespace GigAi.RevitAddin
             return string.Empty;
         }
 
-        private static string BuildChangeNote(VoiceCommandResponse response, VoiceCommandRequest request)
+        private static string BuildChangeNote(VoiceCommandResponse? response)
         {
             string focus = response?.Event?.FocusSpace ?? "Unknown";
             string proposal = string.IsNullOrWhiteSpace(response?.Decision?.Proposal)
