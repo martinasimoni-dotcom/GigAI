@@ -7,6 +7,7 @@ import { EmployeeLibrary } from './components/EmployeeLibrary.jsx'
 import { ScheduleView } from './components/ScheduleView.jsx'
 import { InboxFeed } from './components/InboxFeed.jsx'
 import { RFIQueue } from './components/RFIQueue.jsx'
+import { DecisionTracker } from './components/DecisionTracker.jsx'
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('inbox')
@@ -81,6 +82,12 @@ export default function App() {
           {activeTab === 'rfis' && (
             <main className="page-panel">
               <RFIQueue />
+            </main>
+          )}
+
+          {activeTab === 'decisions' && (
+            <main className="page-panel">
+              <DecisionTracker />
             </main>
           )}
 

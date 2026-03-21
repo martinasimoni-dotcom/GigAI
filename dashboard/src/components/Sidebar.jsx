@@ -2,6 +2,7 @@ export function Sidebar({ activeTab, onTabChange }) {
   const tabs = [
     { id: 'inbox',     label: 'Inbox',     icon: '✉' },
     { id: 'rfis',      label: 'RFIs',      icon: '?' },
+    { id: 'decisions', label: 'Decisions', icon: '✓' },
     { id: 'proposals', label: 'Proposals', icon: '◈' },
     { id: 'projects',  label: 'Projects',  icon: '▦' },
     { id: 'employees', label: 'Team',      icon: '◉' },

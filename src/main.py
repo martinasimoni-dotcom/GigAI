@@ -14,6 +14,7 @@ from src.api.employees import router as employees_router
 from src.api.schedule import router as schedule_router
 from src.inbox.routes import router as inbox_router
 from src.rfi.routes import router as rfi_router
+from src.decisions.routes import router as decisions_router
 from src.api.middleware import add_middleware
 
 logger = logging.getLogger(__name__)
@@ -168,6 +169,7 @@ app.include_router(employees_router)
 app.include_router(schedule_router)
 app.include_router(inbox_router)
 app.include_router(rfi_router)
+app.include_router(decisions_router)
 
 # Apply middleware (CORS, API key auth, global error handler)
 add_middleware(app)
@@ -194,6 +196,14 @@ async def on_startup() -> None:
         logger.info("RFI queue seeded with %d items", rfi_count)
     except Exception as exc:
         logger.warning("RFI seed skipped: %s", exc)
+
+    # Seed decision tracker (auto-detects from inbox)
+    try:
+        from src.decisions.seed import seed_decisions
+        dec_count = seed_decisions()
+        logger.info("Decision tracker seeded with %d decisions", dec_count)
+    except Exception as exc:
+        logger.warning("Decision seed skipped: %s", exc)
 
     asyncio.create_task(_polling_loop())
 
