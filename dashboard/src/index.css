@@ -1011,6 +1011,146 @@ body {
   margin-top: 3px;
 }
 
+/* ═══ RFI Queue ═════════════════════════════════════════════════════════════ */
+
+.rfi-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rfi-card {
+  position: relative;
+  background: var(--surface-0);
+  border: 1px solid var(--border-0);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  animation: card-in 0.3s cubic-bezier(0.16,1,0.3,1) both;
+}
+.rfi-card:hover {
+  border-color: var(--border-1);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+.rfi-card.expanded { border-color: var(--border-2); }
+
+.rfi-card-stripe {
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px; height: 100%;
+}
+.rfi-card-body { padding: 16px 20px 16px 24px; }
+
+.rfi-card-header {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.rfi-id-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.rfi-card-main { flex: 1; min-width: 0; }
+.rfi-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+  margin-bottom: 6px;
+}
+.rfi-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.rfi-category-chip {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-0);
+  padding: 2px 8px;
+  border-radius: 100px;
+  text-transform: capitalize;
+}
+
+/* Expanded */
+.rfi-expanded {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-0);
+  animation: card-in 0.2s ease both;
+}
+.rfi-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.rfi-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.rfi-confidence {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--green);
+  text-transform: none;
+  letter-spacing: 0;
+}
+.rfi-question-section,
+.rfi-response-section {
+  margin-bottom: 16px;
+}
+.rfi-question-text,
+.rfi-response-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  white-space: pre-wrap;
+  padding: 12px;
+  background: rgba(255,255,255,0.02);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-0);
+}
+.rfi-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  align-items: center;
+}
+.rfi-source-tag {
+  font-size: 10px;
+  font-weight: 500;
+  font-family: var(--mono);
+  padding: 2px 8px;
+  border-radius: 100px;
+  background: var(--green-soft);
+  color: var(--green);
+}
+.rfi-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
 /* ═══ Unified Inbox ═════════════════════════════════════════════════════════ */
 
 .inbox-list {

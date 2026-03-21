@@ -6,6 +6,7 @@ import { ProjectLibrary } from './components/ProjectLibrary.jsx'
 import { EmployeeLibrary } from './components/EmployeeLibrary.jsx'
 import { ScheduleView } from './components/ScheduleView.jsx'
 import { InboxFeed } from './components/InboxFeed.jsx'
+import { RFIQueue } from './components/RFIQueue.jsx'
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('inbox')
@@ -74,6 +75,12 @@ export default function App() {
           {activeTab === 'inbox' && (
             <main className="page-panel">
               <InboxFeed />
+            </main>
+          )}
+
+          {activeTab === 'rfis' && (
+            <main className="page-panel">
+              <RFIQueue />
             </main>
           )}
 

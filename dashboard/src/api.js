@@ -161,6 +161,59 @@ export async function fetchScheduleAnalysis(projectId) {
 }
 
 // ---------------------------------------------------------------------------
+// RFIs
+// ---------------------------------------------------------------------------
+
+export async function fetchRFIs(params = {}) {
+  const qs = new URLSearchParams(params).toString()
+  try {
+    const res = await fetch(`${BASE}/api/rfis${qs ? '?' + qs : ''}`)
+    if (!res.ok) return { rfis: [], total: 0 }
+    return res.json()
+  } catch {
+    return { rfis: [], total: 0 }
+  }
+}
+
+export async function fetchRFIStats() {
+  try {
+    const res = await fetch(`${BASE}/api/rfis/stats`)
+    if (!res.ok) return null
+    return res.json()
+  } catch {
+    return null
+  }
+}
+
+export async function draftRFI(rfiId) {
+  const res = await fetch(`${BASE}/api/rfis/${rfiId}/draft`, { method: 'POST' })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}
+
+export async function editRFI(rfiId, editedText) {
+  const res = await fetch(`${BASE}/api/rfis/${rfiId}/edit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ edited_text: editedText }),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}
+
+export async function sendRFI(rfiId) {
+  const res = await fetch(`${BASE}/api/rfis/${rfiId}/send`, { method: 'POST' })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}
+
+export async function closeRFI(rfiId) {
+  const res = await fetch(`${BASE}/api/rfis/${rfiId}/close`, { method: 'POST' })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}
+
+// ---------------------------------------------------------------------------
 // Inbox
 // ---------------------------------------------------------------------------
 

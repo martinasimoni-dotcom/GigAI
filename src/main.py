@@ -13,6 +13,7 @@ from src.api.projects import router as projects_router
 from src.api.employees import router as employees_router
 from src.api.schedule import router as schedule_router
 from src.inbox.routes import router as inbox_router
+from src.rfi.routes import router as rfi_router
 from src.api.middleware import add_middleware
 
 logger = logging.getLogger(__name__)
@@ -166,6 +167,7 @@ app.include_router(projects_router)
 app.include_router(employees_router)
 app.include_router(schedule_router)
 app.include_router(inbox_router)
+app.include_router(rfi_router)
 
 # Apply middleware (CORS, API key auth, global error handler)
 add_middleware(app)
@@ -184,6 +186,14 @@ async def on_startup() -> None:
         logger.info("Unified inbox seeded with %d items", count)
     except Exception as exc:
         logger.warning("Inbox seed skipped: %s", exc)
+
+    # Seed RFI queue (auto-detects from inbox + adds lifecycle demos)
+    try:
+        from src.rfi.seed import seed_rfis
+        rfi_count = seed_rfis()
+        logger.info("RFI queue seeded with %d items", rfi_count)
+    except Exception as exc:
+        logger.warning("RFI seed skipped: %s", exc)
 
     asyncio.create_task(_polling_loop())
 
