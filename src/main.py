@@ -27,6 +27,10 @@ logger = logging.getLogger(__name__)
 
 def _ensure_db_tables() -> None:
     """Create tables required by the system if they don't exist yet."""
+    from config.settings import settings
+    if not settings.database_url:
+        logger.info("No DATABASE_URL — skipping DB table creation.")
+        return
     from src.shared.db.postgres import get_connection, release_connection
     conn = get_connection()
     try:
@@ -128,13 +132,13 @@ def _validate_startup() -> None:
     """
     from config.settings import settings
 
-    # Hard requirements — app cannot function without these
+    # Core AI keys — warn if missing (app still starts, uses fallbacks)
     if not settings.anthropic_api_key:
-        raise RuntimeError("ANTHROPIC_API_KEY is not set. LLM calls will fail.")
+        logger.warning("ANTHROPIC_API_KEY not set — AI classification and proposal generation disabled. Using heuristic fallbacks.")
     if not settings.voyage_api_key:
-        raise RuntimeError("VOYAGE_API_KEY is not set. Embedding calls will fail.")
+        logger.warning("VOYAGE_API_KEY not set — Embedding/vector search disabled.")
     if not settings.database_url:
-        raise RuntimeError("DATABASE_URL is not set. Database operations will fail.")
+        logger.warning("DATABASE_URL not set — Database operations disabled. Using in-memory stores only.")
 
     # Soft requirements — log warnings so operators know features are disabled
     if not settings.google_cloud_project:
