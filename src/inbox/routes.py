@@ -82,6 +82,35 @@ async def mark_read(item_id: str):
     return {"status": "ok", "item_id": item_id, "is_read": True}
 
 
+@router.post("/{item_id}/archive")
+async def archive_item(item_id: str):
+    """Hide item from active feed. Data preserved — queryable via /api/inbox/archived."""
+    success = inbox_store.archive(item_id)
+    if not success:
+        raise HTTPException(status_code=404, detail=f"Inbox item {item_id} not found")
+    return {"status": "ok", "item_id": item_id, "archived": True}
+
+
+@router.post("/{item_id}/unarchive")
+async def unarchive_item(item_id: str):
+    """Restore archived item back to active feed."""
+    success = inbox_store.unarchive(item_id)
+    if not success:
+        raise HTTPException(status_code=404, detail=f"Archived item {item_id} not found")
+    return {"status": "ok", "item_id": item_id, "archived": False}
+
+
+@router.get("/archived")
+async def list_archived(
+    search: Optional[str] = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+):
+    """Query archived items — data is always stored, just hidden from active feed."""
+    items, total = inbox_store.list_archived(search=search, limit=limit, offset=offset)
+    return {"items": [_serialize(i) for i in items], "total": total, "limit": limit, "offset": offset}
+
+
 def _serialize(item) -> dict:
     """Convert InboxItem to API response dict."""
     return {

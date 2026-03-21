@@ -13,6 +13,7 @@ from src.inbox.models import InboxItem
 class InboxStore:
     def __init__(self) -> None:
         self._items: list[InboxItem] = []
+        self._archived: list[InboxItem] = []  # Hidden but not deleted
         self._lock = threading.Lock()
 
     def add(self, item: InboxItem) -> None:
@@ -66,9 +67,39 @@ class InboxStore:
                     return True
         return False
 
+    def archive(self, item_id: str) -> bool:
+        """Hide an item from the active feed. Data is preserved and queryable."""
+        with self._lock:
+            for idx, item in enumerate(self._items):
+                if item.item_id == item_id:
+                    self._archived.append(self._items.pop(idx))
+                    return True
+        return False
+
+    def unarchive(self, item_id: str) -> bool:
+        """Restore an archived item back to the active feed."""
+        with self._lock:
+            for idx, item in enumerate(self._archived):
+                if item.item_id == item_id:
+                    self._items.append(self._archived.pop(idx))
+                    return True
+        return False
+
+    def list_archived(self, search: str | None = None, limit: int = 100, offset: int = 0) -> tuple[list[InboxItem], int]:
+        """Query archived items."""
+        with self._lock:
+            results = list(self._archived)
+        if search:
+            q = search.lower()
+            results = [i for i in results if q in i.summary.lower() or q in i.sender.lower() or (i.subject and q in i.subject.lower())]
+        results.sort(key=lambda x: -x.received_at.timestamp())
+        total = len(results)
+        return results[offset:offset + limit], total
+
     def clear(self) -> None:
         with self._lock:
             self._items.clear()
+            self._archived.clear()
 
     @property
     def count(self) -> int:

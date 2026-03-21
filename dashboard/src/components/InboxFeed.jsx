@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { fetchInbox, fetchInboxStats, markInboxRead } from '../api.js'
+import { fetchInbox, fetchInboxStats, markInboxRead, archiveInboxItem } from '../api.js'
 
 const COMM_TYPES = ['all', 'escalation', 'action-item', 'decision', 'question', 'FYI']
 const SOURCES = ['all', 'gmail', 'fireflies', 'acc', 'internal']
@@ -65,6 +65,12 @@ export function InboxFeed() {
     setItems(prev => prev.map(i =>
       i.item_id === itemId ? { ...i, is_read: true } : i
     ))
+  }
+
+  async function handleArchive(itemId) {
+    await archiveInboxItem(itemId)
+    setItems(prev => prev.filter(i => i.item_id !== itemId))
+    fetchInboxStats().then(setStats)
   }
 
   function toggleExpand(itemId) {
@@ -157,6 +163,7 @@ export function InboxFeed() {
               expanded={expandedId === item.item_id}
               onToggle={() => toggleExpand(item.item_id)}
               onMarkRead={() => handleMarkRead(item.item_id)}
+              onArchive={() => handleArchive(item.item_id)}
             />
           ))}
         </div>
@@ -165,7 +172,7 @@ export function InboxFeed() {
   )
 }
 
-function InboxItemCard({ item, expanded, onToggle, onMarkRead }) {
+function InboxItemCard({ item, expanded, onToggle, onMarkRead, onArchive }) {
   const typeColor = TYPE_COLOR[item.comm_type] || 'var(--text-tertiary)'
   const urgColor = URGENCY_COLOR[item.urgency] || 'var(--text-tertiary)'
   const timeAgo = getTimeAgo(item.received_at)
@@ -258,6 +265,13 @@ function InboxItemCard({ item, expanded, onToggle, onMarkRead }) {
                   Mark as read
                 </button>
               )}
+              <button
+                className="inbox-mark-read-btn"
+                onClick={(e) => { e.stopPropagation(); onArchive() }}
+                style={{ color: 'var(--text-tertiary)' }}
+              >
+                Dismiss
+              </button>
             </div>
           </div>
         )}

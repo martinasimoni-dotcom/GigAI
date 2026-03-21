@@ -238,6 +238,16 @@ export async function fetchInboxStats() {
   }
 }
 
+export async function archiveInboxItem(itemId) {
+  try {
+    const res = await fetch(`${BASE}/api/inbox/${itemId}/archive`, { method: 'POST' })
+    if (!res.ok) return null
+    return res.json()
+  } catch {
+    return null
+  }
+}
+
 export async function markInboxRead(itemId) {
   try {
     const res = await fetch(`${BASE}/api/inbox/${itemId}/read`, { method: 'POST' })

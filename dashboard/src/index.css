@@ -522,6 +522,89 @@ body {
   color: var(--text-secondary);
 }
 
+/* ─── Proposal Action Editing ────────────────────────────────────────────── */
+.actions-section { margin-bottom: 16px; }
+.actions-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.actions-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.btn-edit-actions {
+  padding: 4px 12px;
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: all 0.15s;
+}
+.btn-edit-actions:hover {
+  background: var(--accent-soft);
+}
+.action-detail-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border-0);
+  border-radius: var(--radius-md);
+  margin-bottom: 6px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.action-detail-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+}
+.action-detail-info { flex: 1; min-width: 0; }
+.action-detail-what {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.action-detail-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.action-detail-dest {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-family: var(--mono);
+  margin-top: 4px;
+}
+.action-edit-textarea {
+  width: 100%;
+  padding: 8px 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 12px;
+  resize: none;
+  outline: none;
+}
+.action-edit-textarea:focus { border-color: var(--accent); }
+.action-remove-btn {
+  padding: 4px 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.action-remove-btn:hover { color: var(--red); }
+
 /* ─── Decision Buttons ───────────────────────────────────────────────────── */
 .decision-row {
   display: grid;
