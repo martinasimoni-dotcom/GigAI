@@ -15,6 +15,10 @@ from src.api.schedule import router as schedule_router
 from src.inbox.routes import router as inbox_router
 from src.rfi.routes import router as rfi_router
 from src.decisions.routes import router as decisions_router
+from src.stakeholders.routes import router as stakeholders_router
+from src.impact.routes import router as impact_router
+from src.reports.routes import router as reports_router
+from src.notifications.routes import router as notifications_router
 from src.api.middleware import add_middleware
 
 logger = logging.getLogger(__name__)
@@ -170,6 +174,10 @@ app.include_router(schedule_router)
 app.include_router(inbox_router)
 app.include_router(rfi_router)
 app.include_router(decisions_router)
+app.include_router(stakeholders_router)
+app.include_router(impact_router)
+app.include_router(reports_router)
+app.include_router(notifications_router)
 
 # Apply middleware (CORS, API key auth, global error handler)
 add_middleware(app)
@@ -204,6 +212,14 @@ async def on_startup() -> None:
         logger.info("Decision tracker seeded with %d decisions", dec_count)
     except Exception as exc:
         logger.warning("Decision seed skipped: %s", exc)
+
+    # Generate smart notifications from inbox
+    try:
+        from src.notifications.smart import generate_notifications_from_inbox
+        notif_count = generate_notifications_from_inbox()
+        logger.info("Smart notifications generated: %d items", notif_count)
+    except Exception as exc:
+        logger.warning("Notification generation skipped: %s", exc)
 
     asyncio.create_task(_polling_loop())
 
