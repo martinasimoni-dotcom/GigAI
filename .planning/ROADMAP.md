@@ -23,7 +23,7 @@
 
 ---
 
-## v2.0 Phases
+## Phases
 
 - [ ] **Phase 10: Unified Inbox** — Ingest all project communications into a single classified and routed event stream
 - [ ] **Phase 11: RFI/Submittal Automation** — Detect RFI-type questions and auto-draft responses from the knowledge base
@@ -39,7 +39,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 10. Unified Inbox | 0/TBD | Not started | - |
+| 10. Unified Inbox | 0/6 | Planned | - |
 | 11. RFI/Submittal Automation | 0/TBD | Not started | - |
 | 12. Decision Tracker | 0/TBD | Not started | - |
 | 13. Stakeholder Communication Map | 0/TBD | Not started | - |
@@ -61,7 +61,14 @@
   3. Each item is classified as one of: decision, action-item, FYI, question, or escalation — and the PM can filter the feed by any of these types.
   4. Items are automatically routed to the correct project without PM intervention, based on content analysis of the communication body.
   5. Clicking the source link on any inbox item opens the original email, transcript, or ACC issue for full context.
-**Plans**: TBD
+**Plans**: 6 plans
+Plans:
+- [ ] 10-01-PLAN.md — InboxItem model + InboxStore (data layer)
+- [ ] 10-02-PLAN.md — AI classifier using Haiku (classify_communication)
+- [ ] 10-03-PLAN.md — Dummy data seed (55+ realistic InboxItems)
+- [ ] 10-04-PLAN.md — FastAPI backend routes (/api/inbox endpoints)
+- [ ] 10-05-PLAN.md — React InboxFeed + InboxItem components
+- [ ] 10-06-PLAN.md — App wiring (Sidebar Inbox tab + App.jsx)
 
 ### Phase 11: RFI/Submittal Automation
 **Goal**: RFI-type questions detected from any communication source are automatically drafted into complete responses using the knowledge base, and the PM can review, edit, and send in one click.
@@ -155,4 +162,4 @@ Coverage: 37/37 v2.0 requirements mapped. No orphans.
 
 ---
 
-*Last updated: 2026-03-21 — v2.0 roadmap initialized*
+*Last updated: 2026-03-21 — Phase 10 planned (6 plans, 5 waves)*
