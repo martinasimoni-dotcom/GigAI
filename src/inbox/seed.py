@@ -1,0 +1,576 @@
+"""
+Seed data for the unified inbox — 55+ realistic construction project communications.
+
+Covers all source types (gmail, fireflies, acc, internal), all comm_types
+(decision, action-item, FYI, question, escalation), realistic urgency distribution,
+and links to existing projects from the project library.
+"""
+import logging
+from datetime import datetime, timedelta, timezone
+
+from src.inbox.models import ActionItem, InboxItem
+from src.inbox.store import inbox_store
+
+logger = logging.getLogger(__name__)
+
+
+def _ago(hours: int) -> datetime:
+    return datetime.now(timezone.utc) - timedelta(hours=hours)
+
+
+def seed_inbox() -> int:
+    """Populate inbox_store with 55+ realistic InboxItems. Returns count."""
+    inbox_store.clear()
+    items = _build_seed_items()
+    for item in items:
+        inbox_store.add(item)
+    logger.info("Inbox seeded with %d items", len(items))
+    return len(items)
+
+
+def _build_seed_items() -> list[InboxItem]:
+    return [
+        # === ESCALATIONS (urgency 4-5) ===
+        InboxItem(
+            source="gmail", comm_type="escalation", urgency=5,
+            summary="URGENT: Water infiltration detected on 3rd floor — work stoppage required",
+            raw_text="Team, we've discovered significant water infiltration at the 3rd floor curtain wall junction. The waterproofing membrane appears compromised. I'm ordering an immediate work stoppage in zones 3A and 3B until we can assess the extent of damage. Structural engineer needs to inspect ASAP. This could affect the window installation schedule.",
+            project_id="PRJ-001", project_name="Harbor View Tower",
+            sender="Carlos Rivera", sender_email="c.rivera@apexconstruction.com",
+            subject="URGENT: Water infiltration — 3rd floor work stoppage",
+            source_url="https://mail.google.com/mail/u/0/#inbox/msg-001",
+            action_items=[
+                ActionItem(assignee="Lisa Wong", priority="high", description="Inspect 3rd floor waterproofing membrane — structural assessment needed"),
+                ActionItem(assignee="Sarah Chen", priority="high", description="Notify client about potential schedule impact"),
+            ],
+            received_at=_ago(1),
+        ),
+        InboxItem(
+            source="acc", comm_type="escalation", urgency=5,
+            summary="Safety violation: Missing guardrails on 5th floor perimeter reported by safety officer",
+            raw_text="ACC Issue #4521: Safety violation flagged during morning inspection. 5th floor east perimeter missing temporary guardrails after concrete pour. Two workers observed near unprotected edge. Immediate corrective action required per OSHA 1926.502.",
+            project_id="PRJ-001", project_name="Harbor View Tower",
+            sender="Safety Inspector", sender_email="safety@apexconstruction.com",
+            subject="Safety Violation — Missing Guardrails Floor 5",
+            source_url="https://acc.autodesk.com/issues/4521",
+            action_items=[
+                ActionItem(assignee="Carlos Rivera", priority="high", description="Install temporary guardrails on 5th floor east perimeter immediately"),
+            ],
+            received_at=_ago(2),
+        ),
+        InboxItem(
+            source="gmail", comm_type="escalation", urgency=4,
+            summary="Concrete delivery delayed 48 hours — 4th floor pour at risk",
+            raw_text="Sarah, just got word from our concrete supplier that the next batch delivery is pushed back 48 hours due to a plant equipment issue. This puts our 4th floor pour schedule at risk. We need to either find an alternative supplier or adjust the pour sequence. The steel crew is already on site waiting.",
+            project_id="PRJ-001", project_name="Harbor View Tower",
+            sender="Mike Torres", sender_email="m.torres@apexconstruction.com",
+            subject="Re: 4th Floor Pour Schedule — Supplier Delay",
+            source_url="https://mail.google.com/mail/u/0/#inbox/msg-003",
+            action_items=[
+                ActionItem(assignee="Mike Torres", priority="high", description="Contact backup concrete suppliers for availability"),
+                ActionItem(assignee="Sarah Chen", deadline=_ago(-24), priority="high", description="Decide: wait for original supplier or switch"),
+            ],
+            received_at=_ago(3),
+        ),
+
+        # === DECISIONS (urgency 2-4) ===
+        InboxItem(
+            source="fireflies", comm_type="decision", urgency=4,
+            summary="Approved: Switch from aluminum to wood window frames for 3rd floor (12 units)",
+            raw_text="Meeting: Harbor View Tower — Weekly Design Review. Decision: After reviewing structural analysis from Lisa Wong and cost comparison, the team approved switching from aluminum to wood window frames for 3rd floor. 12 units at $850/unit from Premium Wood Co. James Park to update drawing A-301.",
+            project_id="PRJ-001", project_name="Harbor View Tower",
+            sender="Sarah Chen", sender_email="s.chen@apexconstruction.com",
+            subject="Weekly Design Review — Material Decision",
+            source_url="https://app.fireflies.ai/view/meeting-001",
+            action_items=[
+                ActionItem(assignee="James Park", priority="high", description="Update drawing A-301 to reflect wood window frames"),
+                ActionItem(assignee="Mike Torres", priority="medium", description="Issue PO to Premium Wood Co. for 12 units"),
+            ],
+            received_at=_ago(5),
+        ),
+        InboxItem(
+            source="fireflies", comm_type="decision", urgency=3,
+            summary="HVAC system selection finalized — VRF system by Daikin for floors 1-12",
+            raw_text="MEP coordination meeting. After evaluating three options, the team selected the Daikin VRF system for floors 1-12. This decision was driven by energy efficiency requirements for LEED Gold certification and the reduced ductwork footprint. Lisa confirmed no structural concerns with rooftop unit placement.",
+            project_id="PRJ-001", project_name="Harbor View Tower",
+            sender="Dr. Rachel Adams", sender_email="r.adams@apexconstruction.com",
+            subject="MEP Coordination — HVAC Decision",
+            source_url="https://app.fireflies.ai/view/meeting-002",
+            action_items=[
+                ActionItem(assignee="Mike Torres", priority="medium", description="Negotiate Daikin VRF pricing and lead time"),
+            ],
+            received_at=_ago(8),
+        ),
+        InboxItem(
+            source="gmail", comm_type="decision", urgency=3,
+            summary="Client approved revised lobby design with imported marble flooring",
+            raw_text="Hi Sarah, after reviewing the three lobby concepts, the client has approved Option B — the imported Italian marble with backlit feature wall. Budget increase of $180K approved. Please update the procurement schedule accordingly. The marble has a 14-week lead time from quarry.",
+            project_id="PRJ-001", project_name="Harbor View Tower",
+            sender="Robert Hayes", sender_email="r.hayes@harbordevelopment.com",
+            subject="RE: Lobby Design Approval",
+            source_url="https://mail.google.com/mail/u/0/#inbox/msg-005",
+            action_items=[
+                ActionItem(assignee="James Park", priority="medium", description="Finalize lobby design drawings with Option B"),
+                ActionItem(assignee="Mike Torres", deadline=_ago(-48), priority="high", description="Order Italian marble — 14 week lead time"),
+            ],
+            received_at=_ago(12),
+        ),
+        InboxItem(
+            source="internal", comm_type="decision", urgency=2,
+            summary="Decided to use BIM 360 for document management across all active projects",
+            raw_text="After evaluating Procore, PlanGrid, and BIM 360, the executive team has decided to standardize on BIM 360 (now ACC) for document management across all active projects. Migration will begin next month. Training sessions will be scheduled.",
+            project_id=None, project_name=None,
+            sender="Marie Dupont", sender_email="m.dupont@apexconstruction.com",
+            subject="Company-wide: Document Management Standardization",
+            source_url=None,
+            received_at=_ago(24),
+        ),
+
+        # === ACTION ITEMS (urgency 2-4) ===
+        InboxItem(
+            source="gmail", comm_type="action-item", urgency=4,
+            summary="Submit revised structural calculations to city by Friday — permit renewal depends on it",
+            raw_text="Lisa, the city building department needs our revised structural calculations for the 3rd floor modifications by this Friday. Our permit renewal is contingent on this submission. Please prioritize the wood frame load analysis and send it to me for review by Thursday EOD.",
+            project_id="PRJ-001", project_name="Harbor View Tower",
+            sender="Sarah Chen", sender_email="s.chen@apexconstruction.com",
+            subject="ACTION: Structural Calcs Due Friday",
+            source_url="https://mail.google.com/mail/u/0/#inbox/msg-007",
+            action_items=[
+                ActionItem(assignee="Lisa Wong", deadline=_ago(-48), priority="high", description="Complete revised structural calculations for 3rd floor wood frame modification"),
+            ],
+            received_at=_ago(6),
+        ),
+        InboxItem(
+            source="acc", comm_type="action-item", urgency=3,
+            summary="RFI #0034: Confirm fire rating requirement for corridor partition walls on floors 2-5",
+            raw_text="ACC RFI #0034 assigned to James Park. The fire protection engineer needs confirmation on the required fire rating for corridor partition walls on floors 2-5. Current specs show 1-hour rating but local code may require 2-hour for buildings over 4 stories. Please review and respond.",
+            project_id="PRJ-001", project_name="Harbor View Tower",
+            sender="ACC System", sender_email="noreply@autodesk.com",
+            subject="RFI #0034 — Fire Rating Clarification",
+            source_url="https://acc.autodesk.com/rfis/0034",
+            action_items=[
+                ActionItem(assignee="James Park", priority="medium", description="Review fire rating requirements and respond to RFI #0034"),
+            ],
+            received_at=_ago(10),
+        ),
+        InboxItem(
+            source="gmail", comm_type="action-item", urgency=3,
+            summary="Update project schedule to reflect 2-week delay in elevator cab delivery",
+            raw_text="Sarah, the elevator manufacturer informed us that cab delivery will be delayed by 2 weeks due to supply chain issues with the control panels. This pushes our elevator installation from April 15 to April 29. Please update the master schedule and assess any impacts on the TCO timeline.",
+            project_id="PRJ-001", project_name="Harbor View Tower",
+            sender="Tony Morales", sender_email="t.morales@apexconstruction.com",
+            subject="Elevator Delivery Delay — Schedule Update Needed",
+            source_url="https://mail.google.com/mail/u/0/#inbox/msg-009",
+            action_items=[
+                ActionItem(assignee="Sarah Chen", priority="medium", description="Update master schedule for 2-week elevator delay"),
+                ActionItem(assignee="Sarah Chen", priority="medium", description="Assess TCO timeline impact"),
+            ],
+            received_at=_ago(14),
+        ),
+        InboxItem(
+            source="gmail", comm_type="action-item", urgency=3,
+            summary="Procure FSC-certified wood for 3rd floor window frames — need quote by Tuesday",
+            raw_text="Jane, as discussed in the design review meeting, we need FSC-certified wood frames for the 3rd floor windows (12 units). Can you provide a formal quote by Tuesday? We need species options, lead times, and pricing per unit. Wood must meet ASTM E2768 fire resistance standards.",
+            project_id="PRJ-001", project_name="Harbor View Tower",
+            sender="Mike Torres", sender_email="m.torres@apexconstruction.com",
+            subject="Quote Request: FSC Wood Window Frames (12 units)",
+            source_url="https://mail.google.com/mail/u/0/#inbox/msg-010",
+            action_items=[
+                ActionItem(assignee="Jane Miller", deadline=_ago(-24), priority="medium", description="Provide formal quote for 12 FSC-certified wood window frames"),
+            ],
+            received_at=_ago(16),
+        ),
+
+        # === QUESTIONS (urgency 2-3) ===
+        InboxItem(
+            source="gmail", comm_type="question", urgency=3,
+            summary="Can we use the existing MEP riser shaft for the additional HVAC ductwork?",
+            raw_text="Carlos, quick question — with the VRF system selection, can we route the additional refrigerant piping through the existing MEP riser shaft, or do we need to core a new penetration? The shaft drawings show about 30% spare capacity but I want to confirm before we start the detailed design.",
+            project_id="PRJ-001", project_name="Harbor View Tower",
+            sender="Lisa Wong", sender_email="l.wong@structuralfocus.com",
+            subject="MEP Shaft Capacity Question",
+            source_url="https://mail.google.com/mail/u/0/#inbox/msg-011",
+            received_at=_ago(9),
+        ),
+        InboxItem(
+            source="acc", comm_type="question", urgency=3,
+            summary="Submittal #0089: Which finish grade for exterior cladding panels — Grade A or Grade B?",
+            raw_text="ACC Submittal #0089. Exterior cladding vendor requesting confirmation on finish grade. Spec section 074600 references 'premium grade' but doesn't specify A or B. Grade A is $12/sqft more but has better UV resistance. Architect to confirm.",
+            project_id="PRJ-001", project_name="Harbor View Tower",
+            sender="ACC System", sender_email="noreply@autodesk.com",
+            subject="Submittal #0089 — Cladding Finish Grade",
+            source_url="https://acc.autodesk.com/submittals/0089",
+            action_items=[
+                ActionItem(assignee="James Park", priority="medium", description="Confirm cladding finish grade — Grade A or B"),
+            ],
+            received_at=_ago(18),
+        ),
+        InboxItem(
+            source="gmail", comm_type="question", urgency=2,
+            summary="What's the latest on the rooftop solar panel mounting system selection?",
+            raw_text="Sarah, the sustainability consultant is asking about the rooftop solar panel mounting system. We had three options on the table last month. Has a decision been made? The electrical subcontractor needs this to finalize their rough-in plan for the penthouse level.",
+            project_id="PRJ-001", project_name="Harbor View Tower",
+            sender="Chris Anderson", sender_email="c.anderson@apexconstruction.com",
+            subject="Solar Panel Mounting System Status?",
+            source_url="https://mail.google.com/mail/u/0/#inbox/msg-013",
+            received_at=_ago(30),
+        ),
+
+        # === FYI (urgency 1-2) ===
+        InboxItem(
+            source="fireflies", comm_type="FYI", urgency=2,
+            summary="Weekly safety meeting: zero incidents this week, new fall protection training scheduled",
+            raw_text="Weekly safety meeting transcript. Carlos Rivera reported zero recordable incidents this week. New fall protection training will be conducted next Tuesday for the steel crew. All workers must complete the refresher before accessing floors 6+. Hard hat compliance at 98%.",
+            project_id="PRJ-001", project_name="Harbor View Tower",
+            sender="Carlos Rivera", sender_email="c.rivera@apexconstruction.com",
+            subject="Weekly Safety Meeting Notes",
+            source_url="https://app.fireflies.ai/view/meeting-003",
+            received_at=_ago(4),
+        ),
+        InboxItem(
+            source="gmail", comm_type="FYI", urgency=1,
+            summary="Monthly progress photos uploaded to BIM 360 — March 2026",
+            raw_text="Team, March progress photos have been uploaded to BIM 360 under the Photos folder. 47 photos covering all active floors. Ground-level exterior shots show the curtain wall installation progress on floors 1-3. Drone shots of the structural steel progress on floors 6-10 are also included.",
+            project_id="PRJ-001", project_name="Harbor View Tower",
+            sender="Carlos Rivera", sender_email="c.rivera@apexconstruction.com",
+            subject="March Progress Photos Available",
+            source_url="https://mail.google.com/mail/u/0/#inbox/msg-015",
+            received_at=_ago(48),
+        ),
+        InboxItem(
+            source="internal", comm_type="FYI", urgency=1,
+            summary="Company holiday schedule: offices closed March 28-31 for Easter weekend",
+            raw_text="Reminder: All offices will be closed March 28-31 for Easter weekend. Job sites will maintain skeleton crews for security. Emergency contacts are posted in the break rooms. Normal operations resume April 1.",
+            project_id=None, project_name=None,
+            sender="HR Department", sender_email="hr@apexconstruction.com",
+            subject="Easter Holiday Schedule",
+            source_url=None,
+            received_at=_ago(72),
+        ),
+        InboxItem(
+            source="gmail", comm_type="FYI", urgency=2,
+            summary="Insurance certificate updated for Harbor View Tower — valid through Dec 2026",
+            raw_text="Sarah, please find attached the updated certificate of insurance for the Harbor View Tower project. Coverage has been renewed through December 2026 with the same terms. No changes to limits or deductibles. Please file with the owner's representative.",
+            project_id="PRJ-001", project_name="Harbor View Tower",
+            sender="Elena Vasquez", sender_email="e.vasquez@apexconstruction.com",
+            subject="Updated Insurance Certificate — Harbor View Tower",
+            source_url="https://mail.google.com/mail/u/0/#inbox/msg-017",
+            received_at=_ago(96),
+        ),
+
+        # === CROSS-PROJECT COMMUNICATIONS ===
+        InboxItem(
+            source="gmail", comm_type="action-item", urgency=4,
+            summary="Innovation Hub: Server room HVAC failure — temporary cooling units needed today",
+            raw_text="Michael, the primary HVAC unit for the server room at Innovation Hub Tower failed overnight. Interior temp is already at 85°F. We need portable cooling units deployed today to prevent equipment damage. The IT tenant is threatening contract penalties if data center temps exceed 90°F.",
+            project_id="PRJ-006", project_name="Innovation Hub Tower",
+            sender="Tony Morales", sender_email="t.morales@apexconstruction.com",
+            subject="URGENT: Server Room HVAC Failure — Innovation Hub",
+            source_url="https://mail.google.com/mail/u/0/#inbox/msg-018",
+            action_items=[
+                ActionItem(assignee="Tony Morales", priority="high", description="Deploy portable cooling units to server room today"),
+                ActionItem(assignee="Michael Zhang", priority="high", description="Contact HVAC vendor for emergency repair"),
+            ],
+            received_at=_ago(2),
+        ),
+        InboxItem(
+            source="fireflies", comm_type="decision", urgency=3,
+            summary="Central Mall: Food court layout approved with Option C — expanded seating",
+            raw_text="Central Mall Expansion design review. The client approved food court Layout Option C with expanded seating for 450. This includes the covered outdoor terrace extension. Raj to update the MEP distribution plan for the additional kitchen exhaust requirements. Construction to begin in 3 weeks.",
+            project_id="PRJ-007", project_name="Central Mall Expansion",
+            sender="Wei Lin", sender_email="w.lin@apexconstruction.com",
+            subject="Central Mall — Food Court Design Approval",
+            source_url="https://app.fireflies.ai/view/meeting-004",
+            action_items=[
+                ActionItem(assignee="Raj Patel", priority="medium", description="Update MEP distribution plan for food court kitchen exhaust"),
+            ],
+            received_at=_ago(20),
+        ),
+        InboxItem(
+            source="gmail", comm_type="escalation", urgency=4,
+            summary="Lakeside Medical: OR suite air handling test failed — construction cannot proceed",
+            raw_text="Dr. Adams, the operating room air handling system failed the required positive pressure differential test. The HEPA filtration is performing correctly but we're not maintaining the 0.01 inch WG differential at the door. Construction in the OR wing cannot proceed until this is resolved. The infection control risk assessment (ICRA) barrier must remain in place.",
+            project_id="PRJ-008", project_name="Lakeside Medical Center",
+            sender="Frank Kowalski", sender_email="f.kowalski@apexconstruction.com",
+            subject="OR Suite Air Handling Test Failure",
+            source_url="https://mail.google.com/mail/u/0/#inbox/msg-020",
+            action_items=[
+                ActionItem(assignee="Dr. Rachel Adams", priority="high", description="Schedule HVAC engineer to diagnose pressure differential issue"),
+                ActionItem(assignee="Frank Kowalski", priority="high", description="Maintain ICRA barrier until air handling passes"),
+            ],
+            received_at=_ago(7),
+        ),
+        InboxItem(
+            source="gmail", comm_type="question", urgency=2,
+            summary="Maple Ridge: Can townhouse units 201-210 share a single electrical transformer?",
+            raw_text="David, the electrical engineer is asking whether units 201-210 can share a single pad-mounted transformer or if we need two. Load calculations show 450 kVA total which is at the upper limit for a single 500 kVA unit. What's your preference — single with limited headroom or two 300 kVA units for growth capacity?",
+            project_id="PRJ-002", project_name="Maple Ridge Estates",
+            sender="Marcus Johnson",
+            subject="Electrical Transformer Sizing — Units 201-210",
+            source_url="https://mail.google.com/mail/u/0/#inbox/msg-021",
+            received_at=_ago(36),
+        ),
+        InboxItem(
+            source="acc", comm_type="action-item", urgency=3,
+            summary="Exchange District: Concrete core test results below spec — retest required",
+            raw_text="ACC Issue #7892: Concrete core test from Tower B, Level 3 returned 3,800 PSI against the specified 4,000 PSI minimum. Additional cores need to be extracted and tested per ACI 318 protocol. Structural engineer to determine if remediation is required.",
+            project_id="PRJ-011", project_name="The Exchange District",
+            sender="ACC System", sender_email="noreply@autodesk.com",
+            subject="Core Test Below Spec — Tower B Level 3",
+            source_url="https://acc.autodesk.com/issues/7892",
+            action_items=[
+                ActionItem(assignee="Jean-Pierre Lavoie", priority="high", description="Extract additional concrete cores from Tower B Level 3"),
+                ActionItem(assignee="Marie Dupont", priority="medium", description="Review structural implications of below-spec concrete"),
+            ],
+            received_at=_ago(11),
+        ),
+        InboxItem(
+            source="gmail", comm_type="FYI", urgency=1,
+            summary="Data Center Campus: Phase 1 building achieved Tier IV certification",
+            raw_text="Great news! Building 1 of the Data Center Campus has officially received Uptime Institute Tier IV Constructed Facility certification. This is the highest certification level available. The cooling system redundancy and power distribution architecture both passed with zero deficiencies. Congratulations to the team.",
+            project_id="PRJ-026", project_name="Data Center Campus",
+            sender="Ciaran Murphy", sender_email="c.murphy@apexconstruction.com",
+            subject="Tier IV Certification Achieved — Building 1",
+            source_url="https://mail.google.com/mail/u/0/#inbox/msg-023",
+            received_at=_ago(52),
+        ),
+        InboxItem(
+            source="fireflies", comm_type="action-item", urgency=3,
+            summary="Solar Plant: Clean room HEPA filter replacement schedule needs updating",
+            raw_text="Solar Panel Manufacturing Plant weekly coordination. The clean room HEPA filters in production line B are approaching replacement threshold (6 months). Troy to coordinate with the filter supplier for next batch delivery. Current lead time is 4 weeks. Must not disrupt production line during changeover.",
+            project_id="PRJ-021", project_name="Solar Panel Manufacturing Plant",
+            sender="Angela Martinez", sender_email="a.martinez@apexconstruction.com",
+            subject="Weekly Coordination — Filter Replacement",
+            source_url="https://app.fireflies.ai/view/meeting-005",
+            action_items=[
+                ActionItem(assignee="Troy Williams", deadline=_ago(-168), priority="medium", description="Order HEPA filter replacement batch for clean room production line B"),
+            ],
+            received_at=_ago(15),
+        ),
+        InboxItem(
+            source="gmail", comm_type="question", urgency=3,
+            summary="Coastal Highway Bridge: Should seismic isolation bearings be tested on-site or at factory?",
+            raw_text="Lisa, we have two options for testing the seismic isolation bearings: 1) Factory acceptance testing at the manufacturer's facility in Japan, or 2) On-site testing after installation. Factory testing adds $85K but catches defects before shipping. On-site testing is cheaper but riskier. Your recommendation?",
+            project_id="PRJ-015", project_name="Coastal Highway Bridge",
+            sender="Bill Henderson",
+            subject="Seismic Bearing Testing Protocol",
+            source_url="https://mail.google.com/mail/u/0/#inbox/msg-025",
+            action_items=[
+                ActionItem(assignee="Lisa Nakamura", priority="medium", description="Recommend seismic isolation bearing testing approach"),
+            ],
+            received_at=_ago(22),
+        ),
+        InboxItem(
+            source="gmail", comm_type="FYI", urgency=2,
+            summary="Pharma Campus: BSL-3 containment validation passed — lab ready for equipment install",
+            raw_text="The BSL-3 containment validation testing at the Pharmaceutical Research Campus is complete. All pressure differentials, air change rates, and HEPA filtration efficiencies meet CDC/NIH requirements. The laboratory space is now cleared for equipment installation. Great work by the MEP team.",
+            project_id="PRJ-030", project_name="Pharmaceutical Research Campus",
+            sender="Dr. Emily Hartley", sender_email="e.hartley@apexconstruction.com",
+            subject="BSL-3 Validation Complete",
+            source_url="https://mail.google.com/mail/u/0/#inbox/msg-026",
+            received_at=_ago(28),
+        ),
+        InboxItem(
+            source="gmail", comm_type="action-item", urgency=4,
+            summary="School District: Asbestos found in Building C ceiling — abatement needed before demo",
+            raw_text="Carmen, the environmental survey for Building C at Miami Central Elementary found asbestos-containing materials in the ceiling tiles and pipe insulation. We cannot proceed with demolition until a licensed abatement contractor completes removal. This will add approximately 3 weeks to the Building C renovation timeline.",
+            project_id="PRJ-028", project_name="School District Modernization",
+            sender="Ray Thompson", sender_email="r.thompson@apexconstruction.com",
+            subject="ALERT: Asbestos Found — Building C Abatement Required",
+            source_url="https://mail.google.com/mail/u/0/#inbox/msg-027",
+            action_items=[
+                ActionItem(assignee="Carmen Diaz", priority="high", description="Hire licensed asbestos abatement contractor for Building C"),
+                ActionItem(assignee="Carmen Diaz", priority="high", description="Update Building C renovation schedule — add 3 weeks for abatement"),
+            ],
+            received_at=_ago(4),
+        ),
+        InboxItem(
+            source="internal", comm_type="decision", urgency=3,
+            summary="Approved: New safety harness standard for all projects effective April 1",
+            raw_text="Effective April 1, 2026, all projects must use the updated Type III full-body harness system with twin-leg shock absorbers. The previous Type II harnesses are no longer approved. Each site superintendent must verify inventory and place orders for replacement harnesses by March 25.",
+            project_id=None, project_name=None,
+            sender="Safety Director", sender_email="safety.director@apexconstruction.com",
+            subject="New Fall Protection Standard — Effective April 1",
+            source_url=None,
+            action_items=[
+                ActionItem(assignee="All Superintendents", deadline=_ago(-96), priority="medium", description="Verify harness inventory and order Type III replacements"),
+            ],
+            received_at=_ago(40),
+        ),
+        InboxItem(
+            source="gmail", comm_type="FYI", urgency=1,
+            summary="Transit Hub: First light rail test train successfully ran through the new station platform",
+            raw_text="Milestone achieved! The first test train ran through the Downtown Transit Hub platform today at 5 mph. All track alignment, clearance, and platform gap measurements are within tolerance. Signal testing begins next week. Attached are photos from the event.",
+            project_id="PRJ-024", project_name="Downtown Transit Hub",
+            sender="Sandra Collins", sender_email="s.collins@apexconstruction.com",
+            subject="Milestone: First Test Train Through Station",
+            source_url="https://mail.google.com/mail/u/0/#inbox/msg-029",
+            received_at=_ago(60),
+        ),
+        InboxItem(
+            source="gmail", comm_type="question", urgency=3,
+            summary="Wind Farm: Can we run the 345kV commissioning test during high wind conditions?",
+            raw_text="Chris, the commissioning engineer is asking if we can proceed with the 345kV energization test during the forecasted high wind period (sustained 35 mph). The utility's interconnection agreement has a 40 mph wind speed limit for energization activities. Current forecast shows gusts up to 38 mph. Your call.",
+            project_id="PRJ-029", project_name="Wind Farm Substation",
+            sender="Jake Morrison",
+            subject="345kV Commissioning — Wind Speed Concern",
+            source_url="https://mail.google.com/mail/u/0/#inbox/msg-030",
+            received_at=_ago(13),
+        ),
+        InboxItem(
+            source="fireflies", comm_type="FYI", urgency=2,
+            summary="Heritage Bank: Masonry restoration 60% complete — on schedule for fall completion",
+            raw_text="Heritage Bank HQ restoration progress meeting. Thomas reported masonry restoration is 60% complete with the south and east facades done. West facade work begins next week. Original 1920s terracotta cornices being replicated by specialist fabricator in Vermont. Interior seismic retrofit framing is 40% complete.",
+            project_id="PRJ-018", project_name="Heritage Bank HQ Restoration",
+            sender="Thomas O'Brien", sender_email="t.obrien@apexconstruction.com",
+            subject="Heritage Bank — Monthly Progress Review",
+            source_url="https://app.fireflies.ai/view/meeting-006",
+            received_at=_ago(44),
+        ),
+        InboxItem(
+            source="gmail", comm_type="action-item", urgency=3,
+            summary="Water Treatment: SCADA integration testing scheduled for next Thursday",
+            raw_text="Patricia, the SCADA integration testing with the new filtration system is scheduled for next Thursday. The municipal water authority requires 72-hour advance notice before any testing that affects water flow. Please submit the notification by Monday. We also need the backup manual override procedures documented before the test.",
+            project_id="PRJ-016", project_name="Water Treatment Plant Upgrade",
+            sender="Roy Mitchell",
+            subject="SCADA Integration Test — Next Thursday",
+            source_url="https://mail.google.com/mail/u/0/#inbox/msg-032",
+            action_items=[
+                ActionItem(assignee="Patricia Gonzalez", deadline=_ago(-72), priority="medium", description="Submit 72-hour advance notice to water authority for SCADA test"),
+                ActionItem(assignee="Roy Mitchell", priority="medium", description="Document manual override procedures before SCADA test"),
+            ],
+            received_at=_ago(17),
+        ),
+        InboxItem(
+            source="gmail", comm_type="escalation", urgency=4,
+            summary="Meridian Condos: Crane operator license expired — all crane operations halted",
+            raw_text="Aisha, during this morning's safety check we discovered the tower crane operator's license expired last week. All crane operations are immediately suspended until a licensed operator is on site. This halts structural steel delivery to upper floors. We need a replacement operator by tomorrow morning to avoid cascading schedule delays.",
+            project_id="PRJ-003", project_name="The Meridian Condos",
+            sender="Omar Hassan",
+            subject="CRANE OPERATIONS HALTED — License Expired",
+            source_url="https://mail.google.com/mail/u/0/#inbox/msg-033",
+            action_items=[
+                ActionItem(assignee="Aisha Rahman", priority="high", description="Source licensed replacement crane operator — needed by tomorrow AM"),
+                ActionItem(assignee="Omar Hassan", priority="high", description="Assess schedule impact of crane downtime"),
+            ],
+            received_at=_ago(3),
+        ),
+        InboxItem(
+            source="acc", comm_type="FYI", urgency=2,
+            summary="University Science Wing: Lab fume hood installation 90% complete",
+            raw_text="ACC Progress Update: Science wing renovation lab fume hood installation is 90% complete. 54 of 60 fume hoods installed and connected to exhaust system. Remaining 6 units for the clean room will be installed after the HEPA ceiling grid is complete. Commissioning testing begins in 2 weeks.",
+            project_id="PRJ-019", project_name="University Science Wing",
+            sender="ACC System", sender_email="noreply@autodesk.com",
+            subject="Progress: Fume Hood Installation",
+            source_url="https://acc.autodesk.com/progress/19-001",
+            received_at=_ago(32),
+        ),
+        InboxItem(
+            source="gmail", comm_type="action-item", urgency=2,
+            summary="Cold Storage: IoT sensor calibration needed before refrigeration commissioning",
+            raw_text="James, before we commission the multi-zone refrigeration system, all 120 IoT temperature sensors need calibration verification. The commissioning protocol requires each sensor to read within ±0.5°F of the reference probe. Danny's team can do 30 sensors per day. Please schedule this for next week.",
+            project_id="PRJ-022", project_name="Cold Storage Distribution Hub",
+            sender="Danny Flores",
+            subject="IoT Sensor Calibration — Pre-Commissioning",
+            source_url="https://mail.google.com/mail/u/0/#inbox/msg-035",
+            action_items=[
+                ActionItem(assignee="James Wright", priority="medium", description="Schedule 4-day IoT sensor calibration starting next week"),
+            ],
+            received_at=_ago(26),
+        ),
+        # Additional items to reach 55+
+        InboxItem(
+            source="gmail", comm_type="FYI", urgency=1,
+            summary="Company newsletter: Q1 2026 results — 12% revenue growth, 3 new projects won",
+            raw_text="Apex Construction Q1 2026 highlights: 12% revenue growth YoY, 3 new projects awarded totaling $180M, safety EMR improved to 0.72. Top performer: Harbor View Tower team for meeting all Q1 milestones. Company picnic scheduled for April 12.",
+            project_id=None, project_name=None,
+            sender="CEO Office", sender_email="ceo@apexconstruction.com",
+            subject="Q1 2026 Company Newsletter",
+            source_url=None,
+            received_at=_ago(120),
+        ),
+        InboxItem(
+            source="fireflies", comm_type="decision", urgency=3,
+            summary="Marina Bay: Yacht club pier pilings changed from timber to concrete due to marine borer risk",
+            raw_text="Marina Bay Living design coordination. The marine engineer recommended switching yacht club pier pilings from treated timber to precast concrete due to marine borer risk in the Abu Dhabi waters. Cost increase of $340K but eliminates the 15-year replacement cycle. Khalid approved the change.",
+            project_id="PRJ-012", project_name="Marina Bay Living",
+            sender="Khalid Al-Mansour", sender_email="k.almansour@apexconstruction.com",
+            subject="Marina Bay — Pier Design Change",
+            source_url="https://app.fireflies.ai/view/meeting-007",
+            action_items=[
+                ActionItem(assignee="Sanjay Gupta", priority="medium", description="Update pier foundation drawings for precast concrete pilings"),
+            ],
+            received_at=_ago(19),
+        ),
+        InboxItem(
+            source="gmail", comm_type="question", urgency=2,
+            summary="EV Gigafactory: What clean room classification is needed for the dry electrode line?",
+            raw_text="Nathan, the process engineers are debating whether the dry electrode processing line needs ISO Class 7 or ISO Class 8 clean room classification. Class 7 adds about $2.1M to construction cost but may be required for the cathode manufacturing tolerances. Can you check with the battery cell team?",
+            project_id="PRJ-023", project_name="EV Battery Gigafactory",
+            sender="TBD",
+            subject="Clean Room Classification — Dry Electrode Line",
+            source_url="https://mail.google.com/mail/u/0/#inbox/msg-038",
+            received_at=_ago(50),
+        ),
+        InboxItem(
+            source="gmail", comm_type="action-item", urgency=3,
+            summary="Seaside Resort: Hurricane season prep — storm shutters and tie-downs needed by June 1",
+            raw_text="Roberto, hurricane season starts June 1. We need all temporary structures secured with proper tie-downs, storm shutters installed on the completed ground-floor units, and the construction crane emergency lowering procedure verified. Please have the hurricane preparedness checklist completed by May 15.",
+            project_id="PRJ-025", project_name="Seaside Resort & Conference Center",
+            sender="Luis Aguilar",
+            subject="Hurricane Prep Deadline — June 1",
+            source_url="https://mail.google.com/mail/u/0/#inbox/msg-039",
+            action_items=[
+                ActionItem(assignee="Roberto Mendez", deadline=_ago(-1440), priority="medium", description="Complete hurricane preparedness checklist by May 15"),
+                ActionItem(assignee="Luis Aguilar", priority="medium", description="Verify crane emergency lowering procedure"),
+            ],
+            received_at=_ago(35),
+        ),
+        InboxItem(
+            source="internal", comm_type="FYI", urgency=2,
+            summary="IT upgrade: All office VPN access will be down Saturday 2am-6am for migration",
+            raw_text="Scheduled maintenance: The corporate VPN will be unavailable Saturday March 22, 2am-6am EST during the network infrastructure migration. This affects remote access to all company systems including ACC, email, and project drives. Plan accordingly.",
+            project_id=None, project_name=None,
+            sender="IT Department", sender_email="it@apexconstruction.com",
+            subject="Scheduled VPN Downtime — Saturday 2am-6am",
+            source_url=None,
+            received_at=_ago(8),
+        ),
+        InboxItem(
+            source="gmail", comm_type="decision", urgency=3,
+            summary="Hillside Residences: Geothermal system vendor selected — GeoComfort Systems",
+            raw_text="Ryan, after evaluating three proposals, we've selected GeoComfort Systems for the geothermal heat pump installation across all 18 homes. Their vertical loop configuration works best with the rocky terrain. Contract value $2.4M. Steve to coordinate the drilling schedule with the foundation crew.",
+            project_id="PRJ-027", project_name="Hillside Luxury Residences",
+            sender="Steve Chang",
+            subject="Geothermal Vendor Selection — GeoComfort",
+            source_url="https://mail.google.com/mail/u/0/#inbox/msg-041",
+            action_items=[
+                ActionItem(assignee="Steve Chang", priority="medium", description="Coordinate geothermal drilling schedule with foundation crew"),
+                ActionItem(assignee="Ryan Park", priority="medium", description="Execute GeoComfort contract — $2.4M"),
+            ],
+            received_at=_ago(42),
+        ),
+        InboxItem(
+            source="acc", comm_type="action-item", urgency=3,
+            summary="Metro Extension: Tunnel boring machine maintenance window — rescheduled to April 5",
+            raw_text="ACC Schedule Update: TBM maintenance window rescheduled from March 28 to April 5 due to Easter holiday. The 72-hour maintenance shutdown will include cutter head inspection, screw conveyor bearing replacement, and guidance system recalibration. Viktor to confirm crew availability.",
+            project_id="PRJ-014", project_name="Metro Line Extension",
+            sender="ACC System", sender_email="noreply@autodesk.com",
+            subject="TBM Maintenance Rescheduled — April 5",
+            source_url="https://acc.autodesk.com/schedule/14-001",
+            action_items=[
+                ActionItem(assignee="Viktor Petrov", priority="medium", description="Confirm TBM maintenance crew availability for April 5 window"),
+            ],
+            received_at=_ago(25),
+        ),
+        InboxItem(
+            source="gmail", comm_type="FYI", urgency=2,
+            summary="Airport Terminal 3: Environmental impact assessment approved by authority",
+            raw_text="Mehmet, good news — the Environmental Impact Assessment for Terminal 3 has been approved by the Istanbul Metropolitan Municipality Environmental Board. No conditions or modifications required. This clears the way for the final design phase. Construction permit application can now proceed.",
+            project_id="PRJ-017", project_name="Airport Terminal 3",
+            sender="TBD",
+            subject="EIA Approved — Terminal 3",
+            source_url="https://mail.google.com/mail/u/0/#inbox/msg-043",
+            received_at=_ago(68),
+        ),
+    ]
