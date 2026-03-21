@@ -93,50 +93,50 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INBOX-01 | TBD | Pending |
-| INBOX-02 | TBD | Pending |
-| INBOX-03 | TBD | Pending |
-| INBOX-04 | TBD | Pending |
-| INBOX-05 | TBD | Pending |
-| INBOX-06 | TBD | Pending |
-| RFI-01 | TBD | Pending |
-| RFI-02 | TBD | Pending |
-| RFI-03 | TBD | Pending |
-| RFI-04 | TBD | Pending |
-| RFI-05 | TBD | Pending |
-| RFI-06 | TBD | Pending |
-| RPT-01 | TBD | Pending |
-| RPT-02 | TBD | Pending |
-| RPT-03 | TBD | Pending |
-| RPT-04 | TBD | Pending |
-| RPT-05 | TBD | Pending |
-| SCOM-01 | TBD | Pending |
-| SCOM-02 | TBD | Pending |
-| SCOM-03 | TBD | Pending |
-| SCOM-04 | TBD | Pending |
-| SCOM-05 | TBD | Pending |
-| DEC-01 | TBD | Pending |
-| DEC-02 | TBD | Pending |
-| DEC-03 | TBD | Pending |
-| DEC-04 | TBD | Pending |
-| DEC-05 | TBD | Pending |
-| CIS-01 | TBD | Pending |
-| CIS-02 | TBD | Pending |
-| CIS-03 | TBD | Pending |
-| CIS-04 | TBD | Pending |
-| CIS-05 | TBD | Pending |
-| CIS-06 | TBD | Pending |
-| NOTIF-01 | TBD | Pending |
-| NOTIF-02 | TBD | Pending |
-| NOTIF-03 | TBD | Pending |
-| NOTIF-04 | TBD | Pending |
-| NOTIF-05 | TBD | Pending |
+| INBOX-01 | Phase 10 | Pending |
+| INBOX-02 | Phase 10 | Pending |
+| INBOX-03 | Phase 10 | Pending |
+| INBOX-04 | Phase 10 | Pending |
+| INBOX-05 | Phase 10 | Pending |
+| INBOX-06 | Phase 10 | Pending |
+| RFI-01 | Phase 11 | Pending |
+| RFI-02 | Phase 11 | Pending |
+| RFI-03 | Phase 11 | Pending |
+| RFI-04 | Phase 11 | Pending |
+| RFI-05 | Phase 11 | Pending |
+| RFI-06 | Phase 11 | Pending |
+| RPT-01 | Phase 15 | Pending |
+| RPT-02 | Phase 15 | Pending |
+| RPT-03 | Phase 15 | Pending |
+| RPT-04 | Phase 15 | Pending |
+| RPT-05 | Phase 15 | Pending |
+| SCOM-01 | Phase 13 | Pending |
+| SCOM-02 | Phase 13 | Pending |
+| SCOM-03 | Phase 13 | Pending |
+| SCOM-04 | Phase 13 | Pending |
+| SCOM-05 | Phase 13 | Pending |
+| DEC-01 | Phase 12 | Pending |
+| DEC-02 | Phase 12 | Pending |
+| DEC-03 | Phase 12 | Pending |
+| DEC-04 | Phase 12 | Pending |
+| DEC-05 | Phase 12 | Pending |
+| CIS-01 | Phase 14 | Pending |
+| CIS-02 | Phase 14 | Pending |
+| CIS-03 | Phase 14 | Pending |
+| CIS-04 | Phase 14 | Pending |
+| CIS-05 | Phase 14 | Pending |
+| CIS-06 | Phase 14 | Pending |
+| NOTIF-01 | Phase 16 | Pending |
+| NOTIF-02 | Phase 16 | Pending |
+| NOTIF-03 | Phase 16 | Pending |
+| NOTIF-04 | Phase 16 | Pending |
+| NOTIF-05 | Phase 16 | Pending |
 
 **Coverage:**
 - v2.0 requirements: 37 total
-- Mapped to phases: 0
-- Unmapped: 37
+- Mapped to phases: 37
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-21*
-*Last updated: 2026-03-21 after initial definition*
+*Last updated: 2026-03-21 — traceability filled after roadmap creation*
