@@ -58,14 +58,15 @@ async def process_rfi_manually(
         )
 
     from api.webhooks import process_rfi_event
-    import asyncio
-    # Run pipeline directly (not as background task) so all output is visible in terminal
-    asyncio.create_task(process_rfi_event(
+    import logging
+    logging.getLogger("gigai").info("Queuing pipeline for RFI: %s  title=%r", rfi_id, rfi_data.get("title"))
+    background_tasks.add_task(
+        process_rfi_event,
         rfi_id=rfi_data.get("id") or rfi_id,
         project_id=project_id,
         rfi_inline=rfi_data,
         app=request.app,
-    ))
+    )
 
     return {
         "status": "queued",

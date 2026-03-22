@@ -156,20 +156,21 @@ class ACCClient:
 
         if not token:
             raise RuntimeError(
-                f"No access_token in auth response [{grant_label}]: {resp.text[:300]}"
+                f"No access_token in refresh_token response: {resp.text[:300]}"
             )
 
         # Store rotated refresh token if Autodesk issued a new one
         new_rt = body.get("refresh_token")
         if new_rt and new_rt != refresh_token:
-            print(f"   🔄 Refresh token rotated — updated in-process")
+            print(f"   Refresh token rotated — updated in-process", flush=True)
             _current_refresh_token = new_rt
 
         _cached_token     = token
         _token_expires_at = now + timedelta(seconds=expires_in)
         print(
-            f"   ✅ Token obtained [{grant_label}] — valid for {expires_in // 60} min "
-            f"(until {_token_expires_at.strftime('%H:%M:%S')} UTC)"
+            f"   OK Token obtained via refresh_token — valid for {expires_in // 60} min "
+            f"(until {_token_expires_at.strftime('%H:%M:%S')} UTC)",
+            flush=True,
         )
         return _cached_token
 
@@ -307,18 +308,36 @@ class ACCClient:
                 "ACC credentials not configured. Set ACC_CLIENT_ID and ACC_CLIENT_SECRET in .env"
             )
 
-        body: dict = {"title": title, "description": description, "status": "open"}
+        body: dict = {"title": title, "description": description}
         if linked_rfi_id:
             body["linkedIssues"] = [{"id": linked_rfi_id}]
 
-        # v2 with no b. prefix is the current standard
-        pid = _strip_b(raw)
-        url = f"{self.BASE_URL}/construction/rfis/v2/projects/{pid}/rfis"
+        candidates = [
+            f"{self.BASE_URL}/construction/rfis/v2/projects/{_strip_b(raw)}/rfis",
+            f"{self.BASE_URL}/construction/rfis/v2/projects/{_add_b(raw)}/rfis",
+            f"{self.BASE_URL}/construction/rfis/v1/projects/{_strip_b(raw)}/rfis",
+        ]
+
+        last_status = None
+        last_body = ""
         async with httpx.AsyncClient(timeout=30) as client:
-            resp = await client.post(url, headers=await self._headers(), json=body)
-            resp.raise_for_status()
-            data = resp.json()
-            return data.get("data", data)
+            for url in candidates:
+                print(f"   ACC create_rfi → POST {url}")
+                resp = await client.post(url, headers=await self._headers(), json=body)
+                print(f"   → HTTP {resp.status_code}")
+                if resp.status_code in (200, 201):
+                    data = resp.json()
+                    result = data.get("data", data)
+                    print(f"   ✅ RFI created: {result.get('id', '?')}")
+                    return result
+                last_status = resp.status_code
+                last_body = resp.text[:600]
+                print(f"   Full error: {last_body}")
+
+        raise RuntimeError(
+            f"ACC create_rfi failed on all candidates. "
+            f"Last response: HTTP {last_status} — {last_body}"
+        )
 
     async def update_rfi(
         self,
@@ -338,32 +357,78 @@ class ACCClient:
         if comment:
             body["answer"] = comment
 
-        for version, pid in [("v2", _strip_b(raw)), ("v1", _strip_b(raw))]:
+        candidates = [
+            ("v2", _strip_b(raw)),
+            ("v2", _add_b(raw)),
+            ("v1", _strip_b(raw)),
+        ]
+        last_status = None
+        last_body = ""
+        for version, pid in candidates:
             url = f"{self.BASE_URL}/construction/rfis/{version}/projects/{pid}/rfis/{rfi_id}"
             async with httpx.AsyncClient(timeout=30) as client:
+                print(f"   ACC update_rfi → PATCH {url}")
                 resp = await client.patch(url, headers=await self._headers(), json=body)
+                print(f"   → HTTP {resp.status_code}")
                 if resp.status_code in (200, 204):
-                    data = resp.json()
+                    data = resp.json() if resp.content else {}
                     return data.get("data", {"id": rfi_id, "status": status})
+                last_status = resp.status_code
+                last_body = resp.text[:400]
+                print(f"   Error: {last_body}")
 
-        print(f"⚠️  ACC update_rfi {rfi_id}: all candidates failed")
-        return {"id": rfi_id, "status": status}
+        raise RuntimeError(
+            f"ACC update_rfi {rfi_id}: all candidates failed. "
+            f"Last response: HTTP {last_status} — {last_body}"
+        )
 
     # -------------------------------------------------------------------------
     # User lookup
     # -------------------------------------------------------------------------
 
     async def get_user_email(self, user_id: str) -> str | None:
-        """Resolve a user ID to an email address via ACC HQ API."""
+        """
+        Resolve an ACC user ID to an email address.
+
+        Tries (in order):
+          1. Construction Admin API v1 — works with 3-legged tokens
+          2. Construction Admin API v2
+          3. HQ v2 (2-legged only — included as last resort)
+        """
         if not user_id or not self._is_token_valid():
             return None
-        # Strip hub prefix if present (hub ID is "b.<account-id>")
-        account_id = (self.hub_id or "").lstrip("b.") or user_id
-        url = f"{self.BASE_URL}/hq/v2/accounts/{account_id}/users/{user_id}"
+
+        account_id = _strip_b(self.hub_id or "")
+        pid_no_b   = _strip_b(self.project_id or "")
+        pid_b      = _add_b(self.project_id or "")
+
+        candidates = [
+            # Construction Admin API — works with 3-legged OAuth
+            f"{self.BASE_URL}/construction/admin/v1/projects/{pid_no_b}/users/{user_id}",
+            f"{self.BASE_URL}/construction/admin/v1/projects/{pid_b}/users/{user_id}",
+            f"{self.BASE_URL}/construction/admin/v2/projects/{pid_no_b}/users/{user_id}",
+            # BIM360 Admin API
+            f"{self.BASE_URL}/bim360/hq/v2/accounts/{account_id}/users/{user_id}",
+        ]
+
         async with httpx.AsyncClient(timeout=15) as client:
-            resp = await client.get(url, headers=await self._headers())
-            if resp.status_code == 200:
-                return resp.json().get("email")
+            for url in candidates:
+                print(f"   ACC get_user_email → GET {url}")
+                resp = await client.get(url, headers=await self._headers())
+                print(f"   → HTTP {resp.status_code}")
+                if resp.status_code == 200:
+                    data  = resp.json()
+                    # Construction Admin API wraps response under "results" or root
+                    user  = data.get("results", [data])[0] if isinstance(data.get("results"), list) else data
+                    email = user.get("email") or user.get("emailAddress")
+                    if email:
+                        print(f"   ✅ Resolved email: {email}")
+                        return email
+                    print(f"   ⚠️  200 but no email field. Keys: {list(data.keys())}")
+                else:
+                    print(f"   Error: {resp.text[:200]}")
+
+        print(f"   ⚠️  Could not resolve email for user {user_id}")
         return None
 
     # -------------------------------------------------------------------------
@@ -383,7 +448,7 @@ class ACCClient:
 
     async def get_project_info(self, project_id: str | None = None) -> dict:
         """Fetch project metadata from ACC."""
-        pid = project_id or self.project_id
+        pid = _add_b(project_id or self.project_id or "")
         url = f"{self.BASE_URL}/project/v1/hubs/{self.hub_id}/projects/{pid}"
         async with httpx.AsyncClient(timeout=30) as client:
             resp = await client.get(url, headers=await self._headers())
