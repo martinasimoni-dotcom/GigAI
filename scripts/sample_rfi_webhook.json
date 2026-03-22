@@ -1,0 +1,19 @@
+{
+  "version": "1.0",
+  "messageType": "notification",
+  "payload": {
+    "event": "autodesk.construction.workflow:rfis-1.created.v1",
+    "projectId": "b.af6115b4-8d2f-4b6a-82f1-c52f4bb77fc0",
+    "timestamp": "2026-03-22T10:00:00.000Z",
+    "data": {
+      "id": "rfi-test-001",
+      "title": "Material Change Request \u2014 Test",
+      "description": "Client requests replacing PVC porthole windows (40 units, \u00d8600mm) with aluminum-framed porthole windows (\u00d8700mm, marine-grade). Reason: improved durability for coastal environment.",
+      "assignedTo": "test-user-001",
+      "assignedToEmail": "test@example.com",
+      "status": "open",
+      "createdAt": "2026-03-22T10:00:00.000Z",
+      "projectId": "b.af6115b4-8d2f-4b6a-82f1-c52f4bb77fc0"
+    }
+  }
+}
