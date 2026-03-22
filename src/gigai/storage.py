@@ -698,10 +698,22 @@ def save_review_item(
     with connection() as conn:
         conn.execute(
             """
-            INSERT OR REPLACE INTO review_queue (
+            INSERT INTO review_queue (
                 id, structured_intelligence_id, project_id, confidence_score, reason_for_review,
-                entities_json, actions_json, metadata_json, status, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                entities_json, actions_json, metadata_json, status, assigned_to, reviewer_note,
+                resolved_at, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE((SELECT assigned_to FROM review_queue WHERE id=?), NULL),
+                      COALESCE((SELECT reviewer_note FROM review_queue WHERE id=?), NULL),
+                      COALESCE((SELECT resolved_at FROM review_queue WHERE id=?), NULL), ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                structured_intelligence_id = excluded.structured_intelligence_id,
+                project_id = excluded.project_id,
+                confidence_score = excluded.confidence_score,
+                reason_for_review = excluded.reason_for_review,
+                entities_json = excluded.entities_json,
+                actions_json = excluded.actions_json,
+                metadata_json = excluded.metadata_json,
+                updated_at = excluded.updated_at
             """,
             (
                 review_id,
@@ -713,6 +725,9 @@ def save_review_item(
                 _serialize(actions),
                 _serialize(metadata or {}),
                 "pending",
+                review_id,
+                review_id,
+                review_id,
                 now,
                 now,
             ),

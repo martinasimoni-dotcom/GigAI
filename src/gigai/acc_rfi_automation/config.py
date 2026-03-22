@@ -5,6 +5,17 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
+def _safe_int(value: str | None, default: int) -> int:
+    """Safely parse an integer environment variable with a fallback default."""
+    if not value:
+        return default
+    try:
+        parsed = int(value.strip())
+        return max(parsed, 1)
+    except ValueError:
+        return default
+
+
 @dataclass(slots=True)
 class AccRfiAutomationConfig:
     project_id: str
@@ -29,10 +40,11 @@ class AccRfiAutomationConfig:
         rfis_input_path: str | Path | None = None,
         poll_interval_seconds: int = 300,
     ) -> "AccRfiAutomationConfig":
-        root = Path(
-            (os.getenv("GIGAI_ACC_RFI_ROOT") or "").strip()
-            or Path.home() / "AppData" / "Local" / "GigAI" / "acc-rfi-automation"
-        )
+        configured_root = (os.getenv("GIGAI_ACC_RFI_ROOT") or "").strip()
+        if configured_root:
+            root = Path(configured_root)
+        else:
+            root = Path.home() / ".config" / "GigAI" / "acc-rfi-automation"
         root.mkdir(parents=True, exist_ok=True)
         return cls(
             project_id=project_id,
@@ -43,7 +55,7 @@ class AccRfiAutomationConfig:
                 os.getenv("ACC_RFI_BASE_URL")
                 or "https://developer.api.autodesk.com/construction/rfis/v3"
             ).strip().rstrip("/"),
-            page_size=max(int(os.getenv("ACC_RFI_PAGE_SIZE") or "100"), 1),
+            page_size=_safe_int(os.getenv("ACC_RFI_PAGE_SIZE"), 100),
             poll_interval_seconds=max(poll_interval_seconds, 5),
             access_token=(os.getenv("ACC_ACCESS_TOKEN") or "").strip() or None,
             client_id=(os.getenv("ACC_CLIENT_ID") or "").strip() or None,

@@ -91,7 +91,7 @@ function Start-Frontend {
     ) -join "; "
 
     Start-Process -FilePath "powershell" -ArgumentList @("-NoExit", "-ExecutionPolicy", "Bypass", "-Command", $cmd) -WorkingDirectory $frontendPath | Out-Null
-    Start-Process -FilePath "powershell" -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", "Start-Sleep -Seconds 6; Start-Process '$frontendUrl'") -WindowStyle Hidden | Out-Null
+    Start-Process -FilePath "powershell" -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", "Start-Sleep -Seconds 6; Start-Process `"$frontendUrl`"") -WindowStyle Hidden | Out-Null
 }
 
 Write-Host ""

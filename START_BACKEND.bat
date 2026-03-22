@@ -13,7 +13,7 @@ echo.
 echo Dashboard API:    http://localhost:8010
 echo Dashboard Docs:   http://localhost:8010/docs
 echo Orchestrator API: http://localhost:8011
-echo Orchestrator Docs:http://localhost:8011/docs
+echo Orchestrator Docs: http://localhost:8011/docs
 echo.
 echo Starting backend services...
 echo.

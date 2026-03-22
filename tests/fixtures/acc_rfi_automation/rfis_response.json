@@ -11,7 +11,8 @@
       },
       "assignedTo": [
         {
-          "displayName": "architect.one@example.com"
+          "displayName": "Architect One",
+          "email": "architect.one@example.com"
         }
       ]
     },
@@ -26,7 +27,8 @@
       },
       "assignedTo": [
         {
-          "displayName": "architect.two@example.com"
+          "displayName": "Architect Two",
+          "email": "architect.two@example.com"
         }
       ]
     }

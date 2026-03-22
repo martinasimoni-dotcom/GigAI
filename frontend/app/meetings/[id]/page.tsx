@@ -98,16 +98,24 @@ export default function MeetingDetailPage() {
       fetchData();
     }
 
-    const socket = apiClient.connectWebSocket(`meeting-${meetingId || 'unknown'}`);
+    if (!meetingId) {
+      return;
+    }
+
+    const socket = apiClient.connectWebSocket(`meeting-${meetingId}`);
     socket.onmessage = (event) => {
-      const payload = JSON.parse(event.data) as DashboardSocketMessage;
-      if (payload.type !== 'revision_marked' || !payload.revision) {
-        return;
+      try {
+        const payload = JSON.parse(event.data) as DashboardSocketMessage;
+        if (payload.type !== 'revision_marked' || !payload.revision) {
+          return;
+        }
+        if (payload.revision.meeting_id !== meetingId) {
+          return;
+        }
+        mergeRevision(payload.revision);
+      } catch (err) {
+        console.error('Failed to parse socket message:', err);
       }
-      if (payload.revision.meeting_id !== meetingId) {
-        return;
-      }
-      mergeRevision(payload.revision);
     };
 
     return () => {

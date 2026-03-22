@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 from urllib import request
+from urllib.error import HTTPError, URLError
 
 from .config import AccRfiAutomationConfig
 
@@ -46,8 +47,16 @@ def _request_json(url: str, access_token: str, payload: dict[str, Any]) -> dict[
             "Content-Type": "application/json",
         },
     )
-    with request.urlopen(req, timeout=30) as response:
-        body = response.read().decode("utf-8")
+    try:
+        with request.urlopen(req, timeout=30) as response:
+            body = response.read().decode("utf-8")
+    except HTTPError as ex:
+        response_body = ex.read().decode("utf-8") if hasattr(ex, "read") else "(no body)"
+        raise RuntimeError(f"ACC RFI API request failed (HTTP {ex.code}): {response_body}") from ex
+    except URLError as ex:
+        raise RuntimeError(f"ACC RFI API request failed (network error): {ex.reason}") from ex
+    except Exception as ex:
+        raise RuntimeError(f"ACC RFI API request failed: {ex}") from ex
     return json.loads(body) if body else {}
 
 

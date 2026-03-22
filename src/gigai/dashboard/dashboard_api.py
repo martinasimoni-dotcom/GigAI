@@ -2,17 +2,26 @@
 
 from __future__ import annotations
 
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from gigai.dashboard.routers import dashboard, health, integrations, meetings, tasks
 
-LOCAL_DEV_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-]
+
+def _get_cors_origins() -> list[str]:
+    """Get CORS origins from environment or use defaults for local development."""
+    configured = os.getenv("GIGAI_CORS_ORIGINS", "").strip()
+    if configured:
+        return [origin.strip() for origin in configured.split(",") if origin.strip()]
+
+    return [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ]
 
 
 def create_dashboard_app() -> FastAPI:
@@ -26,7 +35,7 @@ def create_dashboard_app() -> FastAPI:
 
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=LOCAL_DEV_ORIGINS,
+        allow_origins=_get_cors_origins(),
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

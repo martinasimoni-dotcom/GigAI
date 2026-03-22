@@ -49,22 +49,37 @@ async def websocket_dashboard(websocket: WebSocket, session_id: str):
     await websocket.accept()
     logger.info("WebSocket connected: %s", session_id)
     latest_events = list_bus_events(limit=1)
-    last_seen_id = int(latest_events[0]["id"]) if latest_events else 0
     try:
+        last_seen_id = 0
+        if latest_events:
+            try:
+                last_seen_id = int(latest_events[0].get("id", 0))
+            except (ValueError, TypeError):
+                logger.warning("Unable to parse event ID from latest event")
+
         while True:
             await asyncio.sleep(1)
             new_events = list_bus_events_since(last_seen_id, limit=50)
-            if not new_events:
-                await websocket.send_json(build_dashboard_update())
-                continue
+            revision_marked_found = False
 
             for event in new_events:
-                last_seen_id = max(last_seen_id, int(event["id"]))
+                try:
+                    event_id = int(event.get("id", 0))
+                    last_seen_id = max(last_seen_id, event_id)
+                except (ValueError, TypeError):
+                    logger.warning("Unable to parse event ID: %s", event.get("id"))
+                    continue
+
                 if event.get("topic") != "revit.revision_marked":
                     continue
 
+                revision_marked_found = True
                 revision = normalize_revision_event(event)
                 await websocket.send_json(build_dashboard_update(latest_revision=revision))
+
+            # Always send an update, even if no revision_marked events found
+            if not revision_marked_found:
+                await websocket.send_json(build_dashboard_update())
     except Exception as ex:
         logger.error("WebSocket error for %s: %s", session_id, ex)
     finally:

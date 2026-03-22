@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import logging
 import time
 from pathlib import Path
 
@@ -12,6 +13,8 @@ from .config import AccReadonlySyncConfig
 from .models import SnapshotMetadata, SnapshotPayload, utc_now_iso
 from .normalize import normalize_issue_records, normalize_rfi_records
 from .storage import append_log, read_state, write_snapshot, write_state
+
+log = logging.getLogger(__name__)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -39,7 +42,11 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.watch:
         while True:
-            _run_once(config)
+            try:
+                _run_once(config)
+            except Exception as ex:
+                append_log(config.log_path, f"[{utc_now_iso()}] watch -> error -> {ex}")
+                log.error(f"Error in watch loop: {ex}")
             time.sleep(interval_seconds)
 
     _run_once(config)

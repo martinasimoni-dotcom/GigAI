@@ -22,9 +22,9 @@ URLs
 Verify
 ------
 
-curl http://127.0.0.1:8000/health
-curl http://127.0.0.1:8000/api/revisions
-curl http://127.0.0.1:8000/api/dashboard/architects
+curl http://127.0.0.1:8010/health
+curl http://127.0.0.1:8010/api/revisions
+curl http://127.0.0.1:8010/api/dashboard/architects
 
 Tests
 -----

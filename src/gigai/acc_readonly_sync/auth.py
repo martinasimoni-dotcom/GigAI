@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from urllib import parse, request
+from urllib.error import HTTPError, URLError
 
 from .config import AccReadonlySyncConfig
 
@@ -46,8 +47,16 @@ class AccessTokenProvider:
             method="POST",
             headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
-        with request.urlopen(req, timeout=20) as response:
-            payload = json.loads(response.read().decode("utf-8"))
+        try:
+            with request.urlopen(req, timeout=20) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+        except HTTPError as ex:
+            body = ex.read().decode("utf-8") if hasattr(ex, "read") else "(no body)"
+            raise AccAuthError(f"Autodesk authentication failed (HTTP {ex.code}): {body}") from ex
+        except URLError as ex:
+            raise AccAuthError(f"Autodesk authentication failed (network error): {ex.reason}") from ex
+        except Exception as ex:
+            raise AccAuthError(f"Autodesk authentication failed: {ex}") from ex
         token = str(payload.get("access_token") or "").strip()
         if not token:
             raise AccAuthError("Autodesk authentication response did not include access_token.")

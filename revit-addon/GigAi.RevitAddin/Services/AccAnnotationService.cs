@@ -36,6 +36,10 @@ namespace GigAi.RevitAddin.Services
 
             Document document = uiDocument.Document;
             View activeView = document.ActiveView;
+            if (activeView == null)
+            {
+                throw new InvalidOperationException("No active view is available in the Revit document.");
+            }
 
             AccSyncPayload payload = _storage.LoadSnapshot();
             AccSyncConfiguration configuration = _storage.LoadConfiguration();
@@ -71,7 +75,7 @@ namespace GigAi.RevitAddin.Services
                             && ManagedElementsExist(document, existing))
                         {
                             summary.Unchanged++;
-                            existing.LastSyncedAt = Timestamp();
+                            existing.LastSyncedAt = DateTimeOffset.UtcNow;
                             existing.Status = item.Status;
                             Logger.Info($"{Timestamp()} {syncKey} -> unchanged -> ok");
                             continue;
@@ -80,7 +84,6 @@ namespace GigAi.RevitAddin.Services
                         if (existing != null)
                         {
                             RemoveManagedElements(document, existing);
-                            summary.Updated++;
                             Logger.Info($"{Timestamp()} {syncKey} -> update -> old annotations removed");
                         }
 
@@ -89,6 +92,10 @@ namespace GigAi.RevitAddin.Services
                         if (existing == null)
                         {
                             summary.Created++;
+                        }
+                        else
+                        {
+                            summary.Updated++;
                         }
 
                         Logger.Info($"{Timestamp()} {syncKey} -> apply -> ok ({reason})");
@@ -145,12 +152,12 @@ namespace GigAi.RevitAddin.Services
                 SyncKey = BuildSyncKey(item),
                 SourceId = item.Id,
                 SourceType = item.Type,
-                ElementRef = target.Element?.Id.IntegerValue.ToString(CultureInfo.InvariantCulture) ?? item.Location.ElementId,
+                ElementRef = target.Element?.Id.Value.ToString(CultureInfo.InvariantCulture) ?? item.Location.ElementId,
                 ViewRef = target.View.UniqueId,
                 CloudId = cloud.Id.Value,
                 NoteId = note.Id.Value,
                 PayloadHash = hash,
-                LastSyncedAt = Timestamp(),
+                LastSyncedAt = DateTimeOffset.UtcNow,
                 Status = item.Status,
             };
         }

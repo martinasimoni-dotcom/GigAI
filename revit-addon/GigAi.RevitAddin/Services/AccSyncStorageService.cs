@@ -50,14 +50,22 @@ namespace GigAi.RevitAddin.Services
                 throw new FileNotFoundException("ACC snapshot file was not found.", SnapshotPath);
             }
 
-            string raw = File.ReadAllText(SnapshotPath);
-            AccSyncPayload? payload = JsonConvert.DeserializeObject<AccSyncPayload>(raw);
-            if (payload == null)
+            try
             {
-                throw new InvalidOperationException("ACC snapshot JSON is empty or invalid.");
-            }
+                string raw = File.ReadAllText(SnapshotPath);
+                AccSyncPayload? payload = JsonConvert.DeserializeObject<AccSyncPayload>(raw);
+                if (payload == null)
+                {
+                    throw new InvalidOperationException("ACC snapshot JSON is empty or invalid.");
+                }
 
-            return payload;
+                return payload;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to read ACC snapshot '{SnapshotPath}'.", ex);
+                throw;
+            }
         }
 
         public AccSyncState LoadState()
@@ -81,8 +89,16 @@ namespace GigAi.RevitAddin.Services
 
         public void SaveState(AccSyncState state)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(StatePath) ?? RootDirectory);
-            File.WriteAllText(StatePath, JsonConvert.SerializeObject(state, Formatting.Indented));
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(StatePath) ?? RootDirectory);
+                File.WriteAllText(StatePath, JsonConvert.SerializeObject(state, Formatting.Indented));
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Failed to write ACC sync state to '{StatePath}'.", ex);
+                throw;
+            }
         }
 
         public AccSyncConfiguration LoadConfiguration()

@@ -36,3 +36,4 @@ Rafik/Research-studio_GigAI/
 revit-addon/**/bin/
 revit-addon/**/obj/
 *.egg-info/
+*.tsbuildinfo

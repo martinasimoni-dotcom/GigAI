@@ -11,18 +11,26 @@ namespace GigAi.RevitAddin.Commands
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            var service = new AccAnnotationService();
-            AccAnnotationSyncSummary summary = service.Run(commandData.Application);
+            try
+            {
+                var service = new AccAnnotationService();
+                AccAnnotationSyncSummary summary = service.Run(commandData.Application);
 
-            TaskDialog.Show(
-                "Sync ACC Issues",
-                $"Created: {summary.Created}\n" +
-                $"Updated: {summary.Updated}\n" +
-                $"Removed: {summary.Removed}\n" +
-                $"Unchanged: {summary.Unchanged}\n" +
-                $"Failed: {summary.Failed}");
+                TaskDialog.Show(
+                    "Sync ACC Issues",
+                    $"Created: {summary.Created}\n" +
+                    $"Updated: {summary.Updated}\n" +
+                    $"Removed: {summary.Removed}\n" +
+                    $"Unchanged: {summary.Unchanged}\n" +
+                    $"Failed: {summary.Failed}");
 
-            return Result.Succeeded;
+                return summary.Failed > 0 ? Result.Failed : Result.Succeeded;
+            }
+            catch (Exception ex)
+            {
+                message = $"Error: {ex.Message}\n{ex.StackTrace}";
+                return Result.Failed;
+            }
         }
     }
 }

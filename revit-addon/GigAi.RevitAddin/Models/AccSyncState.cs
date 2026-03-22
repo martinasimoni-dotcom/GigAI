@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
@@ -36,7 +37,8 @@ namespace GigAi.RevitAddin.Models
         public string PayloadHash { get; set; } = string.Empty;
 
         [JsonProperty("last_synced_at")]
-        public string LastSyncedAt { get; set; } = string.Empty;
+        [JsonConverter(typeof(Newtonsoft.Json.Converters.IsoDateTimeConverter))]
+        public DateTimeOffset? LastSyncedAt { get; set; }
 
         [JsonProperty("status")]
         public string Status { get; set; } = string.Empty;

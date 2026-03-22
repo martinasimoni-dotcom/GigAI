@@ -61,10 +61,14 @@ export default function RevisionsPage() {
 
     const socket = apiClient.connectWebSocket('revisions-page');
     socket.onmessage = (event) => {
-      const payload = JSON.parse(event.data) as DashboardSocketMessage;
-      if (payload.type === 'revision_marked' && payload.revision) {
-        setLiveSyncMessage(`Live sync active. Last update for ${payload.revision.space_name}.`);
-        mergeRevision(payload.revision);
+      try {
+        const payload = JSON.parse(event.data) as DashboardSocketMessage;
+        if (payload.type === 'revision_marked' && payload.revision) {
+          setLiveSyncMessage(`Live sync active. Last update for ${payload.revision.space_name}.`);
+          mergeRevision(payload.revision);
+        }
+      } catch (err) {
+        console.error('Failed to parse socket message:', err);
       }
     };
 

@@ -5,6 +5,17 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
+def _safe_int(value: str | None, default: int) -> int:
+    """Safely parse an integer environment variable with a fallback default."""
+    if not value:
+        return default
+    try:
+        parsed = int(value.strip())
+        return max(parsed, 1)
+    except ValueError:
+        return default
+
+
 @dataclass(slots=True)
 class AccReadonlySyncConfig:
     project_id: str
@@ -33,10 +44,11 @@ class AccReadonlySyncConfig:
         issues_input_path: str | Path | None = None,
         rfis_input_path: str | Path | None = None,
     ) -> "AccReadonlySyncConfig":
-        root = Path(
-            (os.getenv("GIGAI_ACC_SYNC_ROOT") or "").strip()
-            or Path.home() / "AppData" / "Local" / "GigAI" / "acc-sync"
-        )
+        configured_root = (os.getenv("GIGAI_ACC_SYNC_ROOT") or "").strip()
+        if configured_root:
+            root = Path(configured_root)
+        else:
+            root = Path.home() / ".config" / "GigAI" / "acc-sync"
         root.mkdir(parents=True, exist_ok=True)
 
         resolved_output = Path(output_path) if output_path else root / "latest-acc-items.json"
@@ -63,7 +75,7 @@ class AccReadonlySyncConfig:
                 os.getenv("ACC_RFIS_BASE_URL")
                 or "https://developer.api.autodesk.com/construction/rfis/v3"
             ).strip().rstrip("/"),
-            page_size=max(int(os.getenv("ACC_PAGE_SIZE") or "100"), 1),
+            page_size=_safe_int(os.getenv("ACC_PAGE_SIZE"), 100),
             issues_input_path=Path(issues_input_path) if issues_input_path else None,
             rfis_input_path=Path(rfis_input_path) if rfis_input_path else None,
         )

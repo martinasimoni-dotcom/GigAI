@@ -160,8 +160,10 @@ def main() -> int:
 
     print("\nStarted requested services.")
     if args.mode in ("all", "backend"):
-        print(f"Dashboard API:    {DASHBOARD_API_URL}/docs")
-        print(f"Orchestrator API: {ORCHESTRATOR_API_URL}/docs")
+        backend_url = f"http://127.0.0.1:{args.backend_port}"
+        orchestrator_url = f"http://127.0.0.1:{args.orchestrator_port}"
+        print(f"Dashboard API:    {backend_url}/docs")
+        print(f"Orchestrator API: {orchestrator_url}/docs")
     if args.mode in ("all", "frontend"):
         print(f"Frontend: {FRONTEND_URL}")
 

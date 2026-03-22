@@ -1,6 +1,6 @@
 # ACC RFI Automation
 
-This feature adds a separate, read-only automation path for ACC RFIs.
+This feature adds a separate automation workflow for ACC RFIs.
 
 Flow:
 
