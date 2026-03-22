@@ -38,7 +38,9 @@ class NormalizationService:
         return all(extracted.get(f) for f in required)
 
     def is_rfi_actionable(self, extracted: dict) -> bool:
-        """Looser check for RFI extractions — material_from + material_to is enough."""
+        """Looser check for RFI extractions — at least one material field is enough."""
         if extracted.get("relevant") is False:
             return False
-        return bool(extracted.get("material_from") and extracted.get("material_to"))
+        # Accept if either material field is present (Haiku infers the other from title)
+        has_material = bool(extracted.get("material_from") or extracted.get("material_to"))
+        return has_material

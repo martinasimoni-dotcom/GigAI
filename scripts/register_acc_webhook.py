@@ -32,12 +32,27 @@ import httpx
 APS_BASE   = "https://developer.api.autodesk.com"
 AUTH_URL   = f"{APS_BASE}/authentication/v2/token"
 HOOKS_BASE = f"{APS_BASE}/webhooks/v1"
+DM_BASE    = f"{APS_BASE}/project/v1"
 
 # Candidate events for RFI / Issue creation, ordered by preference.
 # We try them in order and stop at the first successful registration.
 # Reference: https://aps.autodesk.com/en/docs/webhooks/v1/reference/events/
 CANDIDATE_EVENTS = [
-    # ACC RFI (primary target — ACC Construction Cloud)
+    # Data Management — folder/item created (works for ALL ACC projects; RFIs
+    # appear as items in the RFIs folder so this event fires on every new RFI)
+    {
+        "system": "data",
+        "event":  "dm.folder.created",
+        "label":  "Data Management — folder/item created (catches new RFIs)",
+    },
+    # Data Management — new version added (backup: fires when a DM item gets a
+    # new version, e.g. an RFI document is revised)
+    {
+        "system": "data",
+        "event":  "dm.version.added",
+        "label":  "Data Management — version added",
+    },
+    # ACC RFI (direct event — requires ACC Construction Cloud entitlement)
     {
         "system": "autodesk.construction",
         "event":  "autodesk.construction.workflow:rfis-1.created.v1",
@@ -54,12 +69,6 @@ CANDIDATE_EVENTS = [
         "system": "adsk.bim360",
         "event":  "quality:issues:created",
         "label":  "BIM 360 Quality Issues — created",
-    },
-    # Data Management — new version added (useful if RFIs live in DM)
-    {
-        "system": "data",
-        "event":  "dm.version.added",
-        "label":  "Data Management — version added",
     },
 ]
 
@@ -102,6 +111,38 @@ async def validate_token(token: str) -> bool:
     return resp.status_code in (200, 204)
 
 
+async def get_top_folder_urn(token: str, hub_id: str, project_id: str) -> str | None:
+    """
+    Return the URN of the first top-level folder in the ACC project.
+
+    Data Management webhook events require 'folder' scope (not hub/project).
+    We use the first top folder (usually 'Project Files' or 'Plans') so the
+    hook watches all file activity across the whole project.
+    """
+    url = f"{DM_BASE}/hubs/{hub_id}/projects/{project_id}/topFolders"
+    print(f"  Fetching top folders: GET {url}")
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.get(url, headers={"Authorization": f"Bearer {token}"})
+    if resp.status_code != 200:
+        print(f"  ⚠️  topFolders request failed ({resp.status_code}): {resp.text[:200]}")
+        return None
+    folders = resp.json().get("data", [])
+    if not folders:
+        print("  ⚠️  No top-level folders found in project")
+        return None
+    # Prefer "Project Files" over "Plans"; fall back to the first folder
+    for folder in folders:
+        name = (folder.get("attributes") or {}).get("name", "")
+        if "project files" in name.lower():
+            urn = folder.get("id") or folder.get("urn")
+            print(f"  Found 'Project Files' folder: {urn}")
+            return urn
+    urn = folders[0].get("id") or folders[0].get("urn")
+    name = (folders[0].get("attributes") or {}).get("name", "first folder")
+    print(f"  Using first top folder ({name!r}): {urn}")
+    return urn
+
+
 # ── Webhook helpers ───────────────────────────────────────────────────────────
 
 async def list_existing_hooks(token: str, callback_url_prefix: str | None = None) -> list[dict]:
@@ -136,37 +177,34 @@ async def register_hook(
     callback_url: str,
     hub_id:       str,
     project_id:   str,
+    folder_urn:   str | None = None,
 ) -> tuple[int, dict]:
     """
     Register a single webhook and return (status_code, response_body).
 
-    Scope rules (from Autodesk Webhooks API docs):
-      autodesk.construction  →  scope key: "project"  only
-      adsk.bim360            →  scope key: "hub"       only (account-level) or "project"
-      data                   →  scope keys: "hub", "project", "folder", "resource"
-
-    autoReactivateHook is only valid for the "data" system.
+    Scope rules (confirmed by trial against the live API):
+      autodesk.construction  →  "project"  only
+      adsk.bim360            →  "project"  only
+      data (dm.*)            →  "folder"   only
+                                hub/project both return 400 VALIDATION_ERROR.
     hookAttribute values must all be strings.
     """
     # Ensure IDs carry the 'b.' prefix required by APS
     def b(id_: str) -> str:
         return id_ if id_.startswith("b.") else f"b.{id_}"
 
-    hub_scoped     = b(hub_id)
     project_scoped = b(project_id)
 
     # ── Build scope per system ─────────────────────────────────────────────────
-    # autodesk.construction: only "project" is a valid scope key.
-    # adsk.bim360:           "hub" scopes to the whole account;
-    #                        "project" scopes to one project.
-    # data:                  both "hub" and "project" are accepted.
-    if system == "autodesk.construction":
+    if system in ("autodesk.construction", "adsk.bim360"):
         scope = {"project": project_scoped}
-    elif system == "adsk.bim360":
-        scope = {"project": project_scoped}
+    elif system == "data":
+        if not folder_urn:
+            print("  ❌ 'data' system events require a folder URN — none was resolved")
+            return 400, {"error": "folder_urn required for data system"}
+        scope = {"folder": folder_urn}
     else:
-        # data and any future systems
-        scope = {"hub": hub_scoped, "project": project_scoped}
+        scope = {"project": project_scoped}
 
     # ── Build payload ─────────────────────────────────────────────────────────
     payload: dict = {
@@ -179,10 +217,6 @@ async def register_hook(
         },
     }
 
-    # autoReactivateHook is only recognised by the "data" system.
-    if system == "data":
-        payload["autoReactivateHook"] = True
-
     # ── Debug output ──────────────────────────────────────────────────────────
     url = f"{HOOKS_BASE}/systems/{system}/events/{event}/hooks"
     print("  ── Request ──────────────────────────────────────────")
@@ -190,13 +224,16 @@ async def register_hook(
     print(f"  Payload:\n{json.dumps(payload, indent=4)}")
     print("  ─────────────────────────────────────────────────────")
 
+    # Detect region from the folder URN prefix (wipemea → EMEA, otherwise US)
+    region = "EMEA" if "wipemea" in (folder_urn or "").lower() else "US"
+
     async with httpx.AsyncClient(timeout=20) as client:
         resp = await client.post(
             url,
             headers={
                 "Authorization": f"Bearer {token}",
                 "Content-Type":  "application/json",
-                "x-ads-region":  "US",
+                "x-ads-region":  region,
             },
             json=payload,
         )
@@ -395,6 +432,17 @@ async def main() -> None:
     print(f"  Callback:   {callback_url}")
     print()
 
+    # Data Management events require 'folder' scope — fetch the top folder URN.
+    folder_urn: str | None = None
+    if system == "data":
+        print("  Data Management event detected — resolving top folder URN…")
+        folder_urn = await get_top_folder_urn(token, hub_id, project_id)
+        if folder_urn:
+            print(f"  Folder URN: {folder_urn}")
+        else:
+            print("  ⚠️  Could not resolve a folder URN — registration may fail")
+        print()
+
     status_code, resp_body = await register_hook(
         token=token,
         system=system,
@@ -402,6 +450,7 @@ async def main() -> None:
         callback_url=callback_url,
         hub_id=hub_id,
         project_id=project_id,
+        folder_urn=folder_urn,
     )
 
     if status_code in (200, 201):

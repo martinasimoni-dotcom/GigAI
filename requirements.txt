@@ -4,7 +4,7 @@ sqlalchemy==2.0.25
 psycopg[binary]
 pgvector==0.2.4
 google-cloud-pubsub==2.19.0
-anthropic==0.25.0
+anthropic>=0.50.0
 httpx==0.26.0
 python-dotenv==1.0.0
 pydantic-settings==2.1.0

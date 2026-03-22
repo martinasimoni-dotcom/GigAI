@@ -1,8 +1,9 @@
 """
-Proposals API — CRUD + three action buttons + approve/reject.
+Proposals API — CRUD + three action buttons + approve/reject + manual RFI trigger.
 """
 import uuid
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Request
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from models.database import get_db, Proposal, Decision
 from models.schemas import ProposalOut, RejectRequest
@@ -10,6 +11,68 @@ from integrations.acc_client import ACCClient
 from integrations.gmail_client import GmailClient, build_proposal_email_html
 
 router = APIRouter()
+
+
+# -------------------------------------------------------------------------
+# Manual RFI trigger — for demo use when webhooks / polling aren't available
+# -------------------------------------------------------------------------
+
+class ProcessRfiRequest(BaseModel):
+    rfi_id: str
+
+
+@router.post("/process-rfi")
+async def process_rfi_manually(
+    body: ProcessRfiRequest,
+    background_tasks: BackgroundTasks,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """
+    Manually trigger the full proposal pipeline for a single ACC RFI.
+
+    1. Fetches the RFI from ACC by ID (works with 2-legged token)
+    2. Runs the same pipeline as the webhook handler
+    3. Returns immediately — the proposal appears in the dashboard via WebSocket
+
+    Body: { "rfi_id": "<ACC RFI ID>" }
+    """
+    rfi_id = body.rfi_id.strip()
+    if not rfi_id:
+        raise HTTPException(status_code=422, detail="rfi_id is required")
+
+    from config import settings
+    project_id = settings.ACC_PROJECT_ID or ""
+
+    acc = ACCClient()
+    try:
+        rfi_data = await acc.get_rfi(rfi_id, project_id=project_id)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc))
+
+    if not rfi_data or not rfi_data.get("id"):
+        raise HTTPException(
+            status_code=404,
+            detail=f"RFI '{rfi_id}' not found in ACC project '{project_id}'. "
+                   "Check the RFI ID and ensure it belongs to the configured project.",
+        )
+
+    from api.webhooks import process_rfi_event
+    import asyncio
+    # Run pipeline directly (not as background task) so all output is visible in terminal
+    asyncio.create_task(process_rfi_event(
+        rfi_id=rfi_data.get("id") or rfi_id,
+        project_id=project_id,
+        rfi_inline=rfi_data,
+        app=request.app,
+    ))
+
+    return {
+        "status": "queued",
+        "rfi_id": rfi_id,
+        "title": rfi_data.get("title") or "(fetching…)",
+        "message": "Pipeline started — proposal will appear in the dashboard shortly.",
+    }
 
 
 @router.get("/proposals", response_model=list[ProposalOut])

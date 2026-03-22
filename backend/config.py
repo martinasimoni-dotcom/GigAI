@@ -12,18 +12,20 @@ class Settings(BaseSettings):
     # Anthropic Claude
     # -------------------------------------------------------------------------
     ANTHROPIC_API_KEY: str
-    CLAUDE_HAIKU_MODEL: str = "claude-haiku-4-20250514"
-    CLAUDE_SONNET_MODEL: str = "claude-sonnet-4-20250514"
+    CLAUDE_HAIKU_MODEL: str = "claude-haiku-4-5-20251001"
+    CLAUDE_SONNET_MODEL: str = "claude-sonnet-4-6"
 
     # -------------------------------------------------------------------------
     # Autodesk Construction Cloud (ACC)
     # -------------------------------------------------------------------------
     ACC_CLIENT_ID: str
     ACC_CLIENT_SECRET: str
-    ACC_ACCESS_TOKEN: Optional[str] = None
+    ACC_ACCESS_TOKEN: Optional[str] = None   # short-lived JWT — paste from Postman
+    ACC_REFRESH_TOKEN: Optional[str] = None  # long-lived — paste from Postman, auto-refreshed
     ACC_HUB_ID: Optional[str] = None
     ACC_PROJECT_ID: Optional[str] = None
     ACC_CONTAINER_ID: Optional[str] = None
+    ACC_REGION: str = "EMEA"  # "US" or "EMEA" — project is hosted on acc.autodesk.eu
 
     # -------------------------------------------------------------------------
     # Gmail API
@@ -77,6 +79,12 @@ class Settings(BaseSettings):
     CONFIDENCE_AUTO_APPROVE_THRESHOLD: float = 0.80
 
     # -------------------------------------------------------------------------
+    # ACC Polling (replaces webhooks — no ngrok required)
+    # -------------------------------------------------------------------------
+    POLLING_ENABLED: bool = True
+    POLLING_INTERVAL_MINUTES: int = 5
+
+    # -------------------------------------------------------------------------
     # Feature flags
     # -------------------------------------------------------------------------
     ENABLE_AUTO_APPROVE: bool = True
@@ -94,7 +102,7 @@ class Settings(BaseSettings):
     # Security
     # -------------------------------------------------------------------------
     JWT_SECRET: str = "changeme"
-    CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
+    CORS_ORIGINS: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000"
 
     class Config:
         env_file = str(_ENV_FILE)

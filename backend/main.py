@@ -9,13 +9,15 @@ from models.database import init_db
 
 app = FastAPI(title="GIGAI", version="1.0.0")
 
-cors_origins = [o.strip() for o in settings.CORS_ORIGINS.split(",")]
+cors_origins = [o.strip() for o in settings.CORS_ORIGINS.split(",") if o.strip()]
+print(f"🌐 CORS allowed origins: {cors_origins}")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 

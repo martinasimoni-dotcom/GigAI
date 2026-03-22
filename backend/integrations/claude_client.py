@@ -1,11 +1,11 @@
 import json
-from anthropic import Anthropic
+from anthropic import AsyncAnthropic
 from config import settings
 
 
 class ClaudeClient:
     def __init__(self):
-        self.client = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+        self.client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
 
     # -------------------------------------------------------------------------
     # RFI-based extraction (primary workflow)
@@ -26,10 +26,16 @@ class ClaudeClient:
 RFI Content:
 {rfi_text}
 
+IMPORTANT: Even when the description is empty or minimal, infer as much as possible from the title.
+Examples of title-based inference:
+- "window change" → material_from="existing windows", material_to="replacement windows", location="building windows"
+- "replace floor tiles" → material_from="existing floor tiles", material_to="new floor tiles"
+- "door upgrade" → material_from="existing doors", material_to="upgraded doors"
+
 Return a JSON object with these fields:
-- location: where in the building / which rooms or areas (string)
-- material_from: original / current material being replaced (string)
-- material_to: new material requested (string)
+- location: where in the building / which rooms or areas — infer from title if not stated (string)
+- material_from: original / current material being replaced — infer from title if not explicit (string)
+- material_to: new material requested — infer from title as "replacement/new <element>" if not explicit (string)
 - quantity: number of elements to change (number, 0 if not stated)
 - element_ids: list of specific element IDs or descriptions if mentioned (array of strings)
 - cost_estimate_eur: estimated cost delta in EUR (number, 0 if unknown)
@@ -39,7 +45,7 @@ Return a JSON object with these fields:
 
 Return only valid JSON, no markdown."""
 
-        response = self.client.messages.create(
+        response = await self.client.messages.create(
             model=settings.CLAUDE_HAIKU_MODEL,
             max_tokens=800,
             messages=[{"role": "user", "content": prompt}],
@@ -78,7 +84,7 @@ Produce a JSON proposal with exactly these fields:
 
 Return only valid JSON, no markdown."""
 
-        response = self.client.messages.create(
+        response = await self.client.messages.create(
             model=settings.CLAUDE_SONNET_MODEL,
             max_tokens=4000,
             messages=[{"role": "user", "content": prompt}],
@@ -109,7 +115,7 @@ Return a JSON object with these fields:
 
 Return only valid JSON, no markdown."""
 
-        response = self.client.messages.create(
+        response = await self.client.messages.create(
             model=settings.CLAUDE_HAIKU_MODEL,
             max_tokens=1000,
             messages=[{"role": "user", "content": prompt}],
@@ -139,7 +145,7 @@ Generate a JSON proposal with:
 
 Return only valid JSON, no markdown."""
 
-        response = self.client.messages.create(
+        response = await self.client.messages.create(
             model=settings.CLAUDE_SONNET_MODEL,
             max_tokens=4000,
             messages=[{"role": "user", "content": prompt}],

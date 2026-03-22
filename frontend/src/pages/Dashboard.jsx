@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { AlertCircle, RefreshCw, ChevronDown } from 'lucide-react'
+import { AlertCircle, RefreshCw, ChevronDown, Zap, Loader2 } from 'lucide-react'
 import axios from 'axios'
 
 import StatsOverview    from '../components/StatsOverview'
@@ -8,7 +8,7 @@ import ProposalCard     from '../components/ProposalCard'
 import EmptyState       from '../components/EmptyState'
 import ToastContainer   from '../components/Toast'
 
-const api = axios.create({ baseURL: '/api' })
+const api = axios.create({ baseURL: 'http://localhost:8000/api' })
 
 let toastCounter = 0
 
@@ -31,7 +31,7 @@ export default function Dashboard() {
   // WebSocket for real-time updates
   useEffect(() => {
     const connect = () => {
-      const ws = new WebSocket(`ws://${window.location.host}/ws`)
+      const ws = new WebSocket('ws://localhost:8000/ws')
       wsRef.current = ws
       ws.onopen  = () => setWsStatus('live')
       ws.onclose = () => { setWsStatus('reconnecting'); setTimeout(connect, 3000) }
@@ -99,6 +99,21 @@ export default function Dashboard() {
     onError: (err) => addToast(err.response?.data?.detail || 'Rejection failed', 'error'),
   })
 
+  const [rfiInput, setRfiInput] = useState('')
+
+  const processRfiMutation = useMutation({
+    mutationFn: (rfi_id) => api.post('/process-rfi', { rfi_id }),
+    onSuccess: (data) => {
+      addToast(`Pipeline started for RFI "${data.data?.title || rfiInput}"`, 'success', 6000)
+      setRfiInput('')
+      setTimeout(() => {
+        queryClient.invalidateQueries(['proposals'])
+        queryClient.invalidateQueries(['stats'])
+      }, 3000)
+    },
+    onError: (err) => addToast(err.response?.data?.detail || 'Failed to process RFI', 'error'),
+  })
+
   const pending = proposals || []
 
   return (
@@ -157,6 +172,45 @@ export default function Dashboard() {
             </div>
           </div>
         )}
+
+        {/* Manual RFI trigger */}
+        <div className="bg-white rounded-2xl shadow-card border border-brand-100 p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-7 h-7 bg-brand-50 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Zap className="w-3.5 h-3.5 text-brand-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Process RFI</p>
+              <p className="text-xs text-gray-400">Paste an ACC RFI ID to generate a proposal instantly</p>
+            </div>
+          </div>
+          <form
+            className="flex gap-2"
+            onSubmit={(e) => {
+              e.preventDefault()
+              if (rfiInput.trim()) processRfiMutation.mutate(rfiInput.trim())
+            }}
+          >
+            <input
+              type="text"
+              value={rfiInput}
+              onChange={(e) => setRfiInput(e.target.value)}
+              placeholder="e.g. a1b2c3d4-e5f6-…"
+              className="flex-1 text-sm px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-300 bg-gray-50"
+              disabled={processRfiMutation.isPending}
+            />
+            <button
+              type="submit"
+              disabled={!rfiInput.trim() || processRfiMutation.isPending}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              {processRfiMutation.isPending
+                ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Processing…</>
+                : <><Zap className="w-3.5 h-3.5" /> Generate</>
+              }
+            </button>
+          </form>
+        </div>
 
         {/* Proposal grid */}
         {isLoading ? (
