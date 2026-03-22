@@ -2,34 +2,54 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { GigAIClient } from '@/lib/api';
+import { DashboardSocketMessage, GigAIClient, apiClient } from '@/lib/api';
 
 interface RevisionItem {
   revision_id: string;
   meeting_id: string;
   meeting_title: string;
+  project_id?: string;
   space_name: string;
   element_type: string;
   action: string;
   comment_text: string;
+  remarks?: string;
   applied_at: string;
   applied_by: string;
   priority: string;
+  status?: string;
+  view_name?: string;
+  view_type?: string;
+  cloud_id?: string;
+  note_id?: string;
 }
 
 export default function RevisionsPage() {
   const [revisions, setRevisions] = useState<RevisionItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [liveSyncMessage, setLiveSyncMessage] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'this-week' | 'this-month'>('all');
   const [sortBy, setSortBy] = useState<'recent' | 'space' | 'priority'>('recent');
 
   useEffect(() => {
+    const mergeRevision = (incoming: RevisionItem) => {
+      setRevisions((current) => {
+        const existing = current.find((item) => item.revision_id === incoming.revision_id);
+        if (existing) {
+          return current.map((item) =>
+            item.revision_id === incoming.revision_id ? { ...item, ...incoming } : item
+          );
+        }
+        return [incoming, ...current];
+      });
+    };
+
     const fetchRevisions = async () => {
       try {
         setLoading(true);
-        const api = new GigAIClient('http://localhost:8000');
-        const data = await api.getRevisions?.();
+        const api = new GigAIClient();
+        const data = await api.getRevisions();
         setRevisions(data || []);
         setError(null);
       } catch (err) {
@@ -39,7 +59,24 @@ export default function RevisionsPage() {
       }
     };
 
+    const socket = apiClient.connectWebSocket('revisions-page');
+    socket.onmessage = (event) => {
+      const payload = JSON.parse(event.data) as DashboardSocketMessage;
+      if (payload.type === 'revision_marked' && payload.revision) {
+        setLiveSyncMessage(`Live sync active. Last update for ${payload.revision.space_name}.`);
+        mergeRevision(payload.revision);
+      }
+    };
+
+    socket.onerror = () => {
+      setLiveSyncMessage('Live sync is unavailable. Showing latest fetched revisions.');
+    };
+
     fetchRevisions();
+
+    return () => {
+      socket.close();
+    };
   }, []);
 
   const filteredRevisions = revisions.filter((revision) => {
@@ -137,8 +174,14 @@ export default function RevisionsPage() {
 
       {/* Stats */}
       {!loading && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-          <div style={{ backgroundColor: '#f3f4f6', padding: '1rem', borderRadius: '0.5rem' }}>
+        <div style={{ display: 'grid', gap: '1rem', marginBottom: '2rem' }}>
+          {liveSyncMessage ? (
+            <div style={{ backgroundColor: '#eff6ff', color: '#1d4ed8', padding: '0.875rem 1rem', borderRadius: '0.5rem', border: '1px solid #bfdbfe' }}>
+              {liveSyncMessage}
+            </div>
+          ) : null}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem' }}>
+            <div style={{ backgroundColor: '#f3f4f6', padding: '1rem', borderRadius: '0.5rem' }}>
             <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>Total Revisions</p>
             <p style={{ fontSize: '1.875rem', fontWeight: 'bold', marginTop: '0.25rem' }}>
               {sortedRevisions.length}
@@ -155,6 +198,7 @@ export default function RevisionsPage() {
             <p style={{ fontSize: '1.875rem', fontWeight: 'bold', marginTop: '0.25rem', color: '#92400e' }}>
               {sortedRevisions.filter((r) => r.priority === 'MEDIUM').length}
             </p>
+          </div>
           </div>
         </div>
       )}
@@ -245,7 +289,26 @@ export default function RevisionsPage() {
                         <span style={{ color: colors.text, opacity: 0.7 }}>
                           {new Date(revision.applied_at).toLocaleString()}
                         </span>
+                        {revision.view_name ? (
+                          <span style={{ color: colors.text, opacity: 0.7 }}>
+                            View: {revision.view_name}
+                          </span>
+                        ) : null}
                       </div>
+                      {revision.cloud_id || revision.note_id ? (
+                        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', fontSize: '0.75rem', marginTop: '0.5rem' }}>
+                          {revision.cloud_id ? (
+                            <span style={{ color: colors.text, opacity: 0.7 }}>
+                              Cloud: {revision.cloud_id}
+                            </span>
+                          ) : null}
+                          {revision.note_id ? (
+                            <span style={{ color: colors.text, opacity: 0.7 }}>
+                              Note: {revision.note_id}
+                            </span>
+                          ) : null}
+                        </div>
+                      ) : null}
                     </div>
 
                     {/* Priority Badge */}

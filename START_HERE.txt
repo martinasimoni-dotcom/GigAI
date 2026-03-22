@@ -61,7 +61,7 @@ Important notes
 Fast checks
 -----------
 
-- API health: http://localhost:8000/health
-- API docs: http://localhost:8000/docs
-- Revisions endpoint: http://localhost:8000/api/revisions
-- Team workload endpoint: http://localhost:8000/api/dashboard/architects
+- API health: http://localhost:8010/health
+- API docs: http://localhost:8010/docs
+- Revisions endpoint: http://localhost:8010/api/revisions
+- Team workload endpoint: http://localhost:8010/api/dashboard/architects

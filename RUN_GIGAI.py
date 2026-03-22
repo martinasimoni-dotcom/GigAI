@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import argparse
 import os
+import socket
 import subprocess
 import sys
+import webbrowser
 from pathlib import Path
+from threading import Timer
 
 
 LAUNCHER_VERSION = "2026.03.18.5"
@@ -18,6 +21,10 @@ LATEST_UPDATES = [
     "Revit Voice Command window UI improved (larger controls, better spacing, DPI-friendly layout)",
 ]
 
+FRONTEND_URL = "http://localhost:3000"
+DASHBOARD_API_URL = "http://localhost:8010"
+ORCHESTRATOR_API_URL = "http://localhost:8011"
+
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="GigAI main launcher")
@@ -28,6 +35,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="What to run (default: all)",
     )
     parser.add_argument("--backend-port", type=int, default=8010, help="Backend port")
+    parser.add_argument("--orchestrator-port", type=int, default=8011, help="Orchestrator API port")
     parser.add_argument("--reload", action="store_true", help="Enable backend auto-reload")
     parser.add_argument(
         "--stop-existing",
@@ -45,7 +53,23 @@ def start_process(command: list[str], cwd: Path) -> None:
     subprocess.Popen(command, cwd=str(cwd), creationflags=creationflags)
 
 
-def start_backend(project_root: Path, backend_port: int, reload_enabled: bool, stop_existing: bool) -> None:
+def open_frontend_url(delay_seconds: float = 6.0) -> None:
+    Timer(delay_seconds, lambda: webbrowser.open(FRONTEND_URL, new=2)).start()
+
+
+def is_local_port_open(port: int, host: str = "127.0.0.1") -> bool:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.settimeout(0.5)
+        return sock.connect_ex((host, port)) == 0
+
+
+def start_backend(
+    project_root: Path,
+    app_name: str,
+    port: int,
+    reload_enabled: bool,
+    stop_existing: bool,
+) -> None:
     start_api = project_root / "start-api.ps1"
     if not start_api.exists():
         raise FileNotFoundError(f"Missing startup script: {start_api}")
@@ -58,9 +82,9 @@ def start_backend(project_root: Path, backend_port: int, reload_enabled: bool, s
         "-File",
         str(start_api),
         "-App",
-        "dashboard",
+        app_name,
         "-Port",
-        str(backend_port),
+        str(port),
     ]
 
     if reload_enabled:
@@ -68,7 +92,7 @@ def start_backend(project_root: Path, backend_port: int, reload_enabled: bool, s
     if stop_existing:
         command.append("-StopExisting")
 
-    print(f"Starting backend on http://127.0.0.1:{backend_port} ...")
+    print(f"Starting {app_name} API on http://127.0.0.1:{port} ...")
     start_process(command, cwd=project_root)
 
 
@@ -76,6 +100,11 @@ def start_frontend(project_root: Path) -> None:
     frontend_path = project_root / "frontend"
     if not frontend_path.exists():
         raise FileNotFoundError(f"Missing frontend directory: {frontend_path}")
+
+    if is_local_port_open(3000):
+        print(f"Frontend already running on {FRONTEND_URL}. Opening existing dashboard ...")
+        webbrowser.open(FRONTEND_URL, new=2)
+        return
 
     command_script = (
         f'Set-Location -Path "{frontend_path}"; '
@@ -92,8 +121,9 @@ def start_frontend(project_root: Path) -> None:
         command_script,
     ]
 
-    print("Starting frontend on http://localhost:3000 ...")
+    print(f"Starting frontend on {FRONTEND_URL} ...")
     start_process(command, cwd=frontend_path)
+    open_frontend_url()
 
 
 def main() -> int:
@@ -112,7 +142,15 @@ def main() -> int:
     if args.mode in ("all", "backend"):
         start_backend(
             project_root=project_root,
-            backend_port=args.backend_port,
+            app_name="dashboard",
+            port=args.backend_port,
+            reload_enabled=args.reload,
+            stop_existing=args.stop_existing,
+        )
+        start_backend(
+            project_root=project_root,
+            app_name="orchestrator",
+            port=args.orchestrator_port,
             reload_enabled=args.reload,
             stop_existing=args.stop_existing,
         )
@@ -122,9 +160,10 @@ def main() -> int:
 
     print("\nStarted requested services.")
     if args.mode in ("all", "backend"):
-        print(f"Backend:  http://localhost:{args.backend_port}/docs")
+        print(f"Dashboard API:    {DASHBOARD_API_URL}/docs")
+        print(f"Orchestrator API: {ORCHESTRATOR_API_URL}/docs")
     if args.mode in ("all", "frontend"):
-        print("Frontend: http://localhost:3000")
+        print(f"Frontend: {FRONTEND_URL}")
 
     return 0
 

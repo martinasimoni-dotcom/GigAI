@@ -153,12 +153,19 @@ namespace GigAi.RevitAddin
                         {
                             RevisionId = revisionId,
                             MeetingId = "meet_revit",
+                            MeetingTitle = "Revit Voice Mark",
                             ProjectId = projectId,
                             SpaceName = string.IsNullOrWhiteSpace(focusSpace) ? "Unknown Space" : focusSpace,
                             ElementType = target?.Category?.Name ?? "room",
                             Action = "REVISION_MARKED",
                             CommentText = noteText,
                             AppliedBy = Environment.UserName,
+                            AppliedAt = DateTime.UtcNow.ToString("o"),
+                            ViewName = annotationView?.Name ?? string.Empty,
+                            ViewType = annotationView?.ViewType.ToString() ?? string.Empty,
+                            CloudId = bubbleId != ElementId.InvalidElementId ? bubbleId.Value.ToString() : string.Empty,
+                            NoteId = noteId != ElementId.InvalidElementId ? noteId.Value.ToString() : string.Empty,
+                            Priority = "HIGH",
                         };
 
                         GigAiApiClient.NotifyRevisionMarked(apiUrl, revisionPayload);

@@ -7,6 +7,13 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from gigai.dashboard.routers import dashboard, health, integrations, meetings, tasks
 
+LOCAL_DEV_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+
 
 def create_dashboard_app() -> FastAPI:
     """Create FastAPI app with dashboard endpoints."""
@@ -19,7 +26,7 @@ def create_dashboard_app() -> FastAPI:
 
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:3000", "http://localhost:8000"],
+        allow_origins=LOCAL_DEV_ORIGINS,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

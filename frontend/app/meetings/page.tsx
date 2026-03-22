@@ -25,7 +25,7 @@ export default function MeetingsPage() {
     const fetchMeetings = async () => {
       try {
         setLoading(true);
-        const api = new GigAIClient('http://localhost:8000');
+        const api = new GigAIClient();
         const data = await api.getMeetings();
         setMeetings(data || []);
         setError(null);
@@ -130,9 +130,6 @@ export default function MeetingsPage() {
                   backgroundColor: '#fff',
                   cursor: 'pointer',
                   transition: 'all 0.2s',
-                  hover: {
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  },
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';

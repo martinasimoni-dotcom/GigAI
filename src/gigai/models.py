@@ -81,3 +81,52 @@ class ApprovalState(BaseModel):
     status: str
     note: str | None = None
     action_status: str | None = None
+
+
+class ReviewQueueItem(BaseModel):
+    id: str
+    structured_intelligence_id: str
+    project_id: str
+    confidence_score: float
+    reason_for_review: str
+    entities: list[dict[str, Any]] = Field(default_factory=list)
+    actions: list[dict[str, Any]] = Field(default_factory=list)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    status: Literal["pending", "in-review", "approved", "rejected"]
+    assigned_to: str | None = None
+    reviewer_note: str | None = None
+    created_at: str
+    updated_at: str
+    resolved_at: str | None = None
+
+
+class ReviewQueueResponse(BaseModel):
+    items: list[ReviewQueueItem]
+    total: int
+    status: str = "ok"
+
+
+class STTMetric(BaseModel):
+    id: int
+    transcript_id: str
+    provider: str
+    model: str
+    latency_ms: float
+    audio_duration_ms: float | None = None
+    transcript_length: int | None = None
+    error: str | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    created_at: str
+
+
+class STTHealthStatus(BaseModel):
+    status: str
+    provider: str
+    model: str
+    device: str
+    compute_type: str
+    available: bool
+    last_latency_ms: float | None = None
+    total_transcribed: int = 0
+    error_count: int = 0
+    error_rate: float = 0.0

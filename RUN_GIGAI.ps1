@@ -2,7 +2,9 @@ param(
     [ValidateSet("all", "backend", "frontend")]
     [string]$Mode = "all",
 
-    [int]$BackendPort = 8000,
+    [int]$BackendPort = 8010,
+
+    [int]$OrchestratorPort = 8011,
 
     [switch]$Reload,
 
@@ -14,16 +16,48 @@ $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $frontendPath = Join-Path $projectRoot "frontend"
 $startApiScript = Join-Path $projectRoot "start-api.ps1"
+$frontendUrl = "http://localhost:3000"
+$dashboardApiUrl = "http://localhost:$BackendPort"
+$orchestratorApiUrl = "http://localhost:$OrchestratorPort"
+
+function Test-TcpPort {
+    param(
+        [string]$Host,
+        [int]$Port
+    )
+
+    $client = New-Object System.Net.Sockets.TcpClient
+    try {
+        $async = $client.BeginConnect($Host, $Port, $null, $null)
+        if (-not $async.AsyncWaitHandle.WaitOne(500)) {
+            return $false
+        }
+
+        $client.EndConnect($async)
+        return $true
+    }
+    catch {
+        return $false
+    }
+    finally {
+        $client.Dispose()
+    }
+}
 
 function Start-Backend {
-    Write-Host "Starting backend on http://127.0.0.1:$BackendPort ..." -ForegroundColor Cyan
+    param(
+        [string]$AppName,
+        [int]$PortNumber
+    )
+
+    Write-Host "Starting $AppName API on http://127.0.0.1:$PortNumber ..." -ForegroundColor Cyan
 
     $args = @(
         "-NoExit",
         "-ExecutionPolicy", "Bypass",
         "-File", "`"$startApiScript`"",
-        "-App", "dashboard",
-        "-Port", "$BackendPort"
+        "-App", "$AppName",
+        "-Port", "$PortNumber"
     )
 
     if ($Reload) {
@@ -42,7 +76,13 @@ function Start-Frontend {
         throw "Frontend folder not found: $frontendPath"
     }
 
-    Write-Host "Starting frontend on http://localhost:3000 ..." -ForegroundColor Cyan
+    if (Test-TcpPort -Host "127.0.0.1" -Port 3000) {
+        Write-Host "Frontend already running on $frontendUrl. Opening existing dashboard ..." -ForegroundColor Yellow
+        Start-Process $frontendUrl | Out-Null
+        return
+    }
+
+    Write-Host "Starting frontend on $frontendUrl ..." -ForegroundColor Cyan
 
     $cmd = @(
         "Set-Location -Path `"$frontendPath`"",
@@ -51,6 +91,7 @@ function Start-Frontend {
     ) -join "; "
 
     Start-Process -FilePath "powershell" -ArgumentList @("-NoExit", "-ExecutionPolicy", "Bypass", "-Command", $cmd) -WorkingDirectory $frontendPath | Out-Null
+    Start-Process -FilePath "powershell" -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", "Start-Sleep -Seconds 6; Start-Process '$frontendUrl'") -WindowStyle Hidden | Out-Null
 }
 
 Write-Host ""
@@ -60,13 +101,15 @@ Write-Host ""
 
 switch ($Mode) {
     "backend" {
-        Start-Backend
+        Start-Backend -AppName "dashboard" -PortNumber $BackendPort
+        Start-Backend -AppName "orchestrator" -PortNumber $OrchestratorPort
     }
     "frontend" {
         Start-Frontend
     }
     default {
-        Start-Backend
+        Start-Backend -AppName "dashboard" -PortNumber $BackendPort
+        Start-Backend -AppName "orchestrator" -PortNumber $OrchestratorPort
         Start-Sleep -Milliseconds 800
         Start-Frontend
     }
@@ -75,8 +118,9 @@ switch ($Mode) {
 Write-Host ""
 Write-Host "Started requested services." -ForegroundColor Green
 if ($Mode -eq "all" -or $Mode -eq "backend") {
-    Write-Host "Backend:  http://localhost:$BackendPort/docs"
+    Write-Host "Dashboard API:    $dashboardApiUrl/docs"
+    Write-Host "Orchestrator API: $orchestratorApiUrl/docs"
 }
 if ($Mode -eq "all" -or $Mode -eq "frontend") {
-    Write-Host "Frontend: http://localhost:3000"
+    Write-Host "Frontend: $frontendUrl"
 }

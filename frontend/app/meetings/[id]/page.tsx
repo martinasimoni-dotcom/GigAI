@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { GigAIClient } from '@/lib/api';
+import { DashboardSocketMessage, GigAIClient, apiClient } from '@/lib/api';
 
 interface MeetingDetail {
   meeting_id: string;
@@ -28,10 +28,18 @@ interface Decision {
 
 interface Revision {
   revision_id: string;
+  meeting_id?: string;
   space_name: string;
   element_type: string;
+  action?: string;
   comment_text: string;
   applied_at: string;
+  applied_by?: string;
+  priority?: string;
+  remarks?: string;
+  view_name?: string;
+  cloud_id?: string;
+  note_id?: string;
 }
 
 export default function MeetingDetailPage() {
@@ -47,10 +55,22 @@ export default function MeetingDetailPage() {
   const [activeTab, setActiveTab] = useState<'overview' | 'transcript' | 'decisions' | 'revisions'>('overview');
 
   useEffect(() => {
+    const mergeRevision = (incoming: Revision) => {
+      setRevisions((current) => {
+        const existing = current.find((item) => item.revision_id === incoming.revision_id);
+        if (existing) {
+          return current.map((item) =>
+            item.revision_id === incoming.revision_id ? { ...item, ...incoming } : item
+          );
+        }
+        return [incoming, ...current];
+      });
+    };
+
     const fetchData = async () => {
       try {
         setLoading(true);
-        const api = new GigAIClient('http://localhost:8000');
+        const api = new GigAIClient();
 
         // Fetch in parallel
         const [meetingData, transcriptData, decisionsData, revisionsData] = await Promise.all([
@@ -77,6 +97,22 @@ export default function MeetingDetailPage() {
     if (meetingId) {
       fetchData();
     }
+
+    const socket = apiClient.connectWebSocket(`meeting-${meetingId || 'unknown'}`);
+    socket.onmessage = (event) => {
+      const payload = JSON.parse(event.data) as DashboardSocketMessage;
+      if (payload.type !== 'revision_marked' || !payload.revision) {
+        return;
+      }
+      if (payload.revision.meeting_id !== meetingId) {
+        return;
+      }
+      mergeRevision(payload.revision);
+    };
+
+    return () => {
+      socket.close();
+    };
   }, [meetingId]);
 
   const getPriorityColor = (priority: string) => {
@@ -350,16 +386,20 @@ export default function MeetingDetailPage() {
                         {revision.space_name}
                       </h3>
                       <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
-                        Element: {revision.element_type}
+                        {revision.action ? `${revision.action} • ` : ''}Element: {revision.element_type}
                       </p>
                     </div>
                   </div>
                   <div style={{ backgroundColor: '#fff', padding: '1rem', borderRadius: '0.375rem', marginBottom: '1rem', fontSize: '0.875rem' }}>
                     {revision.comment_text}
                   </div>
-                  <p style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                    Applied: {new Date(revision.applied_at).toLocaleString()}
-                  </p>
+                  <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', color: '#6b7280', fontSize: '0.75rem' }}>
+                    <span>Applied: {new Date(revision.applied_at).toLocaleString()}</span>
+                    {revision.applied_by ? <span>By: {revision.applied_by}</span> : null}
+                    {revision.view_name ? <span>View: {revision.view_name}</span> : null}
+                    {revision.cloud_id ? <span>Cloud: {revision.cloud_id}</span> : null}
+                    {revision.note_id ? <span>Note: {revision.note_id}</span> : null}
+                  </div>
                 </div>
               ))}
             </div>

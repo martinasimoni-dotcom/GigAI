@@ -16,8 +16,8 @@ URLs
 ----
 
 - Dashboard: http://localhost:3000
-- API docs: http://localhost:8000/docs
-- API health: http://localhost:8000/health
+- API docs: http://localhost:8010/docs
+- API health: http://localhost:8010/health
 
 Verify
 ------

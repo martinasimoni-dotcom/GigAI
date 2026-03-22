@@ -1,0 +1,57 @@
+{
+  "results": [
+    {
+      "id": "ISSUE-100",
+      "title": "Door clash at Level 2",
+      "description": "Door swing conflicts with corridor clearance.",
+      "status": "open",
+      "createdBy": {
+        "name": "Coordinator One"
+      },
+      "assignedTo": {
+        "name": "Architect A"
+      },
+      "dueDate": "2026-03-25",
+      "updatedAt": "2026-03-21T10:00:00Z",
+      "location": {
+        "x": 120.5,
+        "y": 45.2,
+        "z": 0.0,
+        "elementId": "45001",
+        "viewId": "Level 2",
+        "modelUrn": "urn:adsk.wipprod:dm.lineage:test-model"
+      }
+    },
+    {
+      "id": "ISSUE-101",
+      "title": "Window seal pending review",
+      "description": "Pending seal detail confirmation.",
+      "status": "pending",
+      "createdBy": {
+        "displayName": "Coordinator Two"
+      },
+      "assignedTo": [
+        {
+          "name": "Facade Lead"
+        }
+      ],
+      "dueDate": "2026-03-26",
+      "updatedAt": "2026-03-21T11:00:00Z",
+      "pushpin": {
+        "position": {
+          "x": 88.0,
+          "y": 12.5,
+          "z": 0.0
+        },
+        "externalId": "ext-window-02",
+        "sheetId": "Sheet A201"
+      }
+    },
+    {
+      "id": "ISSUE-IGNORE",
+      "title": "No location",
+      "description": "Should be ignored because there is no location information.",
+      "status": "open"
+    }
+  ]
+}

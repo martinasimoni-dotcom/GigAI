@@ -245,7 +245,7 @@ export default function SettingsPage() {
             API Configuration
           </h2>
           <p style={{ color: '#6b7280', marginBottom: '1rem' }}>
-            Current API endpoint: http://localhost:8000
+            Current API endpoint: {process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8010'}
           </p>
           <div style={{ backgroundColor: '#f9fafb', padding: '1rem', borderRadius: '0.375rem', fontFamily: 'monospace', fontSize: '0.875rem' }}>
             <p>Dashboard API: /api/dashboard/*</p>

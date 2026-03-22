@@ -34,7 +34,7 @@ export default function TeamPage() {
     const fetchTeamData = async () => {
       try {
         setLoading(true);
-        const api = new GigAIClient('http://localhost:8000');
+        const api = new GigAIClient();
         const data = await api.getTeamWorkload?.();
 
         if (data) {

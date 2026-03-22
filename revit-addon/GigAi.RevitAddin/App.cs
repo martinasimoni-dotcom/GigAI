@@ -48,6 +48,18 @@ namespace GigAi.RevitAddin
 
             panel.AddItem(syncButtonData);
 
+            PushButtonData accSyncButtonData = new PushButtonData(
+                "GigAiAccReadonlySync",
+                "Sync ACC Issues",
+                assemblyPath,
+                "GigAi.RevitAddin.Commands.SyncAccIssuesCommand"
+            )
+            {
+                ToolTip = "Read the latest local ACC snapshot and place or update readonly issue bubbles in Revit."
+            };
+
+            panel.AddItem(accSyncButtonData);
+
             GigAiSyncRuntime.Initialize();
             return Result.Succeeded;
         }

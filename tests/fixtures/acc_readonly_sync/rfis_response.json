@@ -1,0 +1,29 @@
+{
+  "results": [
+    {
+      "id": "RFI-200",
+      "subject": "RFI stair headroom",
+      "question": "Confirm required stair headroom at landing.",
+      "status": "closed",
+      "createdBy": {
+        "displayName": "Site Manager"
+      },
+      "assignedTo": [
+        {
+          "displayName": "Project Engineer"
+        }
+      ],
+      "responseDueDate": "2026-03-28",
+      "lastModifiedTime": "2026-03-21T12:00:00Z",
+      "locationDetails": {
+        "coordinates": {
+          "x": 15.0,
+          "y": 33.0,
+          "z": 0.0
+        },
+        "target_urn": "Section AA",
+        "entityId": "33002"
+      }
+    }
+  ]
+}

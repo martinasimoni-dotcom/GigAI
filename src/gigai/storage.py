@@ -153,6 +153,56 @@ def init_db() -> None:
                 )
                 """
             )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS review_queue (
+                    id TEXT PRIMARY KEY,
+                    structured_intelligence_id TEXT NOT NULL,
+                    project_id TEXT NOT NULL,
+                    confidence_score REAL NOT NULL,
+                    reason_for_review TEXT NOT NULL,
+                    entities_json TEXT NOT NULL,
+                    actions_json TEXT NOT NULL,
+                    metadata_json TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    assigned_to TEXT,
+                    reviewer_note TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    resolved_at TEXT
+                )
+                """
+            )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS stt_metrics (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    transcript_id TEXT NOT NULL,
+                    provider TEXT NOT NULL,
+                    model TEXT NOT NULL,
+                    latency_ms REAL NOT NULL,
+                    audio_duration_ms REAL,
+                    transcript_length INTEGER,
+                    error TEXT,
+                    metadata_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                )
+                """
+            )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS stt_shadow_metrics (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    transcript_id TEXT NOT NULL,
+                    project_id TEXT NOT NULL,
+                    fireflies_transcript TEXT NOT NULL,
+                    whisper_transcript TEXT NOT NULL,
+                    similarity_score REAL NOT NULL,
+                    metadata_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                )
+                """
+            )
 
         _INITIALIZED = True
         _INITIALIZED_PATH = str(path)
@@ -509,6 +559,23 @@ def list_bus_events(limit: int = 50) -> list[dict[str, Any]]:
     ]
 
 
+def list_bus_events_since(after_id: int, limit: int = 50) -> list[dict[str, Any]]:
+    with connection() as conn:
+        rows = conn.execute(
+            "SELECT * FROM bus_events WHERE id > ? ORDER BY id ASC LIMIT ?",
+            (after_id, limit),
+        ).fetchall()
+    return [
+        {
+            "id": row["id"],
+            "topic": row["topic"],
+            "payload_json": _deserialize(row["payload_json"], {}),
+            "created_at": row["created_at"],
+        }
+        for row in rows
+    ]
+
+
 def add_feedback(
     decision_id: str,
     outcome: str,
@@ -615,3 +682,235 @@ def get_coordination_plan(plan_id: str) -> dict[str, Any] | None:
         "created_at": row["created_at"],
         "updated_at": row["updated_at"],
     }
+
+
+def save_review_item(
+    review_id: str,
+    structured_intelligence_id: str,
+    project_id: str,
+    confidence_score: float,
+    reason_for_review: str,
+    entities: list[dict[str, Any]],
+    actions: list[dict[str, Any]],
+    metadata: dict[str, Any] | None = None,
+) -> None:
+    now = _utc_now()
+    with connection() as conn:
+        conn.execute(
+            """
+            INSERT OR REPLACE INTO review_queue (
+                id, structured_intelligence_id, project_id, confidence_score, reason_for_review,
+                entities_json, actions_json, metadata_json, status, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                review_id,
+                structured_intelligence_id,
+                project_id,
+                confidence_score,
+                reason_for_review,
+                _serialize(entities),
+                _serialize(actions),
+                _serialize(metadata or {}),
+                "pending",
+                now,
+                now,
+            ),
+        )
+
+
+def get_review_item(review_id: str) -> dict[str, Any] | None:
+    with connection() as conn:
+        row = conn.execute("SELECT * FROM review_queue WHERE id=?", (review_id,)).fetchone()
+    if row is None:
+        return None
+    return {
+        "id": row["id"],
+        "structured_intelligence_id": row["structured_intelligence_id"],
+        "project_id": row["project_id"],
+        "confidence_score": row["confidence_score"],
+        "reason_for_review": row["reason_for_review"],
+        "entities": _deserialize(row["entities_json"], []),
+        "actions": _deserialize(row["actions_json"], []),
+        "metadata": _deserialize(row["metadata_json"], {}),
+        "status": row["status"],
+        "assigned_to": row["assigned_to"],
+        "reviewer_note": row["reviewer_note"],
+        "created_at": row["created_at"],
+        "updated_at": row["updated_at"],
+        "resolved_at": row["resolved_at"],
+    }
+
+
+def update_review_item(
+    review_id: str,
+    status: str,
+    assigned_to: str | None = None,
+    reviewer_note: str | None = None,
+) -> None:
+    resolved_at = _utc_now() if status in {"approved", "rejected"} else None
+    with connection() as conn:
+        conn.execute(
+            """
+            UPDATE review_queue
+            SET status=?, assigned_to=?, reviewer_note=?, resolved_at=?, updated_at=?
+            WHERE id=?
+            """,
+            (status, assigned_to, reviewer_note, resolved_at, _utc_now(), review_id),
+        )
+
+
+def list_review_queue(
+    project_id: str | None = None,
+    status: str | None = None,
+    limit: int = 50,
+) -> list[dict[str, Any]]:
+    with connection() as conn:
+        query = "SELECT * FROM review_queue WHERE 1=1"
+        params: list[Any] = []
+        if project_id:
+            query += " AND project_id=?"
+            params.append(project_id)
+        if status:
+            query += " AND status=?"
+            params.append(status)
+        query += " ORDER BY created_at DESC LIMIT ?"
+        params.append(limit)
+        rows = conn.execute(query, params).fetchall()
+    return [
+        {
+            "id": row["id"],
+            "structured_intelligence_id": row["structured_intelligence_id"],
+            "project_id": row["project_id"],
+            "confidence_score": row["confidence_score"],
+            "reason_for_review": row["reason_for_review"],
+            "entities": _deserialize(row["entities_json"], []),
+            "actions": _deserialize(row["actions_json"], []),
+            "metadata": _deserialize(row["metadata_json"], {}),
+            "status": row["status"],
+            "assigned_to": row["assigned_to"],
+            "reviewer_note": row["reviewer_note"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+            "resolved_at": row["resolved_at"],
+        }
+        for row in rows
+    ]
+
+
+def save_stt_metric(
+    transcript_id: str,
+    provider: str,
+    model: str,
+    latency_ms: float,
+    audio_duration_ms: float | None = None,
+    transcript_length: int | None = None,
+    error: str | None = None,
+    metadata: dict[str, Any] | None = None,
+) -> None:
+    with connection() as conn:
+        conn.execute(
+            """
+            INSERT INTO stt_metrics (
+                transcript_id, provider, model, latency_ms, audio_duration_ms,
+                transcript_length, error, metadata_json, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                transcript_id,
+                provider,
+                model,
+                latency_ms,
+                audio_duration_ms,
+                transcript_length,
+                error,
+                _serialize(metadata or {}),
+                _utc_now(),
+            ),
+        )
+
+
+def get_stt_metrics(
+    provider: str | None = None,
+    limit: int = 100,
+) -> list[dict[str, Any]]:
+    with connection() as conn:
+        query = "SELECT * FROM stt_metrics WHERE 1=1"
+        params: list[Any] = []
+        if provider:
+            query += " AND provider=?"
+            params.append(provider)
+        query += " ORDER BY id DESC LIMIT ?"
+        params.append(limit)
+        rows = conn.execute(query, params).fetchall()
+    return [
+        {
+            "id": row["id"],
+            "transcript_id": row["transcript_id"],
+            "provider": row["provider"],
+            "model": row["model"],
+            "latency_ms": row["latency_ms"],
+            "audio_duration_ms": row["audio_duration_ms"],
+            "transcript_length": row["transcript_length"],
+            "error": row["error"],
+            "metadata": _deserialize(row["metadata_json"], {}),
+            "created_at": row["created_at"],
+        }
+        for row in rows
+    ]
+
+
+def save_stt_shadow_metric(
+    transcript_id: str,
+    project_id: str,
+    fireflies_transcript: str,
+    whisper_transcript: str,
+    similarity_score: float,
+    metadata: dict[str, Any] | None = None,
+) -> None:
+    with connection() as conn:
+        conn.execute(
+            """
+            INSERT INTO stt_shadow_metrics (
+                transcript_id, project_id, fireflies_transcript, whisper_transcript,
+                similarity_score, metadata_json, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                transcript_id,
+                project_id,
+                fireflies_transcript,
+                whisper_transcript,
+                similarity_score,
+                _serialize(metadata or {}),
+                _utc_now(),
+            ),
+        )
+
+
+def get_stt_shadow_metrics(
+    project_id: str | None = None,
+    limit: int = 100,
+) -> list[dict[str, Any]]:
+    with connection() as conn:
+        query = "SELECT * FROM stt_shadow_metrics WHERE 1=1"
+        params: list[Any] = []
+        if project_id:
+            query += " AND project_id=?"
+            params.append(project_id)
+        query += " ORDER BY id DESC LIMIT ?"
+        params.append(limit)
+        rows = conn.execute(query, params).fetchall()
+    return [
+        {
+            "id": row["id"],
+            "transcript_id": row["transcript_id"],
+            "project_id": row["project_id"],
+            "fireflies_transcript": row["fireflies_transcript"],
+            "whisper_transcript": row["whisper_transcript"],
+            "similarity_score": row["similarity_score"],
+            "metadata": _deserialize(row["metadata_json"], {}),
+            "created_at": row["created_at"],
+        }
+        for row in rows
+    ]

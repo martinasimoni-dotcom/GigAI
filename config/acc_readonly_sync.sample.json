@@ -1,0 +1,21 @@
+{
+  "defaultViewName": "Level 2",
+  "coordinateUnits": "feet",
+  "coordinateOffset": {
+    "x": 0.0,
+    "y": 0.0,
+    "z": 0.0
+  },
+  "searchToleranceFeet": 12.0,
+  "bubblePaddingFeet": 2.0,
+  "defaultBubbleWidthFeet": 8.0,
+  "defaultBubbleHeightFeet": 4.0,
+  "viewMappings": {
+    "Level 2": "Level 2",
+    "Sheet A201": "Level 2",
+    "Section AA": "Section 1"
+  },
+  "elementMappings": {
+    "ext-window-02": "45002"
+  }
+}

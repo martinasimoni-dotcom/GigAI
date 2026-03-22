@@ -19,7 +19,8 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-  "pytest>=8.3.0"
+  "pytest>=8.3.0",
+  "httpx>=0.27.0"
 ]
 fireflies = [
   "requests>=2.31.0",
@@ -32,6 +33,8 @@ rafik-llm = [
 [project.scripts]
 gigai-api = "gigai.main:run"
 gigai-trash = "gigai.trash_manager:main"
+gigai-acc-readonly-sync = "gigai.acc_readonly_sync.cli:main"
+gigai-acc-rfi-automation = "gigai.acc_rfi_automation.cli:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

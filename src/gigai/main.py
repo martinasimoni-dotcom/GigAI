@@ -529,22 +529,38 @@ def simulate_end_to_end(payload: dict) -> dict:
 def revit_revision_marked(payload: dict) -> dict:
     revision_id = str(payload.get("revision_id") or "").strip() or "rev_unknown"
     meeting_id = str(payload.get("meeting_id") or "").strip() or "meeting_unknown"
+    meeting_title = str(payload.get("meeting_title") or "").strip() or "Revit Revision"
     project_id = str(payload.get("project_id") or payload.get("projectId") or "").strip() or "project_alpha"
     space_name = str(payload.get("space_name") or payload.get("space") or "").strip() or "Unknown Space"
     element_type = str(payload.get("element_type") or payload.get("element") or "").strip() or "element"
     action = str(payload.get("action") or "REVISION_MARKED").strip()
     comment_text = str(payload.get("comment_text") or payload.get("comment") or "").strip()
     applied_by = str(payload.get("applied_by") or "Revit User").strip()
+    applied_at = str(payload.get("applied_at") or "").strip() or time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    priority = str(payload.get("priority") or "").strip().upper() or "HIGH"
+    view_name = str(payload.get("view_name") or "").strip()
+    view_type = str(payload.get("view_type") or "").strip()
+    cloud_id = str(payload.get("cloud_id") or revision_id).strip()
+    note_id = str(payload.get("note_id") or "").strip()
 
     event_payload = {
         "revision_id": revision_id,
         "meeting_id": meeting_id,
+        "meeting_title": meeting_title,
         "project_id": project_id,
         "space_name": space_name,
         "element_type": element_type,
         "action": action,
         "comment_text": comment_text,
+        "remarks": comment_text,
         "applied_by": applied_by,
+        "applied_at": applied_at,
+        "priority": priority,
+        "view_name": view_name,
+        "view_type": view_type,
+        "cloud_id": cloud_id,
+        "note_id": note_id,
+        "status": "applied",
     }
     publish_bus_event("revit.revision_marked", event_payload)
 

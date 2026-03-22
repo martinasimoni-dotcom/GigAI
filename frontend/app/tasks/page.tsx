@@ -6,6 +6,7 @@ Drag-and-drop task management interface
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { resolveApiBaseUrl } from '@/lib/api';
 
 export default function TaskBoard() {
   const [tasks, setTasks] = useState({ pending: [], in_progress: [], completed: [] });
@@ -13,7 +14,7 @@ export default function TaskBoard() {
   const [draggedTask, setDraggedTask] = useState(null);
 
   useEffect(() => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const apiUrl = resolveApiBaseUrl();
 
     // Fetch tasks and organize by status
     fetch(`${apiUrl}/api/tasks`)
@@ -44,7 +45,7 @@ export default function TaskBoard() {
   const handleDrop = async (newStatus) => {
     if (!draggedTask) return;
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const apiUrl = resolveApiBaseUrl();
 
     // Update task status on backend
     await fetch(`${apiUrl}/api/tasks/${draggedTask.task_id}/status`, {

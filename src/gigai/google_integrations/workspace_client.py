@@ -30,7 +30,13 @@ class GoogleWorkspaceClient:
         self._gmail_service = None
         self._calendar_service = None
 
-    def send_email(self, to_emails: list[str], subject: str, body: str) -> GoogleActionResult:
+    def send_email(
+        self,
+        to_emails: list[str],
+        subject: str,
+        body: str,
+        cc_emails: list[str] | None = None,
+    ) -> GoogleActionResult:
         if not self._config.enabled:
             return GoogleActionResult("disabled", {})
 
@@ -45,6 +51,9 @@ class GoogleWorkspaceClient:
         message = MIMEText(body, "plain")
         message["To"] = ", ".join(to_emails)
         message["Subject"] = subject
+        cc_list = [email for email in (cc_emails or []) if email]
+        if cc_list:
+            message["Cc"] = ", ".join(cc_list)
 
         raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
         sent = service.users().messages().send(
@@ -58,6 +67,7 @@ class GoogleWorkspaceClient:
                 "message_id": str(sent.get("id") or ""),
                 "thread_id": str(sent.get("threadId") or ""),
                 "to": to_emails,
+                "cc": cc_list,
             },
         )
 

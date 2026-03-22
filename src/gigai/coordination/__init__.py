@@ -5,6 +5,9 @@ from gigai.coordination.models import (
     CoordinationRequest,
 )
 from gigai.coordination.realtime import (
+    LiveTranscriptBlock,
+    LiveTranscriptViewResponse,
+    RealTimeSTTService,
     RealTimeVoiceIngestService,
     VoiceStreamChunkRequest,
     VoiceStreamFinalizeRequest,
@@ -19,6 +22,9 @@ __all__ = [
     "CoordinationPlan",
     "CoordinationPlanResponse",
     "CoordinationRequest",
+    "LiveTranscriptBlock",
+    "LiveTranscriptViewResponse",
+    "RealTimeSTTService",
     "RealTimeVoiceIngestService",
     "VoiceStreamChunkRequest",
     "VoiceStreamFinalizeRequest",

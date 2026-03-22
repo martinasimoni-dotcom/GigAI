@@ -1,8 +1,8 @@
 @echo off
 REM GigAI Backend Server Starter
-REM This script starts the FastAPI backend server
+REM This script starts both dashboard and orchestrator APIs
 
-title GigAI Backend Server (http://localhost:8000)
+title GigAI Backend Services
 cls
 
 echo.
@@ -10,11 +10,12 @@ echo ╔════════════════════════
 echo ║                     GIGAI BACKEND SERVER - STARTING                        ║
 echo ╚════════════════════════════════════════════════════════════════════════════╝
 echo.
-echo API Server URL:  http://localhost:8000
-echo API Docs:        http://localhost:8000/docs
-echo API Health:      http://localhost:8000/health
+echo Dashboard API:    http://localhost:8010
+echo Dashboard Docs:   http://localhost:8010/docs
+echo Orchestrator API: http://localhost:8011
+echo Orchestrator Docs:http://localhost:8011/docs
 echo.
-echo Starting FastAPI server...
+echo Starting backend services...
 echo.
 
 cd /d "%~dp0"
@@ -22,7 +23,7 @@ cd /d "%~dp0"
 set "PYTHON_EXE=%~dp0.venv\Scripts\python.exe"
 if not exist "%PYTHON_EXE%" set "PYTHON_EXE=python"
 
-"%PYTHON_EXE%" -m uvicorn gigai.dashboard.dashboard_api:create_dashboard_app --factory --app-dir src --reload --host 127.0.0.1 --port 8000
+"%PYTHON_EXE%" ".\RUN_GIGAI.py" --mode backend --reload --stop-existing
 
 echo.
 echo Server stopped. Press any key to close.

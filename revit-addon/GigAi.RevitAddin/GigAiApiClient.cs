@@ -626,5 +626,26 @@ namespace GigAi.RevitAddin
 
         [JsonProperty("applied_by")]
         public string AppliedBy { get; set; } = Environment.UserName;
+
+        [JsonProperty("applied_at")]
+        public string AppliedAt { get; set; } = DateTime.UtcNow.ToString("o");
+
+        [JsonProperty("meeting_title")]
+        public string MeetingTitle { get; set; } = "Revit Revision";
+
+        [JsonProperty("view_name")]
+        public string ViewName { get; set; } = string.Empty;
+
+        [JsonProperty("view_type")]
+        public string ViewType { get; set; } = string.Empty;
+
+        [JsonProperty("cloud_id")]
+        public string CloudId { get; set; } = string.Empty;
+
+        [JsonProperty("note_id")]
+        public string NoteId { get; set; } = string.Empty;
+
+        [JsonProperty("priority")]
+        public string Priority { get; set; } = "HIGH";
     }
 }

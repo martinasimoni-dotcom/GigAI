@@ -9,8 +9,9 @@ from gigai.dashboard.mock_data import (
     build_dashboard_update,
     build_export_response,
     build_webhook_response,
+    normalize_revision_event,
 )
-from gigai.storage import append_audit_log
+from gigai.storage import append_audit_log, list_bus_events, list_bus_events_since
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["integrations", "realtime"])
@@ -47,10 +48,23 @@ async def webhook_meeting_ended(payload: dict):
 async def websocket_dashboard(websocket: WebSocket, session_id: str):
     await websocket.accept()
     logger.info("WebSocket connected: %s", session_id)
+    latest_events = list_bus_events(limit=1)
+    last_seen_id = int(latest_events[0]["id"]) if latest_events else 0
     try:
         while True:
-            await asyncio.sleep(5)
-            await websocket.send_json(build_dashboard_update())
+            await asyncio.sleep(1)
+            new_events = list_bus_events_since(last_seen_id, limit=50)
+            if not new_events:
+                await websocket.send_json(build_dashboard_update())
+                continue
+
+            for event in new_events:
+                last_seen_id = max(last_seen_id, int(event["id"]))
+                if event.get("topic") != "revit.revision_marked":
+                    continue
+
+                revision = normalize_revision_event(event)
+                await websocket.send_json(build_dashboard_update(latest_revision=revision))
     except Exception as ex:
         logger.error("WebSocket error for %s: %s", session_id, ex)
     finally:

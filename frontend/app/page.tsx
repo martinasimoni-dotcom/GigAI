@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import StatCard from '@/components/StatCard';
 import Card from '@/components/Card';
 import PieChart from '@/components/charts/PieChart';
+import { resolveApiBaseUrl } from '@/lib/api';
 
 export default function DashboardHome() {
   const [summary, setSummary] = useState({
@@ -77,7 +78,7 @@ export default function DashboardHome() {
   ]);
 
   useEffect(() => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const apiUrl = resolveApiBaseUrl();
 
     Promise.all([
       fetch(`${apiUrl}/api/dashboard/summary`).then((res) => res.json()).catch(() => summary),

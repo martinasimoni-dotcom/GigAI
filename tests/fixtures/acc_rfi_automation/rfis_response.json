@@ -1,0 +1,34 @@
+{
+  "results": [
+    {
+      "id": "RFI-101",
+      "subject": "Facade mullion clearance",
+      "question": "Confirm required mullion clearance at the slab edge.",
+      "status": "open",
+      "dueDate": "2026-03-30",
+      "createdBy": {
+        "displayName": "Coordinator A"
+      },
+      "assignedTo": [
+        {
+          "displayName": "architect.one@example.com"
+        }
+      ]
+    },
+    {
+      "id": "RFI-102",
+      "subject": "Door hardware",
+      "question": "Pending supplier confirmation.",
+      "status": "closed",
+      "dueDate": "2026-03-31",
+      "createdBy": {
+        "displayName": "Coordinator B"
+      },
+      "assignedTo": [
+        {
+          "displayName": "architect.two@example.com"
+        }
+      ]
+    }
+  ]
+}
