@@ -1,0 +1,16 @@
+{
+  "title": "Sea House Design Review — March 2026",
+  "meeting_id": "demo-001",
+  "participants": ["Marco", "Rafik", "Elena", "Tom"],
+  "transcript": "Marco: Good morning everyone. Let's start with the attic windows. We currently have PVC porthole windows specified, but after visiting the site last week I think we should upgrade to solid wood. The thermal performance will be much better and it fits the coastal aesthetic we're going for. Rafik: How many portholes are we talking about? Marco: There are 6 in the attic. Each one is about 45cm diameter. Elena: What's the cost difference? Marco: PVC is around €180 per unit installed. Wood would be €390 per unit. So roughly €2,340 more in total for the 6 units. But we save on long-term maintenance since wood lasts 40+ years on a sea-facing facade. Rafik: Makes sense. The client will appreciate the premium finish. Tom: Should we create an RFI for this? Marco: Yes, let's do it. We need the change reflected in the drawings before Thursday. Elena: I'll also need this for the budget reconciliation. So to confirm: we are changing all 6 attic porthole windows from PVC to solid teak wood, at an additional cost of €2,340, for improved durability and aesthetics. Rafik: Confirmed. Let's proceed.",
+  "expected_extraction": {
+    "location": "attic",
+    "material_from": "PVC",
+    "material_to": "solid teak wood",
+    "quantity": 6,
+    "elements": ["45cm diameter porthole windows"],
+    "cost_estimate": 2340,
+    "urgency": "high"
+  },
+  "expected_confidence": 0.89
+}
