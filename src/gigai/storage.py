@@ -768,7 +768,8 @@ def update_review_item(
         conn.execute(
             """
             UPDATE review_queue
-            SET status=?, assigned_to=?, reviewer_note=?, resolved_at=?, updated_at=?
+            SET status=?, assigned_to=COALESCE(?, assigned_to), reviewer_note=COALESCE(?, reviewer_note),
+                resolved_at=COALESCE(?, resolved_at), updated_at=?
             WHERE id=?
             """,
             (status, assigned_to, reviewer_note, resolved_at, _utc_now(), review_id),

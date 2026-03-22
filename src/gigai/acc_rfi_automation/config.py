@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import logging
 import os
+import sys
 from dataclasses import dataclass
 from pathlib import Path
+
+log = logging.getLogger(__name__)
 
 
 def _safe_int(value: str | None, default: int) -> int:
@@ -14,6 +18,32 @@ def _safe_int(value: str | None, default: int) -> int:
         return max(parsed, 1)
     except ValueError:
         return default
+
+
+def _resolve_config_root() -> Path:
+    """Resolve platform-appropriate config root with migration logic."""
+    configured_root = (os.getenv("GIGAI_ACC_RFI_ROOT") or "").strip()
+    if configured_root:
+        return Path(configured_root)
+
+    # Platform-specific defaults
+    if sys.platform == "win32" or os.name == "nt":
+        # Windows: use %LOCALAPPDATA%/GigAI/acc-rfi-automation
+        root = Path.home() / "AppData" / "Local" / "GigAI" / "acc-rfi-automation"
+        # Check for old XDG-style path on Windows and migrate if present
+        old_root = Path.home() / ".config" / "GigAI" / "acc-rfi-automation"
+        if old_root.exists() and not root.exists():
+            log.info(f"Migrating ACC RFI automation configuration from {old_root} to {root}")
+            try:
+                root.parent.mkdir(parents=True, exist_ok=True)
+                old_root.replace(root)
+            except Exception as ex:
+                log.warning(f"Failed to migrate old config directory: {ex}, using new path anyway")
+    else:
+        # Linux/macOS: use ~/.config/GigAI/acc-rfi-automation
+        root = Path.home() / ".config" / "GigAI" / "acc-rfi-automation"
+
+    return root
 
 
 @dataclass(slots=True)
@@ -40,11 +70,7 @@ class AccRfiAutomationConfig:
         rfis_input_path: str | Path | None = None,
         poll_interval_seconds: int = 300,
     ) -> "AccRfiAutomationConfig":
-        configured_root = (os.getenv("GIGAI_ACC_RFI_ROOT") or "").strip()
-        if configured_root:
-            root = Path(configured_root)
-        else:
-            root = Path.home() / ".config" / "GigAI" / "acc-rfi-automation"
+        root = _resolve_config_root()
         root.mkdir(parents=True, exist_ok=True)
         return cls(
             project_id=project_id,

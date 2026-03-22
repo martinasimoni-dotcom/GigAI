@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 
 from fastapi import APIRouter, HTTPException, WebSocket
 
@@ -15,6 +16,9 @@ from gigai.storage import append_audit_log, list_bus_events, list_bus_events_sin
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["integrations", "realtime"])
+
+# Heartbeat interval in seconds: only send keepalive updates when idle this long
+DASHBOARD_HEARTBEAT_INTERVAL = 30.0
 
 
 @router.get("/api/export/meeting/{meeting_id}/pdf")
@@ -57,29 +61,37 @@ async def websocket_dashboard(websocket: WebSocket, session_id: str):
             except (ValueError, TypeError):
                 logger.warning("Unable to parse event ID from latest event")
 
+        last_heartbeat = time.time()
+
         while True:
             await asyncio.sleep(1)
             new_events = list_bus_events_since(last_seen_id, limit=50)
             revision_marked_found = False
 
             for event in new_events:
+                # Attempt to parse event ID, but don't skip processing topic if ID fails
+                event_id = None
                 try:
                     event_id = int(event.get("id", 0))
                     last_seen_id = max(last_seen_id, event_id)
                 except (ValueError, TypeError):
                     logger.warning("Unable to parse event ID: %s", event.get("id"))
-                    continue
 
+                # Check topic regardless of whether ID was successfully parsed
                 if event.get("topic") != "revit.revision_marked":
                     continue
 
                 revision_marked_found = True
                 revision = normalize_revision_event(event)
                 await websocket.send_json(build_dashboard_update(latest_revision=revision))
+                last_heartbeat = time.time()
 
-            # Always send an update, even if no revision_marked events found
+            # Send heartbeat update only if idle for HEARTBEAT_INTERVAL and no events were processed
             if not revision_marked_found:
-                await websocket.send_json(build_dashboard_update())
+                now = time.time()
+                if now - last_heartbeat >= DASHBOARD_HEARTBEAT_INTERVAL:
+                    await websocket.send_json(build_dashboard_update())
+                    last_heartbeat = now
     except Exception as ex:
         logger.error("WebSocket error for %s: %s", session_id, ex)
     finally:
