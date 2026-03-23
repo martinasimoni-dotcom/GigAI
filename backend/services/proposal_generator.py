@@ -52,7 +52,7 @@ class ProposalGenerator:
             "id": proposal_id,
             "title": proposal_data.get(
                 "title",
-                f"Material Change: {extracted.get('material_from', '?')} → {extracted.get('material_to', '?')}",
+                f"RFI Response: {extracted.get('material_from', '?')} → {extracted.get('material_to', '?')}",
             ),
             "summary": proposal_data.get("summary", ""),
             "status": "pending",
@@ -64,6 +64,18 @@ class ProposalGenerator:
             "source_rfi_id": rfi_data.get("id"),
             "acc_project_id": rfi_data.get("projectId") or self.acc.project_id,
             "assigned_user_email": assigned_user_email,
+            # RFI response fields
+            "direct_answer":           proposal_data.get("direct_answer", ""),
+            "timeline_weeks":          proposal_data.get("timeline_weeks"),
+            "timeline_breakdown":      proposal_data.get("timeline_breakdown", {}),
+            "technical_specs":         proposal_data.get("technical_specs", {}),
+            # Revit fields — INTERNAL, stored for plugin only, not shown in web dashboard
+            "revit_family_primary":     proposal_data.get("revit_family_primary", ""),
+            "revit_family_alternative": proposal_data.get("revit_family_alternative", ""),
+            "revit_type_parameters":    proposal_data.get("revit_type_parameters", {}),
+            # backwards-compat alias
+            "revit_family_suggestion":  proposal_data.get("revit_family_primary", ""),
+            "next_steps":              proposal_data.get("next_steps", []),
         }
 
     # -------------------------------------------------------------------------

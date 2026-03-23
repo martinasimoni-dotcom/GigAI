@@ -1,0 +1,62 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\marts\\AppData\\Local\\GitHubDesktop\\app-3.5.4\\Research-studio_GigAI\\revit-plugin\\GigAi.RevitPlugin\\GigAi.RevitPlugin.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\marts\\AppData\\Local\\GitHubDesktop\\app-3.5.4\\Research-studio_GigAI\\revit-plugin\\GigAi.RevitPlugin\\GigAi.RevitPlugin.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\marts\\AppData\\Local\\GitHubDesktop\\app-3.5.4\\Research-studio_GigAI\\revit-plugin\\GigAi.RevitPlugin\\GigAi.RevitPlugin.csproj",
+        "projectName": "GigAi.RevitPlugin",
+        "projectPath": "C:\\Users\\marts\\AppData\\Local\\GitHubDesktop\\app-3.5.4\\Research-studio_GigAI\\revit-plugin\\GigAi.RevitPlugin\\GigAi.RevitPlugin.csproj",
+        "packagesPath": "C:\\Users\\marts\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\marts\\AppData\\Local\\GitHubDesktop\\app-3.5.4\\Research-studio_GigAI\\revit-plugin\\GigAi.RevitPlugin\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\marts\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net48"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net48": {
+            "targetAlias": "net48",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net48": {
+          "targetAlias": "net48",
+          "dependencies": {
+            "Microsoft.NETFramework.ReferenceAssemblies": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[1.0.3, )",
+              "autoReferenced": true
+            },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.3, )"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.419\\RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Dashboard from './pages/Dashboard'
+import SplashScreen from './components/SplashScreen'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -12,9 +14,14 @@ const queryClient = new QueryClient({
 })
 
 export default function App() {
+  const [showSplash, setShowSplash] = useState(true)
+
   return (
     <QueryClientProvider client={queryClient}>
-      <Dashboard />
+      {showSplash
+        ? <SplashScreen onEnter={() => setShowSplash(false)} />
+        : <Dashboard />
+      }
     </QueryClientProvider>
   )
 }

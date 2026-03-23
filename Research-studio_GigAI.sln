@@ -1,0 +1,29 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "revit-plugin", "revit-plugin", "{A9A558E8-E5AA-BFAB-232A-370D5627FBA1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GigAi.RevitPlugin", "revit-plugin\GigAi.RevitPlugin\GigAi.RevitPlugin.csproj", "{AC8E20FA-9B6A-69B1-4488-AEBC9AB359ED}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AC8E20FA-9B6A-69B1-4488-AEBC9AB359ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC8E20FA-9B6A-69B1-4488-AEBC9AB359ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC8E20FA-9B6A-69B1-4488-AEBC9AB359ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC8E20FA-9B6A-69B1-4488-AEBC9AB359ED}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{AC8E20FA-9B6A-69B1-4488-AEBC9AB359ED} = {A9A558E8-E5AA-BFAB-232A-370D5627FBA1}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1542B6C9-61F0-448D-BE1A-7F82E6A42C80}
+	EndGlobalSection
+EndGlobal

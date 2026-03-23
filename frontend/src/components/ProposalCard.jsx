@@ -1,254 +1,263 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import {
-  FileText, Mail, CheckCircle, XCircle, Loader2,
-  ChevronDown, ChevronUp, AlertTriangle, Lightbulb,
-  Clock, MailCheck,
+  CheckCircle, XCircle, Loader2, ChevronRight,
+  X, AlertTriangle, Lightbulb, Clock, Euro, CalendarDays,
 } from 'lucide-react'
 import ConfidenceBadge from './ConfidenceBadge'
 import MaterialComparison from './MaterialComparison'
 import CostBreakdown from './CostBreakdown'
 
-export default function ProposalCard({
-  proposal,
-  onCreateRfi,
-  onSendEmail,
-  onApprove,
-  onReject,
-  isCreatingRfi,
-  isSendingEmail,
-  isApproving,
-  isRejecting,
-}) {
-  const [showRisks, setShowRisks] = useState(false)
-  const [showRejectInput, setShowRejectInput] = useState(false)
-  const [rejectReason, setRejectReason] = useState('')
+// ── Collapsed card row ─────────────────────────────────────────────────────────
+export default function ProposalCard({ proposal, onApprove, onReject, isApproving, isRejecting }) {
+  const [open, setOpen] = useState(false)
 
-  const pd = proposal.proposal_data || {}
-  const risks       = pd.risks || []
-  const justification = pd.justification || proposal.summary || ''
+  useEffect(() => {
+    if (!open) return
+    const handler = (e) => { if (e.key === 'Escape') setOpen(false) }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [open])
+
+  const pd             = proposal.proposal_data || {}
   const recommendation = pd.recommendation || 'review'
+  const timeAgo        = getTimeAgo(proposal.created_at)
+  const cost           = proposal.cost || 0
+  const timeline       = pd.timeline_weeks || proposal.timeline_weeks
 
-  const isAnyLoading = isCreatingRfi || isSendingEmail || isApproving || isRejecting
+  return (
+    <>
+      <article
+        className="proposal-card bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3 flex items-center gap-3 cursor-pointer animate-slide-up"
+        onClick={() => setOpen(true)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setOpen(true) }}
+        aria-label={`Open proposal: ${proposal.title}`}
+      >
+        {/* Left: title + meta */}
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-semibold text-gray-900 truncate leading-snug">
+            {proposal.title}
+          </h3>
+          <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+            {cost > 0 && (
+              <span className="flex items-center gap-0.5 text-xs text-gray-500">
+                <Euro className="w-3 h-3" />
+                {Number(cost).toLocaleString('en-EU')}
+              </span>
+            )}
+            {timeline > 0 && (
+              <span className="flex items-center gap-0.5 text-xs text-gray-500">
+                <CalendarDays className="w-3 h-3" />
+                {timeline} wks
+              </span>
+            )}
+            {timeAgo && (
+              <span className="flex items-center gap-0.5 text-xs text-gray-400">
+                <Clock className="w-3 h-3" />
+                {timeAgo}
+              </span>
+            )}
+          </div>
+        </div>
 
-  const timeAgo = getTimeAgo(proposal.created_at)
+        {/* Right: badges + chevron */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <ConfidenceBadge confidence={proposal.confidence} />
+          <RecommendationPill recommendation={recommendation} />
+          <ChevronRight className="w-4 h-4 text-gray-300" />
+        </div>
+      </article>
 
-  function handleRejectClick() {
+      {/* Modal portal */}
+      {open && createPortal(
+        <ProposalModal
+          proposal={proposal}
+          onClose={() => setOpen(false)}
+          onApprove={onApprove}
+          onReject={onReject}
+          isApproving={isApproving}
+          isRejecting={isRejecting}
+        />,
+        document.body
+      )}
+    </>
+  )
+}
+
+// ── Modal ──────────────────────────────────────────────────────────────────────
+function ProposalModal({ proposal, onClose, onApprove, onReject, isApproving, isRejecting }) {
+  const [showRejectInput, setShowRejectInput] = useState(false)
+  const [rejectReason, setRejectReason]       = useState('')
+
+  const pd           = proposal.proposal_data || {}
+  const risks        = pd.risks || []
+  const justification = pd.justification || proposal.summary || ''
+  const nextSteps    = pd.next_steps || proposal.next_steps || []
+  const directAnswer = pd.direct_answer || proposal.direct_answer || ''
+  const recommendation = pd.recommendation || 'review'
+  const isAnyLoading = isApproving || isRejecting
+
+  function handleReject() {
     if (!showRejectInput) { setShowRejectInput(true); return }
     onReject(rejectReason)
     setShowRejectInput(false)
     setRejectReason('')
+    onClose()
+  }
+
+  function handleApprove() {
+    onApprove()
+    onClose()
   }
 
   return (
-    <article className="proposal-card bg-white rounded-2xl shadow-card overflow-hidden animate-slide-up">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in"
+      style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-scale-in">
 
-      {/* ── Card header ───────────────────────────────────────────────────── */}
-      <div className="px-5 pt-4 pb-3 border-b border-gray-50">
-        <div className="flex items-start justify-between gap-3">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3 px-6 pt-5 pb-4 border-b border-gray-100 flex-shrink-0">
           <div className="flex-1 min-w-0">
-            <h3 className="text-base font-bold text-gray-900 leading-snug">{proposal.title}</h3>
-            <div className="flex items-center gap-2 mt-1">
-              {proposal.source_rfi_id && (
-                <span className="text-xs text-gray-400 font-mono bg-gray-50 px-1.5 py-0.5 rounded">
-                  RFI {proposal.source_rfi_id.slice(0, 8)}…
-                </span>
-              )}
-              {timeAgo && (
-                <span className="flex items-center gap-1 text-xs text-gray-400">
-                  <Clock className="w-3 h-3" />
-                  {timeAgo}
-                </span>
-              )}
-            </div>
+            <h2 className="text-base font-bold text-gray-900 leading-snug">{proposal.title}</h2>
+            {directAnswer && (
+              <p className="mt-1 text-sm font-semibold text-brand-600">◆ {directAnswer}</p>
+            )}
           </div>
-          <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-            <ConfidenceBadge confidence={proposal.confidence} />
-            <RecommendationPill recommendation={recommendation} />
-          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors flex-shrink-0"
+            aria-label="Close"
+            style={{ minHeight: 'unset', minWidth: 'unset' }}
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
-      </div>
 
-      {/* ── Card body ─────────────────────────────────────────────────────── */}
-      <div className="px-5 py-4 space-y-4">
+        {/* Scrollable body */}
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
 
-        {/* Material comparison */}
-        <MaterialComparison
-          proposalData={pd}
-          extracted={proposal.extracted}
-        />
+          <MaterialComparison proposalData={pd} extracted={proposal.extracted} />
 
-        {/* Cost breakdown */}
-        <CostBreakdown
-          proposalData={pd}
-          totalCost={proposal.cost}
-        />
+          <CostBreakdown proposalData={pd} totalCost={proposal.cost} />
 
-        {/* AI Analysis */}
-        {justification && (
-          <div className="flex gap-2.5 bg-brand-50 rounded-xl p-3">
-            <Lightbulb className="w-4 h-4 text-brand-500 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-brand-700 leading-relaxed">{justification}</p>
-          </div>
-        )}
+          {justification && (
+            <div>
+              <SectionLabel icon={<Lightbulb className="w-3.5 h-3.5" />} label="Justification" />
+              <p className="mt-1.5 text-sm text-gray-600 leading-relaxed">{justification}</p>
+            </div>
+          )}
 
-        {/* Risks (collapsible) */}
-        {risks.length > 0 && (
-          <div className="rounded-xl border border-warning-100 overflow-hidden">
-            <button
-              onClick={() => setShowRisks(!showRisks)}
-              className="w-full flex items-center justify-between px-3 py-2.5 bg-warning-50 text-warning-600 text-xs font-semibold"
-            >
-              <span className="flex items-center gap-1.5">
-                <AlertTriangle className="w-3.5 h-3.5" />
-                {risks.length} risk{risks.length > 1 ? 's' : ''} identified
-              </span>
-              {showRisks ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-            </button>
-            {showRisks && (
-              <ul className="px-3 py-2.5 space-y-1 bg-white animate-slide-down">
+          {risks.length > 0 && (
+            <div>
+              <SectionLabel icon={<AlertTriangle className="w-3.5 h-3.5" />} label="Risks" />
+              <ul className="mt-1.5 space-y-1">
                 {risks.map((r, i) => (
-                  <li key={i} className="flex gap-2 text-xs text-gray-600">
-                    <span className="text-warning-500 font-bold flex-shrink-0">•</span>
+                  <li key={i} className="flex gap-2 text-sm text-gray-600">
+                    <span className="text-warning-500 font-bold flex-shrink-0 mt-px">•</span>
                     {r}
                   </li>
                 ))}
               </ul>
-            )}
-          </div>
-        )}
+            </div>
+          )}
 
-        {/* Assignee + email status */}
-        {proposal.assigned_user_email && (
-          <div className="flex items-center gap-1.5">
-            {proposal.email_sent
-              ? <MailCheck className="w-3.5 h-3.5 text-success-500 flex-shrink-0" />
-              : <Mail className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
-            }
-            <p className={`text-xs ${proposal.email_sent ? 'text-success-600' : 'text-gray-400'}`}>
-              {proposal.email_sent ? 'Email sent to ' : 'Assigned to '}
-              <span className="font-medium">{proposal.assigned_user_email}</span>
-            </p>
-          </div>
-        )}
-      </div>
+          {nextSteps.length > 0 && (
+            <div>
+              <SectionLabel label="Next Steps" />
+              <ol className="mt-1.5 space-y-1 list-decimal list-inside">
+                {nextSteps.map((s, i) => (
+                  <li key={i} className="text-sm text-gray-600">{s}</li>
+                ))}
+              </ol>
+            </div>
+          )}
 
-      {/* ── Action buttons ────────────────────────────────────────────────── */}
-      <div className="px-5 pb-5 space-y-2.5">
-
-        {/* Row 1 */}
-        <div className="grid grid-cols-2 gap-2">
-          <ActionButton
-            icon={FileText}
-            label="Create RFI"
-            isLoading={isCreatingRfi}
-            disabled={isAnyLoading}
-            onClick={onCreateRfi}
-            variant="outline-brand"
-            tooltip="Create new RFI in ACC with proposal details"
-          />
-          <ActionButton
-            icon={proposal.email_sent ? MailCheck : Mail}
-            label={proposal.email_sent ? 'Resend Email' : 'Send Email'}
-            isLoading={isSendingEmail}
-            disabled={isAnyLoading || !proposal.assigned_user_email}
-            onClick={onSendEmail}
-            variant={proposal.email_sent ? 'outline-success' : 'outline-gray'}
-            tooltip={proposal.assigned_user_email ? (proposal.email_sent ? 'Resend proposal email' : 'Email assigned user') : 'No assignee email on this RFI'}
-          />
         </div>
 
-        {/* Reject reason input */}
-        {showRejectInput && (
-          <div className="space-y-2 animate-slide-down">
-            <input
-              type="text"
-              placeholder="Reason for rejection (optional)"
-              value={rejectReason}
-              onChange={e => setRejectReason(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleRejectClick()}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-danger-500/30 focus:border-danger-400 transition-all"
-              autoFocus
-            />
+        {/* Footer */}
+        <div className="px-6 pb-5 pt-4 border-t border-gray-100 flex-shrink-0 space-y-2.5">
+
+          {showRejectInput && (
+            <div className="flex gap-2 animate-slide-down">
+              <input
+                type="text"
+                placeholder="Reason for rejection (optional)"
+                value={rejectReason}
+                onChange={e => setRejectReason(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleReject()}
+                className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-danger-500/30 focus:border-danger-400 transition-all"
+                autoFocus
+              />
+              <button
+                onClick={() => { setShowRejectInput(false); setRejectReason('') }}
+                className="text-xs text-gray-400 hover:text-gray-600 px-2 transition-colors"
+                style={{ minHeight: 'unset', minWidth: 'unset' }}
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+
+          <div className="flex items-center gap-2">
+            <div className="flex-1">
+              <RecommendationPill recommendation={recommendation} />
+            </div>
             <button
-              onClick={() => { setShowRejectInput(false); setRejectReason('') }}
-              className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
-              style={{ minHeight: 'unset', minWidth: 'unset' }}
+              onClick={handleReject}
+              disabled={isAnyLoading}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-danger-200 text-danger-600 bg-danger-50 hover:bg-danger-100 text-sm font-semibold disabled:opacity-40 transition-colors"
             >
-              Cancel
+              {isRejecting
+                ? <Loader2 className="w-4 h-4 animate-spin" />
+                : <XCircle className="w-4 h-4" />
+              }
+              {showRejectInput ? 'Confirm' : 'Reject'}
+            </button>
+            <button
+              onClick={handleApprove}
+              disabled={isAnyLoading}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-brand-600 text-white hover:bg-brand-700 text-sm font-semibold disabled:opacity-40 transition-colors shadow-sm"
+            >
+              {isApproving
+                ? <Loader2 className="w-4 h-4 animate-spin" />
+                : <CheckCircle className="w-4 h-4" />
+              }
+              Accept
             </button>
           </div>
-        )}
 
-        {/* Row 2: Reject + Accept */}
-        <div className="grid grid-cols-5 gap-2">
-          <div className="col-span-2">
-            <ActionButton
-              icon={XCircle}
-              label={showRejectInput ? 'Confirm' : 'Reject'}
-              isLoading={isRejecting}
-              disabled={isAnyLoading}
-              onClick={handleRejectClick}
-              variant="outline-danger"
-              full
-            />
-          </div>
-          <div className="col-span-3">
-            <ActionButton
-              icon={CheckCircle}
-              label="Accept"
-              isLoading={isApproving}
-              disabled={isAnyLoading}
-              onClick={onApprove}
-              variant="solid-success"
-              full
-            />
-          </div>
         </div>
-
       </div>
-    </article>
+    </div>
   )
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
-
-function ActionButton({ icon: Icon, label, isLoading, disabled, onClick, variant, tooltip, full }) {
-  const base = `btn-press flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-40 disabled:pointer-events-none ${full ? 'w-full' : 'w-full'}`
-
-  const variants = {
-    'outline-brand':   'border border-brand-200 text-brand-600 bg-brand-50 hover:bg-brand-100 hover:border-brand-300 focus:ring-brand-300',
-    'outline-gray':    'border border-gray-200  text-gray-600  bg-gray-50  hover:bg-gray-100  focus:ring-gray-300',
-    'outline-success': 'border border-success-200 text-success-600 bg-success-50 hover:bg-success-100 hover:border-success-300 focus:ring-success-300',
-    'outline-danger':  'border border-danger-200 text-danger-600 bg-danger-50 hover:bg-danger-100 hover:border-danger-300 focus:ring-danger-300',
-    'solid-success':   'bg-success-500 text-white hover:bg-success-600 active:bg-success-700 shadow-sm focus:ring-success-300',
-  }
-
+// ── Shared sub-components ──────────────────────────────────────────────────────
+function SectionLabel({ icon, label }) {
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled || isLoading}
-      title={tooltip}
-      aria-label={tooltip || label}
-      className={`${base} ${variants[variant]}`}
-    >
-      {isLoading
-        ? <Loader2 className="w-4 h-4 animate-spin" />
-        : <Icon className="w-4 h-4 flex-shrink-0" />
-      }
-      <span>{label}</span>
-    </button>
+    <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+      {icon}
+      {label}
+    </div>
   )
 }
 
 function RecommendationPill({ recommendation }) {
   const map = {
-    approve: { label: 'Approve',  cls: 'bg-success-100 text-success-700' },
-    review:  { label: 'Review',   cls: 'bg-warning-100 text-warning-700' },
-    reject:  { label: 'Reject',   cls: 'bg-danger-100  text-danger-700'  },
+    approve:                 { label: 'Approve'  },
+    approve_with_conditions: { label: 'Approve*' },
+    review_required:         { label: 'Review'   },
+    review:                  { label: 'Review'   },
+    reject:                  { label: 'Reject'   },
   }
-  const { label, cls } = map[recommendation] ?? map.review
+  const label = map[recommendation]?.label ?? 'Review'
   return (
-    <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${cls}`}>
+    <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
       AI: {label}
     </span>
   )
@@ -256,12 +265,12 @@ function RecommendationPill({ recommendation }) {
 
 function getTimeAgo(dateStr) {
   if (!dateStr) return ''
-  const diff = Date.now() - new Date(dateStr).getTime()
+  const diff  = Date.now() - new Date(dateStr).getTime()
   const mins  = Math.floor(diff / 60000)
   const hours = Math.floor(diff / 3600000)
   const days  = Math.floor(diff / 86400000)
-  if (mins < 1)  return 'just now'
-  if (mins < 60) return `${mins}m ago`
+  if (mins  <  1) return 'just now'
+  if (mins  < 60) return `${mins}m ago`
   if (hours < 24) return `${hours}h ago`
   return `${days}d ago`
 }

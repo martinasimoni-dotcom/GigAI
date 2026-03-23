@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+
+  <!-- External Application: creates the GigAI ribbon tab -->
+  <AddIn Type="Application">
+    <Name>GigAI</Name>
+    <Assembly>GigAi.RevitPlugin.dll</Assembly>
+    <FullClassName>GigAi.RevitPlugin.GigAiApp</FullClassName>
+    <ClientId>a1b2c3d4-e5f6-7890-abcd-ef1234567890</ClientId>
+    <VendorId>GigAI</VendorId>
+    <VendorDescription>GigAI RFI Locator Plugin</VendorDescription>
+  </AddIn>
+
+</RevitAddIns>
