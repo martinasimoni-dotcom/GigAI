@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "IKGXQNwaMWM=",
+  "dgSpecHash": "Z7z1Cqx3q1M=",
   "success": true,
-  "projectFilePath": "C:\\Users\\marts\\AppData\\Local\\GitHubDesktop\\app-3.5.4\\Research-studio_GigAI\\revit-plugin\\GigAi.RevitPlugin\\GigAi.RevitPlugin.csproj",
+  "projectFilePath": "C:\\Users\\marts\\Documents\\10_IAAC\\3_third term\\Research studio\\Research-studio_GigAI\\revit-plugin\\GigAi.RevitPlugin\\GigAi.RevitPlugin.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\marts\\.nuget\\packages\\microsoft.netframework.referenceassemblies\\1.0.3\\microsoft.netframework.referenceassemblies.1.0.3.nupkg.sha512",
     "C:\\Users\\marts\\.nuget\\packages\\microsoft.netframework.referenceassemblies.net48\\1.0.3\\microsoft.netframework.referenceassemblies.net48.1.0.3.nupkg.sha512",

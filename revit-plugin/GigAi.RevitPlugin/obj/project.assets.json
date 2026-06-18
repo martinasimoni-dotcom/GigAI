@@ -464,11 +464,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\marts\\AppData\\Local\\GitHubDesktop\\app-3.5.4\\Research-studio_GigAI\\revit-plugin\\GigAi.RevitPlugin\\GigAi.RevitPlugin.csproj",
+      "projectUniqueName": "C:\\Users\\marts\\Documents\\10_IAAC\\3_third term\\Research studio\\Research-studio_GigAI\\revit-plugin\\GigAi.RevitPlugin\\GigAi.RevitPlugin.csproj",
       "projectName": "GigAi.RevitPlugin",
-      "projectPath": "C:\\Users\\marts\\AppData\\Local\\GitHubDesktop\\app-3.5.4\\Research-studio_GigAI\\revit-plugin\\GigAi.RevitPlugin\\GigAi.RevitPlugin.csproj",
+      "projectPath": "C:\\Users\\marts\\Documents\\10_IAAC\\3_third term\\Research studio\\Research-studio_GigAI\\revit-plugin\\GigAi.RevitPlugin\\GigAi.RevitPlugin.csproj",
       "packagesPath": "C:\\Users\\marts\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\marts\\AppData\\Local\\GitHubDesktop\\app-3.5.4\\Research-studio_GigAI\\revit-plugin\\GigAi.RevitPlugin\\obj\\",
+      "outputPath": "C:\\Users\\marts\\Documents\\10_IAAC\\3_third term\\Research studio\\Research-studio_GigAI\\revit-plugin\\GigAi.RevitPlugin\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\marts\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -511,7 +511,7 @@
             "version": "[13.0.3, )"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.419\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.422\\RuntimeIdentifierGraph.json"
       }
     }
   }
