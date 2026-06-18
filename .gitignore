@@ -10,3 +10,9 @@ service-account.json
 *.log
 pgdata/
 generate_acc_token.py
+
+# C# build artifacts
+bin/
+obj/
+*.dll
+*.pdb

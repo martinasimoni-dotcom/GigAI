@@ -223,8 +223,8 @@ python scripts/run_demo.py
 | Name | Contributions |
 |---|---|
 | **Martina Simoni** | Backend architecture, ACC integration, Claude AI pipeline, Revit plugin, database design |
-| **Sumit Sudhir Shingne** | Frontend development, dashboard UX, React components, PWA configuration |
-| **Rafik El Khoury** | Research, user research (15 PM surveys), system design, demo scenario |
+| **Sumit Sudhir Shingne** | Research, dashboard UX, |
+| **Rafik El Khoury** | Research, user research (15 PM surveys), demo scenario |
 
 ---
 
