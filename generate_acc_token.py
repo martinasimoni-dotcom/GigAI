@@ -7,6 +7,7 @@ Run: python generate_acc_token.py
 3. Exchanges code for access token
 4. Prints: ACC_ACCESS_TOKEN=<token>
 """
+import os
 import webbrowser
 import urllib.parse
 import base64
@@ -14,8 +15,8 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from threading import Thread
 import httpx
 
-CLIENT_ID = "AZcDrVq55RD612cfEi50IEZWKp4Mv0xfmgiVoH2GpiBTlMSJ"
-CLIENT_SECRET = "kgB7w7t72XO4cwvQ0RAiiOsNEZBohELftGCETRMVm7JlESffVejGAGYbKcM8K5aZ"
+CLIENT_ID = os.getenv("ACC_CLIENT_ID")
+CLIENT_SECRET = os.getenv("ACC_CLIENT_SECRET")
 REDIRECT_URI = "http://localhost:8080/callback"
 SCOPES = "data:read data:write account:read"
 

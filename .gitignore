@@ -9,3 +9,4 @@ dist/
 service-account.json
 *.log
 pgdata/
+generate_acc_token.py
